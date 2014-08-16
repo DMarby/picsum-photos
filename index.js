@@ -213,7 +213,6 @@ app.get('/g/:width/:height', function (req, res, next) {
     if (req.query.image) {
       findMatchingImage(req.query.image, function (err, matchingImage) {
         if (err) {
-          console.log(err);
           return displayError(res, 400, 'Invalid image id');
         }
         filePath = matchingImage;
@@ -224,6 +223,7 @@ app.get('/g/:width/:height', function (req, res, next) {
 
     getProcessedGrayImage(req.params.width, req.params.height, filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
       if (err) {
+        console.log(err);
         return displayError(res, 500, 'Something went wrong');
       }
       res.sendFile(imagePath, { root: '.' });
