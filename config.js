@@ -1,5 +1,5 @@
 module.exports = exports = {
-	folder_path: '../unsplash-downloader/photos',
+	folder_path: '../photos',
 	max_height: 5000,
 	max_width: 5000
 }
