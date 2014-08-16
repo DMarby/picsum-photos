@@ -141,8 +141,6 @@ var imageScan = function () {
           return console.log(err);
         }
 
-        console.log(filename);
-
         result.filename = filename;
         result.id = highestImageId++;
         images.push(result);
@@ -195,6 +193,7 @@ app.get('/:width/:height', function (req, res, next) {
 
     getProcessedImage(req.params.width, req.params.height, filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
       if (err) {
+        console.log(err);
         return displayError(res, 500, 'Something went wrong');
       }
       res.sendFile(imagePath, { root: '.' });
@@ -212,6 +211,7 @@ app.get('/g/:width/:height', function (req, res, next) {
     if (req.query.image) {
       findMatchingImage(req.query.image, function (err, matchingImage) {
         if (err) {
+          console.log(err);
           return displayError(res, 400, 'Invalid image id');
         }
         filePath = matchingImage;
