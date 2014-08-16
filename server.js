@@ -200,6 +200,7 @@ module.exports = function (callback) {
 
       getProcessedImage(req.params.width, req.params.height, filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
         if (err) {
+          console.log(filePath);
           console.log(err);
           return displayError(res, 500, 'Something went wrong');
         }
@@ -228,6 +229,7 @@ module.exports = function (callback) {
 
       getProcessedGrayImage(req.params.width, req.params.height, filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
         if (err) {
+          console.log(filePath);
           console.log(err);
           return displayError(res, 500, 'Something went wrong');
         }
