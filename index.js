@@ -20,6 +20,8 @@ if (images.length != 0) {
   highestImageId = images.length;
 }
 
+fs.mkdir(config.cache_folder_path, function(e) {});
+
 var checkParameters = function (params, callback) {
   if (!params.width || !params.height || isNaN(parseInt(params.width)) || isNaN(parseInt(params.height))) {
     return callback(true, 400, 'Invalid arguments');
