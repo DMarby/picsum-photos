@@ -44,11 +44,11 @@ var findMatchingImage = function (id, callback) {
 }
 
 var getDestination = function (width, height, filePath, prefix) {
-  return 'cache/' + prefix + path.basename(filePath, path.extname(filePath)) + '-' + width + 'x' + height + path.extname(filePath);
+  return 'cache/' + prefix + path.basename(filePath, path.extname(filePath)) + '-' + width + 'x' + height + path.extname(filePath).toLowerCase();
 }
 
 var getShortDestination = function (width, height, filePath, prefix) {
-  return 'cache/' + prefix + width + '^' + height + path.extname(filePath);
+  return 'cache/' + prefix + width + '^' + height + path.extname(filePath).toLowerCase();
 }
 
 var getAndCheckDestination = function (width, height, filePath, prefix, shortName, callback) {
