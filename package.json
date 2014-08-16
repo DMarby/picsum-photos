@@ -1,0 +1,21 @@
+{
+  "name": "unsplash-it",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DMarby/unsplash-it.git"
+  },
+  "author": "David Marby <david@dmarby.se> http://dmarby.se",
+  "dependencies": {
+    "gm": "^1.16.0",
+    "filequeue": "^0.5.0",
+    "imagesize": "^1.0.0",
+    "express": "^4.8.2",
+    "sharp": "^0.5.2"
+  }
+}

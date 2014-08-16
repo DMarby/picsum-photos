@@ -1,0 +1,250 @@
+<html>
+<head>
+  <link href='http://fonts.googleapis.com/css?family=Lato:100,300,400,500,600,700' rel='stylesheet' type='text/css'>
+  <style>
+    * { 
+      text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; box-sizing: border-box; 
+    }
+
+    body {
+      font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    a {
+      font-family: "Lato","Helvetica Neue",Helvetica,Arial,sans-serif;
+      font-weight: 700;
+    }
+
+    .intro-header {
+      text-align: center;
+      color: #f8f8f8;
+      background: #000;
+      background-size: cover;
+      font-family: Lato;
+    }
+
+    .overlay {
+      padding-top: 100px;
+      padding-bottom: 100px;
+      background: rgba(0,0,0,0.6);
+    }
+
+    .intro-message h1 {
+      font-family: Lato;
+      font-weight: 300;
+    }
+
+    .intro-message h3 {
+      font-family: Lato;
+      color: hsla(0, 100%, 100%, 0.6);
+    }
+
+    .intro-message h3 a {
+      color: rgba(255,255,255,0.8);
+    }
+
+    .content-section-right {
+      padding: 50px 0;
+      background: hsl(211, 20%, 97%);
+    }
+
+    .content-section-left {
+      padding: 50px 0;
+      border-top: 1px solid hsl(211, 20%, 91%);
+      border-bottom: 1px solid hsl(211, 20%, 91%);
+    }
+
+    pre {
+      background-color: hsl(211, 20%, 96%) !important;
+      border: 1px solid hsl(211, 20%, 91%) !important;
+      border-radius: 4px !important;
+      box-shadow: inset 0 1px 2px hsl(211, 20%, 94%) !important;
+    }
+
+    footer {
+      text-align: center;
+      color: hsla(0, 100%, 100%, 0.6);
+      background: #000;
+      background-size: cover;
+      font-family: Lato;
+    }
+
+    footer a, footer a:hover {
+      color: rgba(255,255,255,0.8); 
+    }
+
+    .footer-overlay {
+      padding: 50px 0;
+      background: rgba(0,0,0,0.6);
+    }
+
+  </style>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      function setupRandomImage (element) {
+        var $element = $(element);
+        var width = $element.width(); 
+        var height = $element.outerHeight();
+        var src = 'http://unsplash.it/' + width + '/' + height + '?random&element=' + $element.prop('tagName');
+
+        $element.css('background-image', 'url('+src+')');
+      }
+
+      setupRandomImage('.intro-header');
+      setupRandomImage('footer');
+
+      setInterval(function () {
+        var $element = $('.random-image')
+        $element.attr('src', 'http://unsplash.it/458/354?random&time=' + (+new Date()));
+      }, 1000 * 5)
+    });
+  </script>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-53898108-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+</head>
+<body>
+  <!-- Header -->
+  <div class="intro-header">
+    <div class="overlay">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="intro-message">
+              <h1>Unsplash It</h1>
+              <h3>Beautiful placeholders using images from <a href="http://unsplash.com">unsplash</a></h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.intro-header -->
+
+  <!-- Page Content -->
+
+  <div class="content-section-right">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-5 col-sm-6">
+          <div class="clearfix"></div>
+          <h2 class="section-heading">Basic Usage</h2>
+          <p class="lead">Just put your image size (width &amp; height) after our URL and you'll get a placeholder.</p>
+          <pre><code>http://unsplash.it/200/300</code></pre>
+        </div>
+        <div class="col-lg-5 col-lg-offset-2 col-sm-6">
+          <img class="img-responsive" src="http://unsplash.it/458/354" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section-left">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-5 col-lg-offset-1 col-sm-push-6  col-sm-6">
+          <div class="clearfix"></div>
+          <h2 class="section-heading">Random image</h2>
+          <p class="lead">Get a random image by appending <code>?random</code> to the end of the url.</p>
+          <pre><code>http://unsplash.it/200/300/?random</code></pre>
+        </div>
+        <div class="col-lg-5 col-sm-pull-6  col-sm-6">
+          <img class="img-responsive random-image" src="http://unsplash.it/458/354?random" alt="">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="content-section-right">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-5 col-sm-6">
+          <div class="clearfix"></div>
+          <h2 class="section-heading">Grayscale</h2>
+          <p class="lead">Use the <code>/g/</code> path to greyscale the image.</p>
+          <pre><code>http://unsplash.it/g/200/300</code></pre>
+        </div>
+        <div class="col-lg-5 col-lg-offset-2 col-sm-6">
+          <img class="img-responsive" src="http://unsplash.it/g/458/354" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section-left">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-5 col-lg-offset-1 col-sm-push-6  col-sm-6">
+          <div class="clearfix"></div>
+          <h2 class="section-heading">List images</h2>
+          <p class="lead">Get a list of images by using the endpoint <code>/list</code></p>
+          <pre><code>http://unsplash.it/list</code></pre>
+        </div>
+        <div class="col-lg-5 col-sm-pull-6  col-sm-6">
+          <pre><code>[
+    {
+        "format": "jpeg",
+        "width": 2500,
+        "height": 1667,
+        "filename": "01.jpg",
+        "id": 0
+    },
+    {
+        "format": "jpeg",
+        "width": 2500,
+        "height": 1667,
+        "filename": "02.jpg",
+        "id": 1
+    }
+]       </code></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content-section-right">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-5 col-sm-6">
+        <div class="clearfix"></div>
+        <h2 class="section-heading">Specific Image</h2>
+        <p class="lead">Get a specific image by appending <code>?image</code> to the end of the url</p>
+        <pre><code>http://unsplash.it/200/300?image=0</code></pre>
+      </div>
+      <div class="col-lg-5 col-lg-offset-2 col-sm-6">
+        <img class="img-responsive" src="http://unsplash.it/458/354?image=0" alt="">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-overlay">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <p>Created by <a href="http://dmarby.se">David Marby</a></p>
+          <p><a href="http://github.com/DMarby/unsplash-it">Source</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
