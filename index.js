@@ -24,7 +24,7 @@ fs.mkdir(config.cache_folder_path, function(e) {});
 
 process.addListener("uncaughtException", function (err) {
   console.log(err);
-}
+})
 
 var checkParameters = function (params, callback) {
   if (!params.width || !params.height || isNaN(parseInt(params.width)) || isNaN(parseInt(params.height))) {
