@@ -51,11 +51,11 @@ module.exports = function (callback) {
   }
 
   var getDestination = function (width, height, filePath, prefix) {
-    return 'cache/' + prefix + path.basename(filePath, path.extname(filePath)) + '-' + width + 'x' + height + path.extname(filePath).toLowerCase();
+    return 'cache/' + prefix + path.basename(filePath, path.extname(filePath)) + '-' + width + 'x' + height + '.jpg';
   }
 
   var getShortDestination = function (width, height, filePath, prefix) {
-    return 'cache/' + prefix + width + '^' + height + path.extname(filePath).toLowerCase();
+    return 'cache/' + prefix + width + '^' + height + '.jpg';
   }
 
   var getAndCheckDestination = function (width, height, filePath, prefix, shortName, callback) {
