@@ -189,7 +189,7 @@ module.exports = function (callback) {
       var filePath;
       if (req.query.image) {
         var matchingImage = findMatchingImage(req.query.image);
-        if (!matchingImage) {
+        if (matchingImage) {
           filePath = matchingImage;
         } else {
           return displayError(res, 400, 'Invalid image id');
@@ -219,7 +219,7 @@ module.exports = function (callback) {
       var filePath;
       if (req.query.image) {
         var matchingImage = findMatchingImage(req.query.image);
-        if (!matchingImage) {
+        if (matchingImage) {
           filePath = matchingImage;
         } else {
           return displayError(res, 400, 'Invalid image id');
