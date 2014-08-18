@@ -23,8 +23,8 @@ module.exports = function (callback) {
 
   fs.mkdir(config.cache_folder_path, function(e) {});
 
-  process.addListener("uncaughtException", function (err) {
-    console.log(err);
+  process.addListener('uncaughtException', function (err) {
+    console.log('Uncaught exception: ' + err);
   })
 
   var checkParameters = function (params, callback) {
@@ -45,9 +45,9 @@ module.exports = function (callback) {
   var findMatchingImage = function (id, callback) {
     var matchingImages = images.filter(function (image) { return image.id == id; });
     if (matchingImages.length == 0) {
-      return callback(true);
+      return false;
     }
-    callback(null, matchingImages[0].filename);
+    return matchingImages[0].filename;
   }
 
   var getDestination = function (width, height, filePath, prefix) {
@@ -145,7 +145,7 @@ module.exports = function (callback) {
         var rs = fq.createReadStream(filename);  
         imagesize(rs, function (err, result) {  
           if (err) {
-            return console.log(err);
+            return console.log('imageScan error: ' + err);
           }
 
           result.filename = filename;
@@ -188,20 +188,21 @@ module.exports = function (callback) {
 
       var filePath;
       if (req.query.image) {
-        findMatchingImage(req.query.image, function (err, matchingImage) {
-          if (err) {
-            return displayError(res, 400, 'Invalid image id');
-          }
+        var matchingImage = findMatchingImage(req.query.image);
+        if (!matchingImage) {
           filePath = matchingImage;
-        })
+        } else {
+          return displayError(res, 400, 'Invalid image id');
+        }
       } else {
         filePath = images[Math.floor(Math.random() * images.length)].filename;
       }
 
       getProcessedImage(req.params.width, req.params.height, filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
         if (err) {
-          console.log(filePath);
-          console.log(err);
+          console.log('filePath: ' + filePath);
+          console.log('imagePath: ' + imagePath);
+          console.log('error: ' + err);
           return displayError(res, 500, 'Something went wrong');
         }
         res.sendFile(imagePath, { root: '.' });
@@ -217,20 +218,21 @@ module.exports = function (callback) {
 
       var filePath;
       if (req.query.image) {
-        findMatchingImage(req.query.image, function (err, matchingImage) {
-          if (err) {
-            return displayError(res, 400, 'Invalid image id');
-          }
+        var matchingImage = findMatchingImage(req.query.image);
+        if (!matchingImage) {
           filePath = matchingImage;
-        })
+        } else {
+          return displayError(res, 400, 'Invalid image id');
+        }
       } else {
         filePath = images[Math.floor(Math.random() * images.length)].filename;
       }
 
       getProcessedGrayImage(req.params.width, req.params.height, filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
         if (err) {
-          console.log(filePath);
-          console.log(err);
+          console.log('filePath: ' + filePath);
+          console.log('imagePath: ' + imagePath);
+          console.log('error: ' + err);
           return displayError(res, 500, 'Something went wrong');
         }
         res.sendFile(imagePath, { root: '.' });
