@@ -7,13 +7,13 @@ module.exports = function (callback) {
   var imagesize = require('imagesize');
   var express = require('express')
   var config = require('./config');
-  var pjson = require('./package.json');
+  var packageinfo = require('./package.json');
 
   var fq = new filequeue(200);
   var app = express();
   var highestImageId = 0;
   try {
-    var images = require('./images.json');
+    var images = require(config.image_store_path);
   } catch (e) {
     var images = [];
   }
@@ -162,6 +162,10 @@ module.exports = function (callback) {
 
   app.get('/', function (req, res, next) {
     res.sendFile('public/index.html', { root: '.'} );
+  })
+
+  app.get('/info', function (req, res, next) {
+    res.jsonp({ name: packageinfo.name, version: packageinfo.version, author: packageinfo.author });
   })
 
   app.get('/list', function (req, res, next) {
