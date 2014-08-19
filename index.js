@@ -11,12 +11,29 @@ if (cluster.isMaster) {
   var highestImageId = 0;
 
   try {
+    var stats = require(config.stats_path);
+  } catch (e) {
+    var stats = { count: 0 };
+  }
+
+  try {
     var images = require(config.image_store_path);
   } catch (e) {
     var images = [];
   }
+
   if (images.length != 0) {
     highestImageId = images.length;
+  }
+
+  process.on('SIGINT', function () {
+    fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (err) {
+      process.exit();
+    });
+  });
+
+  var handleWorkerMessage = function (msg) {
+    stats.count++;
   }
 
   var endsWith = function (str, suffix) {
@@ -31,12 +48,14 @@ if (cluster.isMaster) {
 
     for (var i = 0, il=cpuCount; i < il; i++) {
       var worker = cluster.fork();
+      worker.on('message', handleWorkerMessage);
       console.log('Worker ' + worker.id + ' started');
     }
 
     cluster.on('exit', function (worker) {
       console.log('Worker ' + worker.id + ' died');
       var worker = cluster.fork();
+      worker.on('message', handleWorkerMessage);
       console.log('Worker ' + worker.id + ' started');
     });
   }

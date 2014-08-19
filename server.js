@@ -20,6 +20,10 @@ module.exports = function (callback) {
     console.log('Uncaught exception: ' + err);
   })
 
+  var countImage = function () {
+    process.send("count");
+  }
+
   var checkParameters = function (params, callback) {
     if (!params.width || !params.height || isNaN(parseInt(params.width)) || isNaN(parseInt(params.height))) {
       return callback(true, 400, 'Invalid arguments');
@@ -151,6 +155,7 @@ module.exports = function (callback) {
           return displayError(res, 500, 'Something went wrong');
         }
         res.sendFile(imagePath, { root: '.' });
+        countImage();
       })
     })
   })
@@ -181,6 +186,7 @@ module.exports = function (callback) {
           return displayError(res, 500, 'Something went wrong');
         }
         res.sendFile(imagePath, { root: '.' });
+        countImage();
       })
     })
   })
