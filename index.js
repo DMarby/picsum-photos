@@ -28,10 +28,11 @@ if (cluster.isMaster) {
 
   var cleanupAndExit = function () {
     cleanup();
-    process.exit();
+    process.exit(0);
   }
 
   var cleanup = function () {
+    console.log(stats);
     fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8');
   }
 
