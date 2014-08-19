@@ -26,11 +26,18 @@ if (cluster.isMaster) {
     highestImageId = images.length;
   }
 
-  process.on('SIGINT', function () {
-    fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (err) {
-      process.exit();
-    });
-  });
+  var cleanupAndExit = function () {
+    cleanup();
+    process.exit();
+  }
+
+  var cleanup = function () {
+    fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8');
+  }
+
+  process.on('exit', cleanup);
+  process.on('SIGINT', cleanupAndExit);
+  process.on('uncaughtException', cleanupAndExit);
 
   var handleWorkerMessage = function (msg) {
     stats.count++;
