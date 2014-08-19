@@ -1,22 +1,96 @@
 var cluster = require('cluster');
 if (cluster.isMaster) {
 
-  var cpuCount = require('os').cpus().length - 1;
-  if (cpuCount < 2) {
-    cpuCount = 2;
+  var config = require('./config');
+  var fs = require('fs');
+  var filequeue = require('filequeue');
+  var path = require('path'); 
+  var imagesize = require('imagesize');
+  
+  var fq = new filequeue(200);
+  var highestImageId = 0;
+
+  try {
+    var images = require('./images.json');
+  } catch (e) {
+    var images = [];
+  }
+  if (images.length != 0) {
+    highestImageId = images.length;
   }
 
-  for (var i = 0, il=cpuCount; i < il; i++) {
-    var worker = cluster.fork();
-    console.log('Worker ' + worker.id + ' started');
+  var endsWith = function (str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
 
-  cluster.on('exit', function (worker) {
-    console.log('Worker ' + worker.id + ' died');
-    var worker = cluster.fork();
-    console.log('Worker ' + worker.id + ' started');
-  });
+  var startWebServers = function () {
+    var cpuCount = require('os').cpus().length - 1;
+    if (cpuCount < 2) {
+      cpuCount = 2;
+    }
 
+    for (var i = 0, il=cpuCount; i < il; i++) {
+      var worker = cluster.fork();
+      console.log('Worker ' + worker.id + ' started');
+    }
+
+    cluster.on('exit', function (worker) {
+      console.log('Worker ' + worker.id + ' died');
+      var worker = cluster.fork();
+      console.log('Worker ' + worker.id + ' started');
+    });
+  }
+
+  var scanDirectory = function (dir, done) {
+    var results = [];
+    fs.readdir(dir, function (err, list) {
+      if (err) {
+        return done(err);
+      }
+      var pending = list.length;
+      if (!pending) {
+        return done (null, results);
+      }
+      list.forEach(function (file) {
+        file = path.resolve(dir, file);
+        fs.stat(file, function (err, stat) {
+          if (stat && stat.isFile() && !endsWith(file, '.DS_Store')) {
+            results.push(file);
+          }
+          if (!--pending) done(null, results);
+        });
+      });
+    });
+  };
+
+  var loadImages = function () {
+    scanDirectory(config.folder_path, function (err, results) {
+      if (err) throw err;
+      var filteredResults = results.filter(function (filename) {
+        return images.filter(function (image) { return image.filename == filename; }) == 0;
+      });
+      var left = filteredResults.length;
+      filteredResults.forEach(function (filename) {
+        var rs = fq.createReadStream(filename);  
+        imagesize(rs, function (err, result) {  
+          if (err) {
+            return console.log('imageScan error: ' + err);
+          }
+
+          result.filename = filename;
+          result.id = highestImageId++;
+          images.push(result);
+
+          if (!--left) {
+            fs.writeFile('images.json', JSON.stringify(images), 'utf8', function (err) {});
+            startWebServers();
+          }
+        });
+      });
+    });
+  }
+
+  loadImages();
 } else {
   require('./server')(function (callback) {
     callback.listen(process.env.PORT || 5000, 'localhost');

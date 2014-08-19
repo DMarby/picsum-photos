@@ -3,22 +3,15 @@ module.exports = function (callback) {
   var fs = require('fs');
   var path = require('path'); 
   var sharp = require('sharp');
-  var filequeue = require('filequeue');
-  var imagesize = require('imagesize');
   var express = require('express')
   var config = require('./config');
   var packageinfo = require('./package.json');
 
-  var fq = new filequeue(200);
   var app = express();
-  var highestImageId = 0;
   try {
     var images = require(config.image_store_path);
   } catch (e) {
     var images = [];
-  }
-  if (images.length != 0) {
-    highestImageId = images.length;
   }
 
   fs.mkdir(config.cache_folder_path, function(e) {});
@@ -106,58 +99,6 @@ module.exports = function (callback) {
         })
       })
     })
-  }
-
-  var endsWith = function (str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1;
-  }
-
-  var scanDirectory = function (dir, done) {
-    var results = [];
-    fs.readdir(dir, function (err, list) {
-      if (err) {
-        return done(err);
-      }
-      var pending = list.length;
-      if (!pending) {
-        return done (null, results);
-      }
-      list.forEach(function (file) {
-        file = path.resolve(dir, file);
-        fs.stat(file, function (err, stat) {
-          if (stat && stat.isFile() && !endsWith(file, '.DS_Store')) {
-            results.push(file);
-          }
-          if (!--pending) done(null, results);
-        });
-      });
-    });
-  };
-
-  var imageScan = function () {
-    scanDirectory(config.folder_path, function (err, results) {
-      if (err) throw err;
-      var filteredResults = results.filter(function (filename) {
-        return images.filter(function (image) { return image.filename == filename; }) == 0;
-      });
-      var left = filteredResults.length;
-      filteredResults.forEach(function (filename) {
-        var rs = fq.createReadStream(filename);  
-        imagesize(rs, function (err, result) {  
-          if (err) {
-            return console.log('imageScan error: ' + err);
-          }
-
-          result.filename = filename;
-          result.id = highestImageId++;
-          images.push(result);
-
-          if (!--left) {
-            fs.writeFile('images.json', JSON.stringify(images), 'utf8', function (err) {});
-          }
-        });
-      });
-    });
   }
 
   app.get('/', function (req, res, next) {
@@ -249,6 +190,5 @@ module.exports = function (callback) {
     res.send({ error: 'Resource not found' });
   })
 
-  imageScan();
   callback(app);
 }
