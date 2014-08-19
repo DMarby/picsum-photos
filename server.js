@@ -96,7 +96,7 @@ module.exports = function (callback) {
           return callback(err);
         }
         gm(destination).colorspace('GRAY').write(destination, function (err) {
-          if (err) {
+          if (err) {  
             return callback(err);
           }
           callback(null, destination);
@@ -106,7 +106,7 @@ module.exports = function (callback) {
   }
 
   app.get('/', function (req, res, next) {
-    res.sendFile('public/index.html', { root: '.'} );
+    res.sendFile('public/index.html', { root: '.'});
   })
 
   app.get('/info', function (req, res, next) {
@@ -154,7 +154,7 @@ module.exports = function (callback) {
           console.log('error: ' + err);
           return displayError(res, 500, 'Something went wrong');
         }
-        res.sendFile(imagePath, { root: '.' });
+        res.sendFile(imagePath);
         countImage();
       })
     })
@@ -185,7 +185,7 @@ module.exports = function (callback) {
           console.log('error: ' + err);
           return displayError(res, 500, 'Something went wrong');
         }
-        res.sendFile(imagePath, { root: '.' });
+        res.sendFile(imagePath);
         countImage();
       })
     })
