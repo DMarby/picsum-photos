@@ -70,6 +70,9 @@ if (cluster.isMaster) {
         return images.filter(function (image) { return image.filename == filename; }) == 0;
       });
       var left = filteredResults.length;
+      if (left <= 0) {
+        return startWebServers();
+      }
       filteredResults.forEach(function (filename) {
         var rs = fq.createReadStream(filename);  
         imagesize(rs, function (err, result) {  
