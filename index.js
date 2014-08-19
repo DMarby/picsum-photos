@@ -28,18 +28,16 @@ if (cluster.isMaster) {
 
   var cleanupAndExit = function () {
     cleanup();
-    process.exit(0);
+    process.exit();
   }
 
   var cleanup = function () {
-    console.log(stats);
     fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8');
   }
 
   process.on('exit', cleanup);
   process.on('SIGINT', cleanupAndExit);
   process.on('SIGTERM', cleanupAndExit);
-  process.on('SIGHUP', cleanupAndExit);
   process.on('uncaughtException', cleanupAndExit);
 
   var handleWorkerMessage = function (msg) {
