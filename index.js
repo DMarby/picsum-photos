@@ -37,6 +37,7 @@ if (cluster.isMaster) {
 
   process.on('exit', cleanup);
   process.on('SIGINT', cleanupAndExit);
+  process.on('SIGTERM', cleanupAndExit);
   process.on('uncaughtException', cleanupAndExit);
 
   var handleWorkerMessage = function (msg) {
