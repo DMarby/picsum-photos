@@ -11,7 +11,7 @@ if (cluster.isMaster) {
   var highestImageId = 0;
 
   try {
-    var images = require('./images.json');
+    var images = require(config.image_store_path);
   } catch (e) {
     var images = [];
   }
@@ -85,7 +85,7 @@ if (cluster.isMaster) {
           images.push(result);
 
           if (!--left) {
-            fs.writeFile('images.json', JSON.stringify(images), 'utf8', function (err) {});
+            fs.writeFile(config.image_store_path, JSON.stringify(images), 'utf8', function (err) {});
             startWebServers();
           }
         });
