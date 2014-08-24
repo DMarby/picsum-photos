@@ -3,10 +3,8 @@ if (cluster.isMaster) {
 
   var config = require('./config')();
   var fs = require('fs');
-  var filequeue = require('filequeue');
   var path = require('path'); 
-  var imagesize = require('imagesize');  
-  var fq = new filequeue(200);
+  var sharp = require('sharp');
   var highestImageId = 0;
   var io = require('socket.io')(config.stats_port);
   var vnstat = require('vnstat-dumpdb');
@@ -140,10 +138,9 @@ if (cluster.isMaster) {
         return startWebServers();
       }
       filteredResults.forEach(function (filename) {
-        var rs = fq.createReadStream(filename);  
-        imagesize(rs, function (err, result) {  
+        sharp(filename).metadata(function (err, result) {  
           if (err) {
-            return console.log('imageScan error: ' + err);
+            return console.trace('imageScan error: ' + err);
           }
 
           result.filename = filename;
