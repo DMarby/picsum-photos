@@ -10,11 +10,11 @@
     "type": "git",
     "url": "https://github.com/DMarby/unsplash-it.git"
   },
-  "author": "David Marby <david@dmarby.se> http://dmarby.se",
+  "author": "David Marby <david@dmarby.se> (http://dmarby.se)",
   "dependencies": {
     "gm": "^1.16.0",
     "express": "^4.8.2",
-    "sharp": "^0.6.0",
+    "sharp": "^0.6.1",
     "socket.io": "^1.0.6",
     "vnstat-dumpdb": "^1.0.2"
   }
