@@ -1,20 +1,24 @@
 var cluster = require('cluster');
 if (cluster.isMaster) {
 
-  var config = require('./config');
+  var config = require('./config')();
   var fs = require('fs');
   var filequeue = require('filequeue');
   var path = require('path'); 
-  var imagesize = require('imagesize');
-  
+  var imagesize = require('imagesize');  
   var fq = new filequeue(200);
   var highestImageId = 0;
+  var io = require('socket.io')(config.stats_port);
+  var vnstat = require('vnstat-dumpdb');
+  console.log('Config:');
+  console.log(config);
 
   try {
     var stats = require(config.stats_path);
   } catch (e) {
     var stats = { count: 0 };
   }
+
 
   try {
     var images = require(config.image_store_path);
@@ -25,6 +29,37 @@ if (cluster.isMaster) {
   if (images.length != 0) {
     highestImageId = images.length;
   }
+
+  var publicStats = {};
+  var bandWidth = 0;
+
+  io.on('connection', function (socket) {
+    socket.emit('stats', publicStats);
+  });
+
+  var fetchStats = function () {
+    publicStats = {
+      count: stats.count,
+      bandWidth: bandWidth,
+      images: images.length
+    }
+    io.emit('stats', publicStats);
+  }
+
+  var fetchBandwidth = function () {
+    vnstat.dumpdb(function (err, data) {
+      if (err) {
+        console.log('Couldn\'t fetch bandwidth: ' + err);
+      } else {
+        bandWidth = data.traffic.total.tx;
+      }
+    })
+  }
+
+  setInterval(fetchBandwidth, 1000 * 30);
+  setInterval(fetchStats, 1000);
+  fetchBandwidth();
+  fetchStats();
 
   var cleanupAndExit = function () {
     cleanup();
@@ -38,7 +73,11 @@ if (cluster.isMaster) {
   process.on('exit', cleanup);
   process.on('SIGINT', cleanupAndExit);
   process.on('SIGTERM', cleanupAndExit);
-  process.on('uncaughtException', cleanupAndExit);
+  process.on('uncaughtException', function(err) {
+    console.log('Uncaught exception: ');
+    console.trace(err);
+    cleanupAndExit();
+  });
 
   var handleWorkerMessage = function (msg) {
     stats.count++;

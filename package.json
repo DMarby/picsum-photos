@@ -16,6 +16,8 @@
     "filequeue": "^0.5.0",
     "imagesize": "^1.0.0",
     "express": "^4.8.2",
-    "sharp": "^0.5.2"
+    "sharp": "^0.5.2",
+    "socket.io": "^1.0.6",
+    "vnstat-dumpdb": "^1.0.2"
   }
 }

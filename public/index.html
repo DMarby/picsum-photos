@@ -19,6 +19,23 @@
   <link rel="dns-prefetch" href="//code.jquery.com">
   <link rel="dns-prefetch" href="//www.google-analytics.com">
   <link rel="dns-prefetch" href="//unsplash.it">
+
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="icon" sizes="16x16 32x32 64x64" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="196x196" href="favicon-196.png">
+  <link rel="icon" type="image/png" sizes="160x160" href="favicon-160.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="favicon-152.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="favicon-144.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="favicon-120.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="favicon-114.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="favicon-76.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="favicon-72.png">
+  <link rel="apple-touch-icon" href="favicon-57.png">
+
   <style>
     * { 
       text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; box-sizing: border-box; 
@@ -67,6 +84,15 @@
       color: rgba(255,255,255,0.8);
     }
 
+    .content-section {
+      padding: 50px 0;
+      text-align: center;
+    }
+
+    .content-section h3 {
+      margin-top: 0px;
+    }
+
     .content-section-right {
       padding: 50px 0;
       background: hsl(211, 20%, 97%);
@@ -105,10 +131,11 @@
   </style>
   <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="http://stats.unsplash.it/socket.io/socket.io.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-      function setupRandomImage (element) {
+      var setupRandomImage = function (element) {
         var $element = $(element);
         var width = $element.width(); 
         var height = $element.outerHeight();
@@ -124,6 +151,28 @@
         var $element = $('.random-image')
         $element.attr('src', 'http://unsplash.it/458/354?random&time=' + (+new Date()));
       }, 1000 * 5)
+
+      var countToNumber = function (element, number, suffix, duration) {
+        $({count: parseInt(element.text().split("+")[0].replace(/\,/g, ''))}).animate({count: number}, {
+          duration: duration ? duration : 1000,
+          easing: 'swing', 
+          step: function (now) {
+            element.text((Math.floor(now) + suffix).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,"));
+          }
+        });
+      }
+
+      var first = true;
+
+      var socket = io.connect('http://stats.unsplash.it');
+      socket.on('stats', function (data) {
+        countToNumber($('.imageCounter'), data.count, '', first ? 2000 : 800);
+        countToNumber($('.bandwidthCounter'), Math.round((data.bandWidth / 1024 / 1024)), '+ GB', first ? 1000 : 800);
+        countToNumber($('.images'), data.images, '', first ? 1000 : 800);
+        if (first) {
+          first = false;
+        }
+      });
     });
   </script>
   <script>
@@ -155,6 +204,25 @@
   <!-- /.intro-header -->
 
   <!-- Page Content -->
+
+  <div class="content-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4">
+            <h2 class="images">0</h2>
+            <h3>Images</h3>
+        </div>
+        <div class="col-lg-4">
+            <h2 class="imageCounter">0</h2>
+            <h3>Images Served</h3>
+        </div>
+        <div class="col-lg-4">
+            <h2 class="bandwidthCounter">0 GB</h2>
+            <h3>Bandwidth Used</h3>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="content-section-right">
     <div class="container">

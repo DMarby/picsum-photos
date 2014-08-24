@@ -4,10 +4,11 @@ module.exports = function (callback) {
   var path = require('path'); 
   var sharp = require('sharp');
   var express = require('express')
-  var config = require('./config');
+  var config = require('./config')();
   var packageinfo = require('./package.json');
 
   var app = express();
+
   try {
     var images = require(config.image_store_path);
   } catch (e) {
@@ -17,7 +18,8 @@ module.exports = function (callback) {
   fs.mkdir(config.cache_folder_path, function(e) {});
 
   process.addListener('uncaughtException', function (err) {
-    console.log('Uncaught exception: ' + err);
+    console.log('Uncaught exception: ');
+    console.trace(err);
   })
 
   var countImage = function () {
@@ -105,9 +107,7 @@ module.exports = function (callback) {
     })
   }
 
-  app.get('/', function (req, res, next) {
-    res.sendFile('public/index.html', { root: '.'});
-  })
+  app.use(express.static(path.join(__dirname, 'public')));
 
   app.get('/info', function (req, res, next) {
     res.jsonp({ name: packageinfo.name, version: packageinfo.version, author: packageinfo.author });
