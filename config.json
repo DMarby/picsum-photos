@@ -4,6 +4,7 @@
         "cache_folder_path": "/opt/unsplash-it/cache",
         "image_store_path": "/opt/unsplash-it/images.json",
         "stats_path": "/opt/unsplash-it/stats.json",
+        "metadata_path": "/opt/photos/metadata.json",
         "max_height": 5000,
         "max_width": 5000,
         "stats_port": 3000
@@ -13,6 +14,7 @@
         "cache_folder_path": "/Users/DMarby/Projects/2014/unsplash-it/cache",
         "image_store_path": "./images.json",
         "stats_path": "./stats.json",
+        "metadata_path": "../unsplash-downloader/photos/metadata.json",
         "max_height": 5000,
         "max_width": 5000,
         "stats_port": 3000

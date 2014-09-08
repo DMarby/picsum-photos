@@ -8,6 +8,7 @@ if (cluster.isMaster) {
   var highestImageId = 0;
   var io = require('socket.io')(config.stats_port);
   var vnstat = require('vnstat-dumpdb');
+  var metadata = require(config.metadata_path);
   console.log('Config:');
   console.log(config);
 
@@ -85,6 +86,14 @@ if (cluster.isMaster) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
 
+  var findMetadata = function (filename) {
+    for (var i in metadata) {
+      if (metadata[i].filename == filename) {
+        return metadata[i];
+      }
+    }
+  }
+
   var startWebServers = function () {
     var cpuCount = require('os').cpus().length - 1;
     if (cpuCount < 2) {
@@ -140,11 +149,15 @@ if (cluster.isMaster) {
       filteredResults.forEach(function (filename) {
         sharp(filename).metadata(function (err, result) {  
           if (err) {
-            return console.trace('imageScan error: ' + err);
+            return console.trace('imageScan error: %s filename: %s', err, filename);
           }
 
           result.filename = filename;
           result.id = highestImageId++;
+          var the_metadata = findMetadata(path.basename(filename));
+          result.post_url = the_metadata.post_url;
+          result.author = the_metadata.author;
+          result.author_url = the_metadata.author_url;
           images.push(result);
 
           if (!--left) {
