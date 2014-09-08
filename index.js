@@ -127,7 +127,7 @@ if (cluster.isMaster) {
       list.forEach(function (file) {
         file = path.resolve(dir, file);
         fs.stat(file, function (err, stat) {
-          if (stat && stat.isFile() && !endsWith(file, '.DS_Store')) {
+          if (stat && stat.isFile() && !endsWith(file, '.DS_Store') && !endsWith(file, 'metadata.json')) {
             results.push(file);
           }
           if (!--pending) done(null, results);
