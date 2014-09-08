@@ -172,7 +172,10 @@ module.exports = function (callback) {
         width: item.width,
         height: item.height,
         filename: path.basename(item.filename),
-        id: item.id
+        id: item.id,
+        author: item.author,
+        author_url: item.author_url,
+        post_url: item.post_url
       }
       newImages.push(image);
     }
