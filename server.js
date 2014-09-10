@@ -159,6 +159,12 @@ module.exports = function (callback) {
 
   app.use(express.static(path.join(__dirname, 'public')));
 
+  app.all('/', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    next();
+  });
+
   app.get('/info', function (req, res, next) {
     res.jsonp({ name: packageinfo.name, version: packageinfo.version, author: packageinfo.author });
   })
