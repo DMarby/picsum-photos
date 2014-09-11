@@ -1,7 +1,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Unsplash It - Gallery</title>
+  <title>Unsplash It - Images</title>
   <meta name="description" content="Beautiful placeholders using images from unsplash">
   <meta name="keywords" content="placeholders,images,unsplash">
   <meta name="author" content="David Marby (http://dmarby.se)">
@@ -35,178 +35,37 @@
   <link rel="apple-touch-icon" sizes="76x76" href="favicon-76.png">
   <link rel="apple-touch-icon" sizes="72x72" href="favicon-72.png">
   <link rel="apple-touch-icon" href="favicon-57.png">
-
-  <style>
-    * { 
-      text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; box-sizing: border-box; 
-    }
-
-    body {
-      font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6,
-    a {
-      font-family: "Lato","Helvetica Neue",Helvetica,Arial,sans-serif;
-      font-weight: 700;
-    }
-
-    .template {
-      display: none;
-    }
-
-    .intro-header {
-      text-align: center;
-      color: #f8f8f8;
-      background: #000;
-      background-size: cover;
-      font-family: Lato;
-    }
-
-    .intro-header a {
-      color: #f8f8f8;
-    }
-
-    .intro-header a:hover {
-      text-decoration: none;
-      color: #f8f8f8;
-    }
-
-    .overlay {
-      padding-top: 100px;
-      padding-bottom: 100px;
-      background: rgba(0,0,0,0.6);
-    }
-
-    .intro-message h1 {
-      font-family: Lato;
-      font-weight: 300;
-    }
-
-    .intro-message h3 {
-      font-family: Lato;
-      color: hsla(0, 100%, 100%, 0.6);
-    }
-
-    .intro-message h3 a {
-      color: rgba(255,255,255,0.8);
-    }
-
-    .content-section {
-      padding: 50px 0;
-      text-align: center;
-    }
-
-    .content-section h3 {
-      margin-top: 0px;
-    }
-
-    .content-section-right {
-      padding: 50px 0;
-      background: hsl(211, 20%, 97%);
-    }
-
-    .content-section-left {
-      padding: 50px 0;
-      border-top: 1px solid hsl(211, 20%, 91%);
-      border-bottom: 1px solid hsl(211, 20%, 91%);
-    }
-
-    pre {
-      background-color: hsl(211, 20%, 96%) !important;
-      border: 1px solid hsl(211, 20%, 91%) !important;
-      border-radius: 4px !important;
-      box-shadow: inset 0 1px 2px hsl(211, 20%, 94%) !important;
-    }
-
-    footer {
-      text-align: center;
-      color: hsla(0, 100%, 100%, 0.6);
-      background: #000;
-      background-size: cover;
-      font-family: Lato;
-    }
-
-    footer a, footer a:hover {
-      color: rgba(255,255,255,0.8); 
-    }
-
-    .footer-overlay {
-      padding: 50px 0;
-      background: rgba(0,0,0,0.6);
-    }
-
-  </style>
+  
+  <link rel="stylesheet" href="style.css">
   <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
   <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
   <script src="http://stats.unsplash.it/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="main.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-      var right = true;
+     // var right = true;
       $.ajax({ url: 'http://unsplash.it/list' }).done(function (data) {
         for (var i in data) {
-          var $template;
-          if (right) {
+          var $template = $('[data-template="image"] .col-md-3').clone();
+          /*if (right) {
             right = false;
             $template = $('[data-template="right"] .content-section-right').clone();
           } else {
             right = true;
             $template = $('[data-template="left"] .content-section-left').clone();
-          }
+          }*/
 
-          $template.find('.section-heading').html(data[i].author);
+          $template.find('.author').text(data[i].author);
+          $template.find('.author').attr('href', data[i].author_url);
+          $template.find('.id').text('#' + data[i].id);
+          $template.find('.id').attr('href', 'http://unsplash.it/0/0?image=' + data[i].id);
           $template.find('.lead').text(data[i].author_url);
-          $template.find('code').html('http://unsplash.it/200/300?image=' + data[i].id);
+          $template.find('code').text('http://unsplash.it/200/300?image=' + data[i].id);
           $template.find('img').attr('src', 'http://unsplash.it/458/354?image=' + data[i].id);
-          $('.content-section').after($template);
+          //$('.content-section').after($template);
+          $('.imageContainer').prepend($template);
 
-        }
-      });
-
-      var setupRandomImage = function (element) {
-        var $element = $(element);
-        var width = $element.width(); 
-        var height = $element.outerHeight();
-        var src = 'http://unsplash.it/' + width + '/' + height + '?random&element=' + $element.prop('tagName');
-
-        $element.css('background-image', 'url('+src+')');
-      }
-
-      setupRandomImage('.intro-header');
-      setupRandomImage('footer');
-
-      var countToNumber = function (element, number, suffix, duration) {
-        $({count: parseInt(element.text().split("+")[0].replace(/\,/g, ''))}).animate({count: number}, {
-          duration: duration ? duration : 1000,
-          easing: 'swing', 
-          step: function (now) {
-            element.text((Math.floor(now) + suffix).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,"));
-          },
-          complete: function () {
-            countingFromZero = false;
-          }
-        });
-      }
-
-      var first = true;
-      var countingFromZero = true;
-
-      var socket = io.connect('http://stats.unsplash.it');
-      socket.on('stats', function (data) {
-        if (!first && countingFromZero) {
-          return;
-        }
-        countToNumber($('.imageCounter'), data.count, '', first ? 2000 : 800);
-        countToNumber($('.bandwidthCounter'), Math.round((data.bandWidth / 1024 / 1024)), '+ GB', first ? 1000 : 800);
-        countToNumber($('.images'), data.images, '', first ? 1000 : 800);
-        if (first) {
-          first = false;
         }
       });
     });
@@ -260,6 +119,10 @@
     </div>
   </div>
 
+
+<div class="container imageContainer">
+</div>
+
 <!-- Footer -->
 <footer>
   <div class="footer-overlay">
@@ -275,7 +138,17 @@
   </div>
 </footer>
 
-<div class="template" data-template="right">
+<div class="template" data-template="image">
+  <div class="col-md-3 image">
+    <img class="img-responsive center-block" src="http://unsplash.it/458/354" alt="">
+    <div class="attribution">
+      <a class="author"></a>
+      <a class="id" target="_blank"></a>
+    </div>
+  </div>
+</div>
+
+<div class="template" data-template="right-wide">
   <div class="content-section-right">
     <div class="container">
       <div class="row">
@@ -293,7 +166,7 @@
   </div>
 </div>
 
-<div class="template" data-template="left">
+<div class="template" data-template="left-wide">
   <div class="content-section-left">
     <div class="container">
       <div class="row">
