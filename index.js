@@ -137,6 +137,15 @@ if (cluster.isMaster) {
   };
 
   var loadImages = function () {
+    var newimages = [];
+    for (var i in images) {
+      var item = images[i];
+      var the_metadata = findMetadata(path.basename(item.filename));
+      item.post_url = the_metadata.post_url;
+      item.author = the_metadata.author;
+      item.author_url = the_metadata.author_url;
+      newimages.push(item);
+    }
     scanDirectory(config.folder_path, function (err, results) {
       if (err) throw err;
       var filteredResults = results.filter(function (filename) {
@@ -144,7 +153,10 @@ if (cluster.isMaster) {
       });
       var left = filteredResults.length;
       if (left <= 0) {
-        return startWebServers();
+        fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (err) {
+          startWebServers();
+        });
+        return;
       }
       filteredResults.forEach(function (filename) {
         sharp(filename).metadata(function (err, result) {  
@@ -158,11 +170,12 @@ if (cluster.isMaster) {
           result.post_url = the_metadata.post_url;
           result.author = the_metadata.author;
           result.author_url = the_metadata.author_url;
-          images.push(result);
+          newimages.push(result);
 
           if (!--left) {
-            fs.writeFile(config.image_store_path, JSON.stringify(images), 'utf8', function (err) {});
-            startWebServers();
+            fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (err) {
+              startWebServers();
+            });
           }
         });
       });
