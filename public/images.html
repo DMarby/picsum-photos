@@ -60,6 +60,7 @@
           $template.find('.author').attr('href', data[i].author_url);
           $template.find('.id').text('#' + data[i].id);
           $template.find('.id').attr('href', 'http://unsplash.it/0/0?image=' + data[i].id);
+          $template.find('.post').attr('href', data[i].post_url);
           $template.find('.lead').text(data[i].author_url);
           $template.find('code').text('http://unsplash.it/200/300?image=' + data[i].id);
           $template.find('img').attr('src', 'http://unsplash.it/458/354?image=' + data[i].id);
@@ -140,9 +141,11 @@
 
 <div class="template" data-template="image">
   <div class="col-md-3 image">
-    <img class="img-responsive center-block" src="http://unsplash.it/458/354" alt="">
+    <a class="post" target="_blank">
+      <img class="img-responsive center-block" src="http://unsplash.it/458/354" alt="">
+    </a>
     <div class="attribution">
-      <a class="author"></a>
+      <a class="author" target="_blank"></a>
       <a class="id" target="_blank"></a>
     </div>
   </div>
