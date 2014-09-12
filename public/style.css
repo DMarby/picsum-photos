@@ -163,6 +163,13 @@ footer a:hover {
   padding: 10px 10px 10px 10px;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0.8);
+  float: right !important;
+}
+
+@media (min-width: 768px) and (max-width: 995px) {
+  .attribution {
+    right: 16.66666667%;
+  }
 }
 
 .attribution a {
