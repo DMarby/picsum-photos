@@ -72,7 +72,7 @@ module.exports = function (callback) {
 
   var imageResize = function (width, height, gravity, filePath, destination, callback) {
     try {
-      sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity]).progressive().toFile(destination, function (err) {
+      sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity]).jpeg().progressive().toFile(destination, function (err) {
         callback(err, destination);
       });
     } catch (e) {
