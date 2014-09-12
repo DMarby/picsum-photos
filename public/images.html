@@ -40,33 +40,25 @@
   <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
   <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jquery.lazyloadxt/1.0.5/jquery.lazyloadxt.fadein.css">
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery.lazyloadxt/1.0.5/jquery.lazyloadxt.min.js"></script>
   <script src="http://stats.unsplash.it/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="main.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-     // var right = true;
       $.ajax({ url: 'http://unsplash.it/list' }).done(function (data) {
         for (var i in data) {
+          var image = data[i];
           var $template = $('[data-template="image"] .col-md-3').clone();
-          /*if (right) {
-            right = false;
-            $template = $('[data-template="right"] .content-section-right').clone();
-          } else {
-            right = true;
-            $template = $('[data-template="left"] .content-section-left').clone();
-          }*/
-
-          $template.find('.author').text(data[i].author);
-          $template.find('.author').attr('href', data[i].author_url);
-          $template.find('.id').text('#' + data[i].id);
-          $template.find('.id').attr('href', 'http://unsplash.it/0/0?image=' + data[i].id);
-          $template.find('.post').attr('href', data[i].post_url);
-          $template.find('.lead').text(data[i].author_url);
-          $template.find('code').text('http://unsplash.it/200/300?image=' + data[i].id);
-          $template.find('img').attr('src', 'http://unsplash.it/458/354?image=' + data[i].id);
-          //$('.content-section').after($template);
+          $template.find('.author').text(image.author);
+          $template.find('.author').attr('href', image.author_url);
+          $template.find('.id').text('#' + image.id);
+          $template.find('.id').attr('href', 'http://unsplash.it/0/0?image=' + image.id);
+          $template.find('.post').attr('href', image.post_url);
+          $template.find('.lead').text(image.author_url);
+          $template.find('code').text('http://unsplash.it/200/300?image=' + image.id);
+          $template.find('img').attr('data-src', 'http://unsplash.it/458/354?image=' + image.id);
           $('.imageContainer').prepend($template);
-
         }
       });
     });
@@ -120,72 +112,52 @@
     </div>
   </div>
 
-
-<div class="container imageContainer">
-</div>
-
-<!-- Footer -->
-<footer>
-  <div class="footer-overlay">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12">
-          <p>Created by <a href="http://dmarby.se">David Marby</a> & <a href="http://github.com/Nijikokun">Nijiko Yonskai</a></p>
-          <p><a href="http://github.com/DMarby/unsplash-it">Source</a></p>
-          <p><a href="https://www.digitalocean.com/?refcode=b948482c9da6">Hosted by DigitalOcean</a></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<div class="template" data-template="image">
-  <div class="col-md-3 image">
-    <a class="post" target="_blank">
-      <img class="img-responsive center-block" src="http://unsplash.it/458/354" alt="">
-    </a>
-    <div class="attribution">
-      <a class="author" target="_blank"></a>
-      <a class="id" target="_blank"></a>
-    </div>
-  </div>
-</div>
-
-<div class="template" data-template="right-wide">
   <div class="content-section-right">
     <div class="container">
       <div class="row">
         <div class="col-lg-5 col-sm-6">
           <div class="clearfix"></div>
-          <h2 class="section-heading">Random image</h2>
-          <p class="lead">Get a random image by appending <code>?random</code> to the end of the url.</p>
-          <pre><code>http://unsplash.it/200/300/?random</code></pre>
+          <h2 class="section-heading">Image Gallery</h2>
+          <p class="lead">Here you can view all images Unsplash It uses</p>
+          <p class="lead">Get a specific image by appending <code>?image</code> to the end of the url</p>
+          <pre><code>http://unsplash.it/200/300?image=0</code></pre>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="http://unsplash.it/458/354" alt="">
+          <img class="img-responsive" src="http://unsplash.it/458/354?image=0" alt="">
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="template" data-template="left-wide">
-  <div class="content-section-left">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-5 col-lg-offset-1 col-sm-push-6 col-sm-6">
-          <div class="clearfix"></div>
-          <h2 class="section-heading">Random image</h2>
-          <p class="lead">Get a random image by appending <code>?random</code> to the end of the url.</p>
-          <pre><code>http://unsplash.it/200/300/?random</code></pre>
-        </div>
-        <div class="col-lg-5 col-sm-pull-6 col-sm-6">
-          <img class="img-responsive" src="http://unsplash.it/458/354?random" alt="">
+  <div class="container imageContainer">
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-overlay">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12">
+            <p>Created by <a href="http://dmarby.se">David Marby</a> & <a href="http://github.com/Nijikokun">Nijiko Yonskai</a></p>
+            <p><a href="http://github.com/DMarby/unsplash-it">Source</a></p>
+            <p><a href="https://www.digitalocean.com/?refcode=b948482c9da6">Hosted by DigitalOcean</a></p>
+          </div>
         </div>
       </div>
     </div>
+  </footer>
+
+  <div class="template" data-template="image">
+    <div class="col-md-3 image">
+      <a class="post" target="_blank">
+        <img class="img-responsive center-block" alt="">
+      </a>
+      <div class="attribution">
+        <a class="author" target="_blank"></a>
+        <a class="id" target="_blank"></a>
+      </div>
+    </div>
   </div>
-</div>
 
 </body>
 </html>

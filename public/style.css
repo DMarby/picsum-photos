@@ -40,6 +40,11 @@ p {
   font-weight: 300;
 }
 
+.intro-message a:hover {
+  text-decoration: none;
+  color: rgba(255,255,255,0.6) !important;
+}
+
 .intro-message h3 {
   font-family: Lato;
   color: hsla(0, 100%, 100%, 0.6);
@@ -82,6 +87,16 @@ p {
   border-bottom: 1px solid hsl(211, 20%, 91%);
 }
 
+.content-section-left a, .content-section-right a {
+  color: #000;
+  font-weight: 700;
+}
+
+.content-section-left a:hover, .content-section-right a:hover {
+  color: #999898;
+  text-decoration: none;
+}
+
 pre {
   background-color: hsl(211, 20%, 96%) !important;
   border: 1px solid hsl(211, 20%, 91%) !important;
@@ -106,6 +121,11 @@ footer a, footer a:hover {
   color: rgba(255,255,255,0.8) !important;
 }
 
+footer a:hover {
+  text-decoration: none;
+  color: rgba(255,255,255,0.6) !important;
+}
+
 .footer-overlay {
   padding: 50px 0;
   background: rgba(0,0,0,0.6);
@@ -127,7 +147,13 @@ footer a, footer a:hover {
 }
 
 .image img {
+  display: block;
+  min-height: 197px;
   border-radius: 3px;
+}
+
+.imageContainer {
+  margin-top: 50px;
 }
 
 .attribution {
