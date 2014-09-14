@@ -3,7 +3,7 @@ $(document).ready(function() {
     var $element = $(element);
     var width = $element.width(); 
     var height = $element.outerHeight();
-    var src = 'http://unsplash.it/' + width + '/' + height + '?random&element=' + $element.prop('tagName');
+    var src = 'https://unsplash.it/' + width + '/' + height + '?random&element=' + $element.prop('tagName');
 
     $element.css('background-image', 'url('+src+')');
   }
@@ -27,7 +27,7 @@ $(document).ready(function() {
   var first = true;
   var countingFromZero = true;
 
-  var socket = io.connect('http://stats.unsplash.it');
+  var socket = io.connect('https://unsplash.it:4000');
   socket.on('stats', function (data) {
     if (!first && countingFromZero) {
       return;

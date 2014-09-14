@@ -11,8 +11,8 @@
   <meta property="og:title" content="Unsplash it">
   <meta property="og:description" content="Beautiful placeholders using images from unsplash">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="http://unsplash.it/250/250">
-  <meta property="og:url" content="http://unsplash.it">
+  <meta property="og:image" content="https://unsplash.it/250/250">
+  <meta property="og:url" content="https://unsplash.it">
 
   <link rel="dns-prefetch" href="//fonts.googleapis.com">
   <link rel="dns-prefetch" href="//maxcdn.bootstrapcdn.com">
@@ -37,27 +37,27 @@
   <link rel="apple-touch-icon" href="favicon-57.png">
   
   <link rel="stylesheet" href="style.css">
-  <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jquery.lazyloadxt/1.0.5/jquery.lazyloadxt.fadein.css">
-  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery.lazyloadxt/1.0.5/jquery.lazyloadxt.min.js"></script>
-  <script src="http://stats.unsplash.it/socket.io/socket.io.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazyloadxt/1.0.5/jquery.lazyloadxt.fadein.css">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazyloadxt/1.0.5/jquery.lazyloadxt.min.js"></script>
+  <script src="https://stats.unsplash.it/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="main.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-      $.ajax({ url: 'http://unsplash.it/list' }).done(function (data) {
+      $.ajax({ url: 'https://unsplash.it/list' }).done(function (data) {
         for (var i in data) {
           var image = data[i];
           var $template = $('[data-template="image"] .col-md-3').clone();
           $template.find('.author').text(image.author);
           $template.find('.author').attr('href', image.author_url);
           $template.find('.id').text('#' + image.id);
-          $template.find('.id').attr('href', 'http://unsplash.it/0/0?image=' + image.id);
+          $template.find('.id').attr('href', 'https://unsplash.it/0/0?image=' + image.id);
           $template.find('.post').attr('href', image.post_url);
           $template.find('.lead').text(image.author_url);
-          $template.find('code').text('http://unsplash.it/200/300?image=' + image.id);
-          $template.find('img').attr('data-src', 'http://unsplash.it/458/354?image=' + image.id);
+          $template.find('code').text('https://unsplash.it/200/300?image=' + image.id);
+          $template.find('img').attr('data-src', 'https://unsplash.it/458/354?image=' + image.id);
           $('.imageContainer').prepend($template);
         }
       });
@@ -81,8 +81,8 @@
         <div class="row">
           <div class="col-lg-12">
             <div class="intro-message">
-              <a href="http://unsplash.it"><h1>Unsplash It</h1></a>
-              <h3>Beautiful placeholders using images from <a href="http://unsplash.com">unsplash</a></h3>
+              <a href="https://unsplash.it"><h1>Unsplash It</h1></a>
+              <h3>Beautiful placeholders using images from <a href="https://unsplash.com">unsplash</a></h3>
             </div>
           </div>
         </div>
@@ -120,10 +120,10 @@
           <h2 class="section-heading">Image Gallery</h2>
           <p class="lead">Here you can view all images Unsplash It uses</p>
           <p class="lead">Get a specific image by appending <code>?image</code> to the end of the url</p>
-          <pre><code>http://unsplash.it/200/300?image=0</code></pre>
+          <pre><code>https://unsplash.it/200/300?image=0</code></pre>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="http://unsplash.it/458/354?image=0" alt="">
+          <img class="img-responsive" src="https://unsplash.it/458/354?image=0" alt="">
         </div>
       </div>
     </div>
