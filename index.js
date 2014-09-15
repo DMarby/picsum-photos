@@ -140,7 +140,7 @@ if (cluster.isMaster) {
     var newimages = [];
     for (var i in images) {
       var item = images[i];
-      var the_metadata = findMetadata(path.basename(filename));
+      var the_metadata = findMetadata(path.basename(item.filename));
       item.post_url = the_metadata.post_url;
       item.author = the_metadata.author;
       item.author_url = the_metadata.author_url;
