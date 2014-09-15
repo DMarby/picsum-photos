@@ -140,7 +140,7 @@ if (cluster.isMaster) {
     var newimages = [];
     for (var i in images) {
       var item = images[i];
-      var the_metadata = findMetadata(path.basename(item.filename));
+      var the_metadata = findMetadata(item.filename);
       item.post_url = the_metadata.post_url;
       item.author = the_metadata.author;
       item.author_url = the_metadata.author_url;
@@ -166,7 +166,8 @@ if (cluster.isMaster) {
 
           result.filename = filename;
           result.id = highestImageId++;
-          var the_metadata = findMetadata(path.basename(filename));
+          console.log(filename);
+          var the_metadata = findMetadata(filename);
           result.post_url = the_metadata.post_url;
           result.author = the_metadata.author;
           result.author_url = the_metadata.author_url;
