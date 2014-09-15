@@ -166,8 +166,8 @@ if (cluster.isMaster) {
 
           result.filename = filename;
           result.id = highestImageId++;
-          console.log(filename);
-          var the_metadata = findMetadata(filename);
+          console.log(path.basename(filename));
+          var the_metadata = findMetadata(path.basename(filename));
           result.post_url = the_metadata.post_url;
           result.author = the_metadata.author;
           result.author_url = the_metadata.author_url;
