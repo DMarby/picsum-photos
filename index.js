@@ -5,7 +5,6 @@ if (cluster.isMaster) {
   var fs = require('fs');
   var path = require('path'); 
   var sharp = require('sharp');
-  var highestImageId = 0;
   var io = require('socket.io')(config.stats_port);
   var vnstat = require('vnstat-dumpdb');
   var metadata = require(config.metadata_path);
@@ -23,10 +22,6 @@ if (cluster.isMaster) {
     var images = require(config.image_store_path);
   } catch (e) {
     var images = [];
-  }
-
-  if (images.length != 0) {
-    highestImageId = images.length;
   }
 
   var publicStats = {};
@@ -165,8 +160,8 @@ if (cluster.isMaster) {
           }
 
           result.filename = filename;
-          result.id = highestImageId++;
           var the_metadata = findMetadata(path.basename(filename));
+          result.id = the_metadata.id;
           result.post_url = the_metadata.post_url;
           result.author = the_metadata.author;
           result.author_url = the_metadata.author_url;
