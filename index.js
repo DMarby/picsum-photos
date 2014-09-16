@@ -172,7 +172,7 @@ if (cluster.isMaster) {
             console.log('Done scanning');
             newimages.sort(function (a,b) { 
               return a.id < b.id; 
-            })
+            });
             fs.writeFile(config.image_store_path, JSON.stringify(newimages, 'utf8', function (err) {
               startWebServers();
             });
