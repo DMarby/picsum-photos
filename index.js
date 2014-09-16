@@ -149,6 +149,10 @@ if (cluster.isMaster) {
       var left = filteredResults.length;
       if (left <= 0) {
         console.log('Done scanning, no new images');
+        newimages.sort(function (a,b) { 
+          return a.id > b.id; 
+        });
+        images = newimages;
         fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (err) {
           startWebServers();
         });
@@ -171,8 +175,9 @@ if (cluster.isMaster) {
           if (!--left) {
             console.log('Done scanning');
             newimages.sort(function (a,b) { 
-              return a.id < b.id; 
+              return a.id > b.id; 
             });
+            images = newimages;
             fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (err) {
               startWebServers();
             });
