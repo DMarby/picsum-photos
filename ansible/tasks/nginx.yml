@@ -8,6 +8,9 @@
 - name: Add nginx repo pubkey
   get_url: url=http://nginx.org/keys/nginx_signing.key dest=/root/nginx_signing.key mode=0440
 
+- name: Install nginx
+  apt: name=nginx state=latest update_cache=yes
+
 - name: Install nginx repo pubkey
   command: apt-key add /root/nginx_signing.key
 
@@ -18,15 +21,15 @@
   file: path=/etc/nginx/conf.d/example_ssl.conf state=absent
 
 - name: Copy nginx config
-  template: src=nginx.conf dest=/etc/nginx/conf.d/unsplash.conf
+  copy: src=files/nginx.conf dest=/etc/nginx/conf.d/unsplash.conf
   notify:
     - restart nginx 
 
 - name: Copy nginx certificate
-  copy: src=unsplash.crt dest=/etc/ssl/unsplash.crt owner=root group=root mode=0644
+  copy: src=files/unsplash.crt dest=/etc/ssl/unsplash.crt owner=root group=root mode=0644
 
 - name: Copy nginx certificate key
-  copy: src=unsplash.key dest=/etc/ssl/unsplash.key owner=root group=root mode=0644
+  copy: src=files/unsplash.key dest=/etc/ssl/unsplash.key owner=root group=root mode=0644
 
 - name: Generate dhparam
   command: chdir=/etc/ssl/certs openssl dhparam -out dhparam.pem 4096

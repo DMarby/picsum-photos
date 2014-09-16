@@ -9,7 +9,7 @@
   shell: "su unsplash -c 'cd /opt/unsplash-downloader && npm install'"
 
 - name: Copy unsplash-downloader config
-  copy: src=unsplash-downloader.conf dest=/opt/unsplash-downloader/config.js owner=unsplash group=unsplash
+  copy: src=files/unsplash-downloader.conf dest=/opt/unsplash-downloader/config.js owner=unsplash group=unsplash
 
 - name: Add cronjob for unsplash-downloader
   action: 'cron name="unsplash-downloader" special_time=daily user=unsplash job="cd /opt/unsplash-downloader && /usr/local/bin/node index.js"'

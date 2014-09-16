@@ -7,6 +7,10 @@
   register: iptablesrules
   always_run: yes
 
+- name: Add conntrack rule
+  command: /sbin/iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT -m comment --comment "Conntrack"
+  when: iptablesrules.stdout.find("Conntrack") == -1
+
 - name: Add ssh iptables rule
   command: /sbin/iptables -A INPUT -p tcp --dport 22 -j ACCEPT -m comment --comment "SSH"
   when: iptablesrules.stdout.find("SSH") == -1

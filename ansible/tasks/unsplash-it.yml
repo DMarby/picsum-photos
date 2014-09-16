@@ -12,7 +12,7 @@
   file: path=/var/log/unsplash-it.log owner=unsplash group=unsplash mode=0644 state=touch
 
 - name: Copy upstart job for unsplash-it
-  copy: src=unsplash-it.conf dest=/etc/init/unsplash-it.conf owner=root group=root mode=0644
+  copy: src=files/unsplash-it.conf dest=/etc/init/unsplash-it.conf owner=root group=root mode=0644
   notify:
   - reload initctl
   - start unsplash-it

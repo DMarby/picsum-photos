@@ -9,13 +9,15 @@
   file: path=/home/unsplash/.ssh state=directory owner=unsplash group=unsplash
 
 - name: Copy private key
-  copy: src=unsplash_rsa dest=/home/unsplash/.ssh/id_rsa owner=unsplash group=unsplash mode=0400
+  copy: src=files/unsplash_rsa dest=/home/unsplash/.ssh/id_rsa owner=unsplash group=unsplash mode=0400
 
 - name: Disable password login for ssh
-  lineinfile: dest=/etc/ssh/sshd_config regexp="^#PasswordAuthentication yes" line='PasswordAuthentication no'
+  lineinfile: dest=/etc/ssh/sshd_config state=absent regexp="^PasswordAuthentication yes"
 
-- name: Install software-properties-common
-  apt: name=software-properties-common state=latest
+- name: Disable password login for ssh
+  lineinfile: dest=/etc/ssh/sshd_config line="PasswordAuthentication no"
+  notify:
+    - restart sshd
 
 - name: Add nodejs ppa
   apt_repository: repo='ppa:chris-lea/node.js-devel'
@@ -39,6 +41,7 @@
     - libjpeg-dev
     - libexif-dev
     - python-dev
+    - automake
 
 - name: Update alternatives
   shell: "update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10"
@@ -73,8 +76,11 @@
 - name: Install liborc
   command: chdir=/root/orc-0.4.22 make install
 
+- name: Install libvips dependencies
+  command: apt-get -yy install glib-2.0
+
 - name: Download libvips
-  get_url: url=http://www.vips.ecs.soton.ac.uk/supported/7.38/vips-7.38.5c.tar.gz dest=/root/vips-7.38.5.tar.gz
+  get_url: url=http://www.vips.ecs.soton.ac.uk/supported/7.38/vips-7.38.5.tar.gz dest=/root/vips-7.38.5.tar.gz
 
 - name: Extract libvips
   command: chdir=/root tar xfz vips-7.38.5.tar.gz
