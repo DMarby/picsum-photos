@@ -1,0 +1,18 @@
+---
+- name: Create unsplash-it directory
+  file: path=/opt/unsplash-it state=directory owner=unsplash group=unsplash
+
+- name: Clone the repo
+  shell: "cd /opt/unsplash-it && su unsplash -c 'git clone git@github.com:DMarby/unsplash-it.git /opt/unsplash-it'"
+
+- name: Install dependencies for unsplash-it
+  shell: "su unsplash -c 'cd /opt/unsplash-it && npm install'"
+
+- name: "Create unsplash-it.log"
+  file: path=/var/log/unsplash-it.log owner=unsplash group=unsplash mode=0644 state=touch
+
+- name: Copy upstart job for unsplash-it
+  copy: src=unsplash-it.conf dest=/etc/init/unsplash-it.conf owner=root group=root mode=0644
+  notify:
+  - reload initctl
+  - start unsplash-it

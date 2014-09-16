@@ -1,0 +1,9 @@
+---
+- name: reload initctl
+  command: initctl reload-configuration
+
+- name: restart nginx
+  service: name=nginx state=restarted
+
+- name: start unsplash-it
+  command: initctl start unsplash-it

@@ -1,0 +1,34 @@
+---
+- name: Install iptables-persistent
+  apt: name=iptables-persistent state=latest
+
+- name: Get iptables rules
+  shell: iptables -L
+  register: iptablesrules
+  always_run: yes
+
+- name: Add ssh iptables rule
+  command: /sbin/iptables -A INPUT -p tcp --dport 22 -j ACCEPT -m comment --comment "SSH"
+  when: iptablesrules.stdout.find("SSH") == -1
+
+- name: Add nginx iptables rule
+  command: /sbin/iptables -I INPUT -p tcp --dport 80 -j ACCEPT -m comment --comment "Nginx_HTTP"
+  when: iptablesrules.stdout.find("Nginx_HTTP") == -1
+
+- name: Add nginx ssl iptables rule
+  command: /sbin/iptables -I INPUT -p tcp --dport 443 -j ACCEPT -m comment --comment "Nginx_SSL"
+  when: iptablesrules.stdout.find("Nginx_SSL") == -1
+
+- name: Add local interface iptables rule
+  command: /sbin/iptables -I INPUT -i lo -j ACCEPT -m comment --comment "Local"
+  when: iptablesrules.stdout.find("Local") == -1
+
+- name: Add socket.io iptables rule
+  command: /sbin/iptables -I INPUT -p tcp --dport http -j ACCEPT -m comment --comment "SocketIO"
+  when: iptablesrules.stdout.find("SocketIO") == -1
+
+- name: Add default iptables policy
+  command: /sbin/iptables -P INPUT DROP
+
+- name: Save iptables
+  command: /usr/sbin/service iptables-persistent save
