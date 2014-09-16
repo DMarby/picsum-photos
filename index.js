@@ -148,6 +148,7 @@ if (cluster.isMaster) {
       });
       var left = filteredResults.length;
       if (left <= 0) {
+        console.log('Done scanning, no new images');
         fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (err) {
           startWebServers();
         });
@@ -168,7 +169,11 @@ if (cluster.isMaster) {
           newimages.push(result);
 
           if (!--left) {
-            fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (err) {
+            console.log('Done scanning');
+            newimages.sort(function (a,b) { 
+              return a.id < b.id; 
+            })
+            fs.writeFile(config.image_store_path, JSON.stringify(newimages, 'utf8', function (err) {
               startWebServers();
             });
           }
