@@ -1,7 +1,6 @@
-module.exports = function () {
+module.exports = function (path, config) {
   var sharp = require('sharp');
   var gm = require('gm');
-  var path = require('path');
 
   var Image = {
     'getGravity': function(gravity) {
