@@ -16,10 +16,10 @@ module.exports = function (callback) {
 
   fs.mkdir(config.cache_folder_path, function(e) {});
 
-  process.addListener('uncaughtException', function (err) {
+  /*process.addListener('uncaughtException', function (err) {
     console.log('Uncaught exception: ');
     console.trace(err);
-  })
+  })*/
 
   var countImage = function () {
     process.send("count");
