@@ -28,7 +28,7 @@
   when: iptablesrules.stdout.find("Local") == -1
 
 - name: Add socket.io iptables rule
-  command: /sbin/iptables -I INPUT -p tcp --dport http -j ACCEPT -m comment --comment "SocketIO"
+  command: /sbin/iptables -I INPUT -p tcp --dport 4000 -j ACCEPT -m comment --comment "SocketIO"
   when: iptablesrules.stdout.find("SocketIO") == -1
 
 - name: Add default iptables policy
