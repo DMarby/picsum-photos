@@ -1,5 +1,5 @@
 [unsplash]
-104.131.22.226
+104.131.1.207
 
 [unsplash:vars]
 ansible_connection=ssh

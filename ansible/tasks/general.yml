@@ -29,20 +29,23 @@
     - git
     - vnstat
     - htop
-    - gcc
-    - make
+    - build-essential
+    - gobject-introspection
     - pkg-config
     - graphicsmagick
     - libxml2-dev
     - gettext
     - liblcms2-dev
     - fftw3-dev
-    - libgirepository1.0-dev
-    - libpng-dev
-    - libjpeg-dev
+    - libglib2.0-dev
+    - libpng12-dev
+    - libjpeg-turbo8-dev
     - libexif-dev
-    - python-dev
     - automake
+    - gtk-doc-tools
+    - swig
+    - python-dev
+    - libgirepository1.0-dev
 
 - name: Update alternatives
   shell: "update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10"
@@ -80,23 +83,20 @@
 - name: Ldconfig liborc
   command: chdir=/root/orc-0.4.22 ldconfig
 
-- name: Install libvips dependencies
-  command: apt-get -yy install glib-2.0
-
 - name: Download libvips
-  get_url: url=http://www.vips.ecs.soton.ac.uk/supported/7.38/vips-7.38.5.tar.gz dest=/root/vips-7.38.5.tar.gz
+  get_url: url=http://www.vips.ecs.soton.ac.uk/supported/current/vips-7.40.8.tar.gz dest=/root/vips-7.40.8.tar.gz
 
 - name: Extract libvips
-  command: chdir=/root tar xfz vips-7.38.5.tar.gz
+  command: chdir=/root tar xfz vips-7.40.8.tar.gz
 
 - name: Configure libvips
-  command: chdir=/root/vips-7.38.5 ./configure
+  command: chdir=/root/vips-7.40.8 ./configure
 
 - name: Make libvips
-  command: chdir=/root/vips-7.38.5 make
+  command: chdir=/root/vips-7.40.8 make
 
 - name: Install libvips
-  command: chdir=/root/vips-7.38.5 make install
+  command: chdir=/root/vips-7.40.8 make install
 
 - name: Ldconfig libvips
-  command: chdir=/root/vips-7.38.5 ldconfig
+  command: chdir=/root/vips-7.40.8 ldconfig

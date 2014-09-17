@@ -12,4 +12,4 @@
   command: initctl restart unsplash-it
 
 - name: restart sshd
-  command: name=ssh state=restarted
+  service: name=ssh state=restarted

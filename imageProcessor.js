@@ -41,6 +41,7 @@ module.exports = exports = function (sharp, path, config, fs) {
         }
         ImageProcessor.imageResize(width, height, gravity, filePath, destination, function (err, destination) {
           if (err) {
+            fs.unlink(destination, function (err) {})
             return callback(err);
           }
           if (gray) {
@@ -50,6 +51,7 @@ module.exports = exports = function (sharp, path, config, fs) {
             }
             modifyImage.write(destination, function (err) {
               if (err) {  
+                fs.unlink(destination, function (err) {})
                 return callback(err);
               }
               callback(null, destination);
@@ -58,6 +60,7 @@ module.exports = exports = function (sharp, path, config, fs) {
             if (blur) {
               gm(destination).blur(0, 5).write(destination, function (err) {
                 if (err) {
+                  fs.unlink(destination, function (err) {})
                   return callback(err);
                 }
                 callback(null, destination);
