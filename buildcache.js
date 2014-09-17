@@ -6,16 +6,30 @@ var fs = require('fs');
 var imageProcessor = require('./imageProcessor')(sharp, path, config, fs);
 var images = require(config.image_store_path);
 
-for (var i in images) {
+var index = 0;
+
+var nextImage = function (the_index, callback) { 
   var width = 458;
   var height = 354;
-  var filePath = images[i].filename;
+  var filePath = images[the_index].filename;
   var blur = false;
-  imageProcessor.getProcessedImage(width, height, null, false, false, filePath, true, function (err, imagePath) {
+  imageProcessor.getProcessedImage(width, height, null, false, false, filePath, false, function (err, imagePath) {
     if (err) {
       console.log('filePath: ' + filePath);
       console.log('imagePath: ' + imagePath);
       console.log('error: ' + err);
     }
+    callback();
   })
 }
+
+var imageLinksCallback = function () {
+  index++;
+  if (index >= images.length) {
+    console.log('Done!');
+    return;
+  }
+  nextImage(index, imageLinksCallback);
+}
+
+nextImage(index, imageLinksCallback);
