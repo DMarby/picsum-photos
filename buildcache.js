@@ -19,6 +19,7 @@ var nextImage = function (the_index, callback) {
       console.log('imagePath: ' + imagePath);
       console.log('error: ' + err);
     }
+    console.log('%s done', the_index);
     callback();
   })
 }
