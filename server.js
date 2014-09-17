@@ -4,7 +4,7 @@ module.exports = function (callback) {
   var express = require('express')
   var config = require('./config')();
   var packageinfo = require('./package.json');
-  var image = require('./image')(path, config, fs);
+  var imageProcessor = require('./imageProcessor')(path, config, fs);
 
   var app = express();
 

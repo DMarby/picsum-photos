@@ -2,7 +2,7 @@ module.exports = function (path, config, fs) {
   var sharp = require('sharp');
   var gm = require('gm');
 
-  var Image = {
+  var ImageProcessor = {
     'getGravity': function(gravity) {
       gravity = gravity ? gravity : 'center';
       gravity = gravity == 'centre' ? 'center' : gravity;
@@ -78,5 +78,5 @@ module.exports = function (path, config, fs) {
     }
   }
 
-  return Image;
+  return ImageProcessor;
 }
