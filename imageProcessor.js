@@ -18,7 +18,7 @@ module.exports = exports = function (path, config, fs) {
     },
 
     'getAndCheckDestination': function (width, height, gravity, blur, filePath, prefix, shortName, callback) {
-      var destination = shortName ? this.getShortDestination(width, height, gravity, blur, filePath, prefix) : this.getDestination(width, height, gravity, blur, filePath, prefix);
+      var destination = shortName ? ImageProcessor.getShortDestination(width, height, gravity, blur, filePath, prefix) : ImageProcessor.getDestination(width, height, gravity, blur, filePath, prefix);
       fs.exists(destination, function (exists) {
         callback(exists, destination);
       })
@@ -35,12 +35,12 @@ module.exports = exports = function (path, config, fs) {
     },
 
     'getProcessedImage': function (width, height, gravity, gray, blur, filePath, shortName, callback) {
-      gravity = this.getGravity(gravity);
-      this.getAndCheckDestination(width, height, gravity, blur, filePath, gray ? 'gray-' : '', shortName, function (exists, destination) {
+      gravity = ImageProcessor.getGravity(gravity);
+      ImageProcessor.getAndCheckDestination(width, height, gravity, blur, filePath, gray ? 'gray-' : '', shortName, function (exists, destination) {
         if (exists) {
           return callback(null, destination);
         }
-        this.imageResize(width, height, gravity, filePath, destination, function (err, destination) {
+        ImageProcessor.imageResize(width, height, gravity, filePath, destination, function (err, destination) {
           if (err) {
             return callback(err);
           }
