@@ -1,4 +1,4 @@
-module.exports = function (path, config, fs) {
+module.exports = exports = function (path, config, fs) {
   var sharp = require('sharp');
   var gm = require('gm');
 
