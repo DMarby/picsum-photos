@@ -76,6 +76,9 @@
 - name: Install liborc
   command: chdir=/root/orc-0.4.22 make install
 
+- name: Ldconfig liborc
+  command: chdir=/root/orc-0.4.22 ldconfig
+
 - name: Install libvips dependencies
   command: apt-get -yy install glib-2.0
 
@@ -93,3 +96,6 @@
 
 - name: Install libvips
   command: chdir=/root/vips-7.38.5 make install
+
+- name: Ldconfig libvips
+  command: chdir=/root/vips-7.38.5 ldconfig
