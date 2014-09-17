@@ -9,11 +9,11 @@ module.exports = exports = function (sharp, path, config, fs) {
     },
 
     'getDestination': function (width, height, gravity, blur, filePath, prefix) {
-      return config.cache_folder_path + '/' + prefix + path.basename(filePath, path.extname(filePath)) + '-' + width + 'x' + height + '-' + gravity + (blur ? '-blur' : '') + '.jpg';
+      return config.cache_folder_path + '/' + prefix + path.basename(filePath, path.extname(filePath)) + '-' + width + 'x' + height + '-' + gravity + (blur ? '-blur' : '') + '.jpeg';
     },
 
     'getShortDestination': function (width, height, gravity, blur, filePath, prefix) {
-      return config.cache_folder_path + '/' + prefix + width + '^' + height + '-' + gravity + (blur ? '-blurred' : '') + '.jpg';
+      return config.cache_folder_path + '/' + prefix + width + '^' + height + '-' + gravity + (blur ? '-blurred' : '') + '.jpeg';
     },
 
     'getAndCheckDestination': function (width, height, gravity, blur, filePath, prefix, shortName, callback) {
