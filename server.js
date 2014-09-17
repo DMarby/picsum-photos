@@ -2,9 +2,10 @@ module.exports = function (callback) {
   var fs = require('fs');
   var path = require('path'); 
   var express = require('express')
+  var sharp = require('sharp');
   var config = require('./config')();
   var packageinfo = require('./package.json');
-  var imageProcessor = require('./imageProcessor')(path, config, fs);
+  var imageProcessor = require('./imageProcessor')(sharp, path, config, fs);
 
   var app = express();
 
@@ -16,10 +17,10 @@ module.exports = function (callback) {
 
   fs.mkdir(config.cache_folder_path, function(e) {});
 
-  /*process.addListener('uncaughtException', function (err) {
+  process.addListener('uncaughtException', function (err) {
     console.log('Uncaught exception: ');
     console.trace(err);
-  })*/
+  })
 
   var countImage = function () {
     process.send("count");

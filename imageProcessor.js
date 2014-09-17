@@ -1,5 +1,4 @@
 module.exports = exports = function (path, config, fs) {
-  var sharp = require('sharp');
   var gm = require('gm');
 
   var ImageProcessor = {
