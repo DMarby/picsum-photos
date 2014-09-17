@@ -6,7 +6,8 @@ var fs = require('fs');
 var imageProcessor = require('./imageProcessor')(sharp, path, config, fs);
 var images = require(config.image_store_path);
 
-var index = 0;
+var index = process.argv[2] || 0;
+console.log('Start: %s', index);
 
 var nextImage = function (the_index, callback) { 
   var width = 458;
