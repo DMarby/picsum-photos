@@ -50,7 +50,7 @@ module.exports = function (callback) {
 
   var serveImage = function(req, res, square, gray) {
     checkParameters(req.params, req.query, square, function (err, code, message) {
-      image.getWidthAndHeight(req.params, square, function (width, height) {
+      imageProcessor.getWidthAndHeight(req.params, square, function (width, height) {
         if (err) {
           return displayError(res, code, message);
         }
@@ -67,7 +67,7 @@ module.exports = function (callback) {
         } else {
           filePath = images[Math.floor(Math.random() * images.length)].filename;
         }
-        image.getProcessedImage(width, height, req.query.gravity, gray, !(!req.query.blur && req.query.blur != ''), filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
+        imageProcessor.getProcessedImage(width, height, req.query.gravity, gray, !(!req.query.blur && req.query.blur != ''), filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
           if (err) {
             console.log('filePath: ' + filePath);
             console.log('imagePath: ' + imagePath);
