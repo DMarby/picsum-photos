@@ -1,11 +1,10 @@
 module.exports = function (callback) {
-  var gm = require('gm');
   var fs = require('fs');
   var path = require('path'); 
-  var sharp = require('sharp');
   var express = require('express')
   var config = require('./config')();
   var packageinfo = require('./package.json');
+  var image = require('./image')();
 
   var app = express();
 
@@ -49,84 +48,9 @@ module.exports = function (callback) {
     return matchingImages[0].filename;
   }
 
-  var getGravity = function(gravity) {
-    gravity = gravity ? gravity : 'center';
-    gravity = gravity == 'centre' ? 'center' : gravity;
-    return gravity;
-  }
-
-  var getDestination = function (width, height, gravity, blur, filePath, prefix) {
-    return config.cache_folder_path + '/' + prefix + path.basename(filePath, path.extname(filePath)) + '-' + width + 'x' + height + '-' + gravity + (blur ? '-blur' : '') + '.jpg';
-  }
-
-  var getShortDestination = function (width, height, gravity, blur, filePath, prefix) {
-    return config.cache_folder_path + '/' + prefix + width + '^' + height + '-' + gravity + (blur ? '-blurred' : '') + '.jpg';
-  }
-
-  var getAndCheckDestination = function (width, height, gravity, blur, filePath, prefix, shortName, callback) {
-    var destination = shortName ? getShortDestination(width, height, gravity, blur, filePath, prefix) : getDestination(width, height, gravity, blur, filePath, prefix);
-    fs.exists(destination, function (exists) {
-      callback(exists, destination);
-    })
-  }
-
-  var imageResize = function (width, height, gravity, filePath, destination, callback) {
-    try {
-      sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity]).jpeg().progressive().toFile(destination, function (err) {
-        callback(err, destination);
-      });
-    } catch (e) {
-      callback(e, null);
-    }
-  }
-
-  var getProcessedImage = function (width, height, gravity, gray, blur, filePath, shortName, callback) {
-    gravity = getGravity(gravity);
-    getAndCheckDestination(width, height, gravity, blur, filePath, gray ? 'gray-' : '', shortName, function (exists, destination) {
-      if (exists) {
-        return callback(null, destination);
-      }
-      imageResize(width, height, gravity, filePath, destination, function (err, destination) {
-        if (err) {
-          return callback(err);
-        }
-        if (gray) {
-          var modifyImage = gm(destination).colorspace('GRAY');
-          if (blur) {
-            modifyImage.blur(0, 5);
-          }
-          modifyImage.write(destination, function (err) {
-            if (err) {  
-              return callback(err);
-            }
-            callback(null, destination);
-          })
-        } else {
-          if (blur) {
-            gm(destination).blur(0, 5).write(destination, function (err) {
-              if (err) {
-                return callback(err);
-              }
-              callback(null, destination);
-            })
-          } else {
-            callback(null, destination);
-          }
-        }
-      })
-    })
-  }
-
-  var getWidthAndHeight = function (params, square, callback) {
-    var width = square ? params.size : params.width;
-    var height = square ? params.size : params.height;
-    callback(width, height);
-  }
-
-
   var serveImage = function(req, res, square, gray) {
     checkParameters(req.params, req.query, square, function (err, code, message) {
-      getWidthAndHeight(req.params, square, function (width, height) {
+      image.getWidthAndHeight(req.params, square, function (width, height) {
         if (err) {
           return displayError(res, code, message);
         }
@@ -143,7 +67,7 @@ module.exports = function (callback) {
         } else {
           filePath = images[Math.floor(Math.random() * images.length)].filename;
         }
-        getProcessedImage(width, height, req.query.gravity, gray, !(!req.query.blur && req.query.blur != ''), filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
+        image.getProcessedImage(width, height, req.query.gravity, gray, !(!req.query.blur && req.query.blur != ''), filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (err, imagePath) {
           if (err) {
             console.log('filePath: ' + filePath);
             console.log('imagePath: ' + imagePath);
