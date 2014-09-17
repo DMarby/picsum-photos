@@ -1,5 +1,7 @@
 ---
 - hosts: unsplash
+  vars:
+    dhparam: true
   tasks:
     - include: tasks/general.yml
     - include: tasks/iptables.yml

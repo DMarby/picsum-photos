@@ -1,0 +1,7 @@
+---
+- hosts: unsplash
+  tasks:
+	- name: Update repo
+  	  shell: "cd /opt/unsplash-download && su unsplash -c 'cd /opt/unsplash-downloader && git pull && npm install'"
+  handlers:
+   - include: handlers/handlers.yml

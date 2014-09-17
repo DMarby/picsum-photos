@@ -22,8 +22,6 @@
 
 - name: Copy nginx config
   copy: src=files/nginx.conf dest=/etc/nginx/conf.d/unsplash.conf
-  notify:
-    - restart nginx 
 
 - name: Copy nginx certificate
   copy: src=files/unsplash.crt dest=/etc/ssl/unsplash.crt owner=root group=root mode=0644
@@ -33,6 +31,7 @@
 
 - name: Generate dhparam
   command: chdir=/etc/ssl/certs openssl dhparam -out dhparam.pem 4096
+  when: dhparam
 
 - name: Ensure nginx is running
-  service: name=nginx state=started
+  service: name=nginx state=restarted

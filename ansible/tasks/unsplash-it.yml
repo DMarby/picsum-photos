@@ -3,7 +3,7 @@
   file: path=/opt/unsplash-it state=directory owner=unsplash group=unsplash
 
 - name: Clone the repo
-  shell: "cd /opt/unsplash-it && su unsplash -c 'git clone git@github.com:DMarby/unsplash-it.git /opt/unsplash-it'"
+  shell: "cd /opt/unsplash-it && su unsplash -c 'git clone https://github.com/DMarby/unsplash-it.git /opt/unsplash-it'"
 
 - name: Install dependencies for unsplash-it
   shell: "su unsplash -c 'cd /opt/unsplash-it && npm install'"

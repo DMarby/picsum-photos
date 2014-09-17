@@ -8,5 +8,8 @@
 - name: start unsplash-it
   command: initctl start unsplash-it
 
+- name: restart unsplash-it
+  command: initctl restart unsplash-it
+
 - name: restart sshd
   command: name=ssh state=restarted

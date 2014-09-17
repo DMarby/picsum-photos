@@ -3,7 +3,7 @@
   file: path=/opt/unsplash-downloader state=directory owner=unsplash group=unsplash
 
 - name: Clone the repo
-  shell: "cd /opt/unsplash-downloader && su unsplash -c 'git clone git@github.com:DMarby/unsplash-downloader.git /opt/unsplash-downloader'"
+  shell: "cd /opt/unsplash-downloader && su unsplash -c 'git clone https://github.com/DMarby/unsplash-downloader.git /opt/unsplash-downloader'"
 
 - name: Install dependencies for unsplash-downloader
   shell: "su unsplash -c 'cd /opt/unsplash-downloader && npm install'"

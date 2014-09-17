@@ -1,0 +1,9 @@
+---
+- hosts: unsplash
+  tasks:
+	- name: Update repo
+  	  shell: "cd /opt/unsplash-it && su unsplash -c 'cd /opt/unsplash-it && git pull && npm install'"
+	  notify:
+	  - restart unsplash-it
+  handlers:
+   - include: handlers/handlers.yml

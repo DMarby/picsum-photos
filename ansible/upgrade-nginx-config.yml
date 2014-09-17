@@ -1,0 +1,10 @@
+---
+- hosts: unsplash
+  tasks:
+	- name: Update nginx config
+      copy: src=files/nginx.conf dest=/etc/nginx/conf.d/unsplash.conf
+      notify:
+        - restart nginx
+
+  handlers:
+   - include: handlers/handlers.yml
