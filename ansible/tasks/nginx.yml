@@ -9,7 +9,7 @@
   get_url: url=http://nginx.org/keys/nginx_signing.key dest=/root/nginx_signing.key mode=0440
 
 - name: Install nginx
-  apt: name=nginx state=latest update_cache=yes
+  apt: name=nginx state=latest force=yes update_cache=yes
 
 - name: Install nginx repo pubkey
   command: apt-key add /root/nginx_signing.key
