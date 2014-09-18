@@ -7,6 +7,8 @@ module.exports = function (callback) {
   var packageinfo = require('./package.json');
   var imageProcessor = require('./imageProcessor')(sharp, path, config, fs);
 
+  sharp.cache(0);
+
   var app = express();
 
   try {
