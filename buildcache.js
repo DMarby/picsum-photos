@@ -9,6 +9,8 @@ var images = require(config.image_store_path);
 var index = process.argv[2] || 0;
 console.log('Start: %s', index);
 
+sharp.cache(0);
+
 var nextImage = function (the_index, callback) { 
   var width = 458;
   var height = 354;
