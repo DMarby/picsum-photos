@@ -12,4 +12,4 @@
   copy: src=files/unsplash-downloader.conf dest=/opt/unsplash-downloader/config.js owner=unsplash group=unsplash
 
 - name: Add cronjob for unsplash-downloader
-  action: 'cron name="unsplash-downloader" special_time=daily user=unsplash job="cd /opt/unsplash-downloader && /usr/local/bin/node index.js"'
+  action: 'cron name="unsplash-downloader" special_time=daily user=unsplash job="cd /opt/unsplash-downloader && /usr/bin/node index.js"'
