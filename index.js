@@ -166,8 +166,6 @@ if (cluster.isMaster) {
 
           result.filename = filename;
           var the_metadata = findMetadata(path.basename(filename));
-          console.log(path.basename(filename));
-          console.log(the_metadata);
           result.id = parseInt(the_metadata.id);
           result.post_url = the_metadata.post_url;
           result.author = the_metadata.author;
