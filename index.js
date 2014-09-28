@@ -166,7 +166,7 @@ if (cluster.isMaster) {
 
           result.filename = filename;
           var the_metadata = findMetadata(path.basename(filename));
-          result.id = parseInt(the_metadata.id);
+          result.id = parseInt(the_metadata.unsplash_id);
           result.post_url = the_metadata.post_url;
           result.author = the_metadata.author;
           result.author_url = the_metadata.author_url;

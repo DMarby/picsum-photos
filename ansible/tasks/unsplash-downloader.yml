@@ -13,3 +13,6 @@
 
 - name: Add cronjob for unsplash-downloader
   action: 'cron name="unsplash-downloader" special_time=daily user=unsplash job="cd /opt/unsplash-downloader && /usr/bin/node index.js"'
+
+- name: "Allow unsplash user to restart unsplash-it service"
+  lineinfile: "dest=/etc/sudoers state=present line='unsplash ALL=NOPASSWD: /usr/sbin/service unsplash-it restart' validate='visudo -cf %s'"
