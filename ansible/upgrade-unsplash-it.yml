@@ -1,6 +1,8 @@
 ---
 - hosts: unsplash-it
   tasks:
+  	- name: Update config
+      copy: src=files/unsplash-it.conf dest=/opt/unsplash-it/config.js
 	- name: Update repo
   	  shell: "cd /opt/unsplash-it && su unsplash -c 'cd /opt/unsplash-it && git pull && npm install'"
 	  notify:
