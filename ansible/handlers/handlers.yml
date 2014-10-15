@@ -9,7 +9,7 @@
   command: initctl start unsplash-it
 
 - name: restart unsplash-it
-  command: initctl restart unsplash-it
+  service: name=unsplash-it state=restarted
 
 - name: restart sshd
   service: name=ssh state=restarted
