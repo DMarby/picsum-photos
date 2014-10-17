@@ -12,8 +12,9 @@
   },
   "author": "David Marby <david@dmarby.se> (http://dmarby.se)",
   "dependencies": {
-    "gm": "^1.16.0",
+    "cors": "^2.4.2",
     "express": "^4.8.2",
+    "gm": "^1.16.0",
     "sharp": "git://github.com/lovell/sharp.git",
     "socket.io": "^1.0.6",
     "vnstat-dumpdb": "^1.0.2"

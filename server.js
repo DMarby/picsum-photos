@@ -1,7 +1,8 @@
 module.exports = function (callback) {
   var fs = require('fs');
   var path = require('path'); 
-  var express = require('express')
+  var express = require('express');
+  var cors = require('cors');
   var sharp = require('sharp');
   var config = require('./config')();
   var packageinfo = require('./package.json');
@@ -84,13 +85,9 @@ module.exports = function (callback) {
     })
   }
 
-  app.use(express.static(path.join(__dirname, 'public')));
+  app.use(cors());
 
-  app.all('*', function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    next();
-  });
+  app.use(express.static(path.join(__dirname, 'public')));
 
   app.get('/info', function (req, res, next) {
     res.jsonp({ name: packageinfo.name, version: packageinfo.version, author: packageinfo.author });
