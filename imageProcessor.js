@@ -42,6 +42,8 @@ module.exports = exports = function (sharp, path, config, fs) {
         }
         ImageProcessor.imageResize(width, height, gravity, filePath, destination, function (error, destination) {
           if (error) {
+            console.log(error)
+            console.log(destination)
             fs.unlink(destination, function (error) {
               console.log('Error, deleted file')
             })
