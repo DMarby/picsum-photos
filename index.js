@@ -67,11 +67,11 @@ if (cluster.isMaster) {
   process.on('exit', cleanup)
   process.on('SIGINT', cleanupAndExit)
   process.on('SIGTERM', cleanupAndExit)
-  /*process.on('uncaughtException', function (error) {
+  process.on('uncaughtException', function (error) {
     console.log('Uncaught exception: ')
     console.trace(error)
     cleanupAndExit()
-  })*/
+  })
 
   var handleWorkerMessage = function (msg) {
     stats.count++

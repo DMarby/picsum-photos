@@ -26,7 +26,6 @@ module.exports = exports = function (sharp, path, config, fs) {
     'imageResize': function (width, height, gravity, filePath, destination, callback) {
       try {
         sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity]).jpeg().progressive().toFile(destination, function (error) {
-          console.log(error);
           callback(error, destination)
         })
       } catch (error) {
@@ -42,8 +41,6 @@ module.exports = exports = function (sharp, path, config, fs) {
         }
         ImageProcessor.imageResize(width, height, gravity, filePath, destination, function (error, destination) {
           if (error) {
-            console.log(error)
-            console.log(destination)
             fs.unlink(destination, function (error) {
               console.log('Error, deleted file')
             })
@@ -54,7 +51,6 @@ module.exports = exports = function (sharp, path, config, fs) {
             if (blur) {
               modifyImage.blur(0, 5)
             }
-            console.log(destination)
             modifyImage.write(destination, function (error) {
               if (error) {  
                 fs.unlink(destination, function (error) {

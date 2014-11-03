@@ -18,12 +18,12 @@ module.exports = function (callback) {
     var images = []
   }
 
-  fs.mkdir(config.cache_folder_path, function(e) {})
+  fs.mkdir(config.cache_folder_path, function (error) {})
 
-  /*process.addListener('uncaughtException', function (err) {
+  process.addListener('uncaughtException', function (err) {
     console.log('Uncaught exception: ')
     console.trace(err)
-  })*/
+  })
 
   var countImage = function () {
     process.send('count')
@@ -73,7 +73,7 @@ module.exports = function (callback) {
         } else {
           filePath = images[Math.floor(Math.random() * images.length)].filename
         }
-        imageProcessor.getProcessedImage(width, height, req.query.gravity, gray, !(!req.query.blur && req.query.blur != ''), filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (error, imagePath) {
+        imageProcessor.getProcessedImage(parseInt(width), parseInt(height), req.query.gravity, gray, !(!req.query.blur && req.query.blur != ''), filePath, (!req.query.image && !req.query.random && req.query.random != ''), function (error, imagePath) {
           if (error) {
             console.log('filePath: ' + filePath)
             console.log('imagePath: ' + imagePath)
