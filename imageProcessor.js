@@ -26,6 +26,7 @@ module.exports = exports = function (sharp, path, config, fs) {
     'imageResize': function (width, height, gravity, filePath, destination, callback) {
       try {
         sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity]).jpeg().progressive().toFile(destination, function (error) {
+          console.log(error);
           callback(error, destination)
         })
       } catch (error) {
@@ -51,6 +52,7 @@ module.exports = exports = function (sharp, path, config, fs) {
             if (blur) {
               modifyImage.blur(0, 5)
             }
+            console.log(destination)
             modifyImage.write(destination, function (error) {
               if (error) {  
                 fs.unlink(destination, function (error) {
