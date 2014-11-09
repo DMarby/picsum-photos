@@ -1,6 +1,7 @@
 var cluster = require('cluster')
-if (cluster.isMaster) {
 
+if (cluster.isMaster) {
+  var async = require('async')
   var config = require('./config')()
   var fs = require('fs')
   var path = require('path')
@@ -17,12 +18,13 @@ if (cluster.isMaster) {
     var stats = { count: 0 }
   }
 
-
   try {
     var images = require(config.image_store_path)
   } catch (e) {
     var images = []
   }
+
+  fs.mkdir(config.cache_folder_path, function (error) {})
 
   var publicStats = {}
   var bandWidth = 0
@@ -37,6 +39,7 @@ if (cluster.isMaster) {
       bandWidth: bandWidth,
       images: images.length
     }
+
     io.emit('stats', publicStats)
   }
 
@@ -73,95 +76,35 @@ if (cluster.isMaster) {
     cleanupAndExit()
   })
 
-  var handleWorkerMessage = function (msg) {
-    stats.count++
-  }
-
-  var endsWith = function (str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1
-  }
-
-  var findMetadata = function (filename) {
-    for (var i in metadata) {
-      if (metadata[i].filename == filename) {
-        return metadata[i]
-      }
-    }
-  }
-
-  var startWebServers = function () {
-    var cpuCount = require('os').cpus().length - 1
-    if (cpuCount < 2) {
-      cpuCount = 2
-    }
-
-    for (var i = 0, il=cpuCount; i < il; i++) {
-      var worker = cluster.fork()
-      worker.on('message', handleWorkerMessage)
-      console.log('Worker ' + worker.id + ' started')
-    }
-
-    cluster.on('exit', function (worker) {
-      console.log('Worker ' + worker.id + ' died')
-      var worker = cluster.fork()
-      worker.on('message', handleWorkerMessage)
-      console.log('Worker ' + worker.id + ' started')
-    })
-  }
-
-  var scanDirectory = function (dir, done) {
-    var results = []
-    fs.readdir(dir, function (error, list) {
-      if (error) {
-        return done(error)
-      }
-      var pending = list.length
-      if (!pending) {
-        return done (null, results)
-      }
-      list.forEach(function (file) {
-        file = path.resolve(dir, file)
-        fs.stat(file, function (error, stat) {
-          if (stat && stat.isFile() && !endsWith(file, '.DS_Store') && !endsWith(file, 'metadata.json')) {
-            results.push(file)
-          }
-          if (!--pending) done(null, results)
-        })
-      })
-    })
-  }
-
   var loadImages = function () {
     var newimages = []
-    for (var i in images) {
-      var item = images[i]
-      var the_metadata = findMetadata(path.basename(item.filename))
-      item.post_url = the_metadata.post_url
-      item.author = the_metadata.author
-      item.author_url = the_metadata.author_url
-      newimages.push(item)
-    }
+
+    images.forEach(function (image) {
+      var the_metadata = findMetadata(path.basename(image.filename))
+      image.post_url = the_metadata.post_url
+      image.author = the_metadata.author
+      image.author_url = the_metadata.author_url
+      newimages.push(image) 
+    })
+
     scanDirectory(config.folder_path, function (error, results) {
       if (error) throw error
+      
       var filteredResults = results.filter(function (filename) {
         return images.filter(function (image) { return image.filename == filename; }) == 0
       })
-      var left = filteredResults.length
-      if (left <= 0) {
+
+      if (filteredResults.length <= 0) {
         console.log('Done scanning, no new images')
-        newimages.sort(function (a,b) { 
-          return a.id - b.id
-        })
-        images = newimages
-        fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (err) {
-          startWebServers()
-        })
+        writeImagesToFile(newimages)
         return
       }
-      filteredResults.forEach(function (filename) {
+
+      async.each(filteredResults, function (filename, next) {
         sharp(filename).metadata(function (error, result) {  
           if (error) {
-            return console.trace('imageScan error: %s filename: %s', error, filename)
+            console.trace('imageScan error: %s filename: %s', error, filename)
+            return next(error)
           }
 
           result.filename = filename
@@ -172,19 +115,89 @@ if (cluster.isMaster) {
           result.author_url = the_metadata.author_url
           newimages.push(result)
 
-          if (!--left) {
-            console.log('Done scanning')
-            newimages.sort(function (a, b) { 
-              return a.id - b.id
-            })
-            images = newimages
-            fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (error) {
-              startWebServers()
-            })
-          }
+          next()
         })
+      }, function (error) {
+        console.log('Done scanning')
+        writeImagesToFile(newimages)
       })
     })
+  }
+
+  var findMetadata = function (filename) {
+    for (var i in metadata) {
+      if (metadata[i].filename == filename) {
+        return metadata[i]
+      }
+    }
+  }
+
+  var scanDirectory = function (dir, done) {
+    var results = []
+    fs.readdir(dir, function (error, list) {
+      if (error) {
+        return done(error)
+      }
+      
+      if (!list.length) {
+        return done (null, results)
+      }
+
+      async.each(list, function (file, next) {
+        file = path.resolve(dir, file)
+        fs.stat(file, function (error, stat) {
+          if (stat && stat.isFile() && !endsWith(file, '.DS_Store') && !endsWith(file, 'metadata.json')) {
+            results.push(file)
+          }
+          next(error)          
+        })
+      }, function (error) {
+        done(error, results)
+      })
+    })
+  }
+
+  var endsWith = function (str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1
+  }
+
+  var writeImagesToFile = function (newimages) {
+    newimages.sort(function (a, b) { 
+      return a.id - b.id
+    })
+
+    images = newimages
+
+    fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (error) {
+      startWebServers()
+    })
+  }
+
+  var startWebServers = function () {
+    var cpuCount = require('os').cpus().length - 1
+
+    if (cpuCount < 2) {
+      cpuCount = 2
+    }
+
+    for (var i = 0, il=cpuCount; i < il; i++) {
+      startWorker()
+    }
+
+    cluster.on('exit', function (worker) {
+      console.log('Worker ' + worker.id + ' died')
+      startWorker()
+    })
+  }
+
+  var startWorker = function () {
+    var worker = cluster.fork()
+    worker.on('message', handleWorkerMessage)
+    console.log('Worker ' + worker.id + ' started')
+  }
+
+  var handleWorkerMessage = function (msg) {
+    stats.count++
   }
 
   loadImages()
