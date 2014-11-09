@@ -3,7 +3,6 @@ node_modules
 images.json
 stats.json
 ansible/files/unsplash.key
-
 ansible/files/unsplash.crt
-
 ansible/files/unsplash_rsa
+ansible/files/vnstat.db

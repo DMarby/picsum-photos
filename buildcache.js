@@ -4,6 +4,8 @@ var async = require('async')
 var config = require('./config')()
 var fs = require('fs')
 
+sharp.cache(0)
+
 var imageProcessor = require('./imageProcessor')(sharp, path, config, fs)
 var images = require(config.image_store_path)
 

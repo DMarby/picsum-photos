@@ -25,13 +25,27 @@
 - name: Install required packages
   apt: name={{ item }} state=latest update_cache=yes
   with_items:
-    - curl
     - nodejs
     - git
     - vnstat
     - htop
+    - build-essential
+    - gobject-introspection
     - pkg-config
     - graphicsmagick
+    - libxml2-dev
+    - gettext
+    - liblcms2-dev
+    - fftw3-dev
+    - libglib2.0-dev
+    - libpng12-dev
+    - libjpeg-turbo8-dev
+    - libexif-dev
+    - automake
+    - gtk-doc-tools
+    - swig
+    - python-dev
+    - libgirepository1.0-dev
 
 - name: Update alternatives
   shell: "update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10"
@@ -51,5 +65,38 @@
 - name: Clone photos repo
   shell: "cd /opt/photos && su unsplash -c 'git clone root@dmarby.se:photos.git /opt/photos'"
 
+- name: Download liborc
+  get_url: url=http://gstreamer.freedesktop.org/data/src/orc/orc-0.4.22.tar.xz dest=/root/orc-0.4.22.tar.xz
+
+- name: Extract liborc
+  command: chdir=/root tar xf orc-0.4.22.tar.xz
+
+- name: Configure liborc
+  command: chdir=/root/orc-0.4.22 ./configure
+
+- name: Make liborc
+  command: chdir=/root/orc-0.4.22 make
+
+- name: Install liborc
+  command: chdir=/root/orc-0.4.22 make install
+
+- name: Ldconfig liborc
+  command: chdir=/root/orc-0.4.22 ldconfig
+
+- name: Download libvips
+  get_url: url=http://www.vips.ecs.soton.ac.uk/supported/current/vips-7.40.8.tar.gz dest=/root/vips-7.40.8.tar.gz
+
+- name: Extract libvips
+  command: chdir=/root tar xfz vips-7.40.8.tar.gz
+
+- name: Configure libvips
+  command: chdir=/root/vips-7.40.8 ./configure
+
+- name: Make libvips
+  command: chdir=/root/vips-7.40.8 make
+
 - name: Install libvips
-  shell: "curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -"
+  command: chdir=/root/vips-7.40.8 make install
+
+- name: Ldconfig libvips
+  command: chdir=/root/vips-7.40.8 ldconfig

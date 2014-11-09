@@ -35,4 +35,4 @@
   command: /sbin/iptables -P INPUT DROP
 
 - name: Save iptables
-  command: /usr/sbin/service iptables-persistent save
+  shell: /sbin/iptables-save > /etc/iptables/rules.v4

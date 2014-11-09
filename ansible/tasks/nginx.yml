@@ -18,6 +18,9 @@
   file: path=/etc/nginx/conf.d/default.conf state=absent
 
 - name: Remove default nginx config
+  file: path=/etc/nginx/sites-enabled/default state=absent
+
+- name: Remove default nginx config
   file: path=/etc/nginx/conf.d/example_ssl.conf state=absent
 
 - name: Copy nginx config
