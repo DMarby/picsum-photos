@@ -1,5 +1,3 @@
-var gm = require('gm')
-
 module.exports = exports = function (sharp, path, config, fs) {
   var ImageProcessor = {
     'getProcessedImage': function (width, height, gravity, gray, blur, filePath, shortName, callback) {
@@ -9,23 +7,13 @@ module.exports = exports = function (sharp, path, config, fs) {
           return callback(null, destination)
         }
 
-        ImageProcessor.imageResize(width, height, gravity, filePath, destination, gray, function (error, destination) {
+        ImageProcessor.imageResize(width, height, gravity, filePath, destination, gray, blur, function (error, destination) {
           if (error) {
             ImageProcessor.deleteFile(destination)
             return callback(error)
           }
-
-          if (blur) {
-            gm(destination).blur(0, 5).write(destination, function (error) {
-              if (error) {
-                ImageProcessor.deleteFile(destination)
-                return callback(error)
-              }
-              callback(null, destination)
-            })
-          } else {
-            callback(null, destination)
-          }
+          
+          callback(null, destination)
         })
       })
     },
@@ -51,12 +39,16 @@ module.exports = exports = function (sharp, path, config, fs) {
       return config.cache_folder_path + '/' + prefix + width + '^' + height + '-' + gravity + (blur ? '-blurred' : '') + '.jpeg'
     },
 
-    'imageResize': function (width, height, gravity, filePath, destination, gray, callback) {
+    'imageResize': function (width, height, gravity, filePath, destination, gray, blur, callback) {
       try {
         var image = sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity]);
         
         if (gray) {
           image.grayscale()
+        }
+
+        if (blur) {
+          image.blur(10)
         }
 
         image.jpeg().progressive().toFile(destination, function (error) {
