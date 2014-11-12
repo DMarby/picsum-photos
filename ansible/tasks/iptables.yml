@@ -3,7 +3,7 @@
   apt: name=iptables-persistent state=latest
 
 - name: Get iptables rules
-  shell: iptables -L
+  shell: /sbin/iptables -L
   register: iptablesrules
   always_run: yes
 

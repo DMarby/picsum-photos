@@ -5,6 +5,7 @@
   tasks:
     - include: tasks/general.yml
     - include: tasks/iptables.yml
+    - include: tasks/ip6tables.yml
     - include: tasks/nginx.yml
     - include: tasks/unsplash-downloader.yml
     - include: tasks/unsplash-it.yml
