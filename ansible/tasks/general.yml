@@ -31,7 +31,6 @@
     - vnstat
     - htop
     - pkg-config
-    - graphicsmagick
 
 - name: Update alternatives
   shell: "update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10"
