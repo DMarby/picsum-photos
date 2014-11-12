@@ -51,4 +51,4 @@
   shell: "cd /opt/photos && su unsplash -c 'git clone root@dmarby.se:photos.git /opt/photos'"
 
 - name: Install libvips
-  shell: "curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -"
+  shell: "curl -s https://raw.githubusercontent.com/lovell/sharp/edge/preinstall.sh | bash -"
