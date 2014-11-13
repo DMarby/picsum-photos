@@ -6,10 +6,10 @@
   shell: "cd /opt/unsplash-downloader && su unsplash -c 'git clone https://github.com/DMarby/unsplash-downloader.git /opt/unsplash-downloader'"
 
 - name: Set git name
-  shell: su unsplash -c 'git config --global user.name "Unsplash"'
+  shell: cd /opt/unsplash-downloader && su unsplash -c 'git config --global user.name "Unsplash"'
 
 - name: Set git email
-  shell: su unsplash -c 'git config --global user.email "david@dmarby.se"'
+  shell: cd /opt/unsplash-downloader && su unsplash -c 'git config --global user.email "david@dmarby.se"'
 
 - name: Install dependencies for unsplash-downloader
   shell: "su unsplash -c 'cd /opt/unsplash-downloader && npm install'"

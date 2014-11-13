@@ -2,6 +2,12 @@
 - name: Upgrade existing packages
   apt: upgrade=full update_cache=yes
 
+- name: Prefer ipv4
+  lineinfile: dest=/etc/gai.conf line="precedence ::ffff:0:0/96  100" state="present"
+
+- name: Prefer ipv4
+  lineinfile: dest=/etc/network/interfaces regexp="^.*dns-nameservers.*$" line="        dns-nameservers 8.8.8.8 8.8.4.4 2001:4860:4860::8844 2001:4860:4860::8888" state="present"
+
 - name: Create unsplash user
   user: name=unsplash shell=/bin/bash createhome=yes system=yes
 
