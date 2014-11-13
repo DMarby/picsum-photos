@@ -1,9 +1,0 @@
----
-- hosts: unsplash-it
-  tasks:
-    - name: Stop vnstat
-      service: name=vnstat state=stopped
-    - name: Copy vnstat db
-      copy: src=files/vnstat.db dest=/var/lib/vnstat/eth0 owner=vnstat group=vnstat
-    - name: Start vnstat
-      service: name=vnstat state=started
