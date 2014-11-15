@@ -16,3 +16,4 @@
   notify:
   - reload initctl
   - start unsplash-it
+  - build cache

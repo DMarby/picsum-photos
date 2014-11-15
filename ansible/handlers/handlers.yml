@@ -8,6 +8,9 @@
 - name: start unsplash-it
   command: initctl start unsplash-it
 
+- name: build cache
+  shell: "cd /opt/unsplash-it && su unsplash -c 'node buildcache.js'"
+  
 - name: restart unsplash-it
   service: name=unsplash-it state=restarted
 
