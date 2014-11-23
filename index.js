@@ -64,6 +64,10 @@ if (cluster.isMaster) {
   }
 
   var cleanup = function () {
+    saveStatsToFile()
+  }
+
+  var saveStatsToFile = function () {
     fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8')
   }
 
@@ -188,6 +192,10 @@ if (cluster.isMaster) {
       console.log('Worker ' + worker.id + ' died')
       startWorker()
     })
+
+    setInterval(function () {
+      saveStatsToFile()
+    }, 5000)
   }
 
   var startWorker = function () {
