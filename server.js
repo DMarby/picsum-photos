@@ -112,7 +112,7 @@ module.exports = function (callback) {
   }
 
   var checkParameters = function (params, queryparams, square, callback) {
-    if ((square && !params.size) || (square && isNaN(parseInt(params.size))) || (!square && !params.width) || (!square && !params.height) || (!square && isNaN(parseInt(params.width))) || (!square && isNaN(parseInt(params.height))) || (queryparams.gravity && !sharp.gravity[queryparams.gravity])) {
+    if ((square && !params.size) || (square && isNaN(parseInt(params.size))) || (!square && !params.width) || (!square && !params.height) || (!square && isNaN(parseInt(params.width))) || (!square && isNaN(parseInt(params.height))) || (queryparams.gravity && !sharp.gravity[queryparams.gravity] != 0 && !sharp.gravity[queryparams.gravity])) {
       return callback(true, 400, 'Invalid arguments')
     }
     
