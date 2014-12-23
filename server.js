@@ -85,10 +85,18 @@ module.exports = function (callback) {
         var blur = false
        
         if (req.query.image) {
-          var matchingImage = findMatchingImageFilename(req.query.image)
+          var matchingImage = findMatchingImage(req.query.image)
           
           if (matchingImage) {
-            filePath = matchingImage
+            filePath = matchingImage.filename
+            
+            if (parseInt(width) == 0) {
+              width = matchingImage.width
+            }
+
+            if (parseInt(height) == 0) {
+              height = matchingImage.height
+            }
           } else {
             return displayError(res, 400, 'Invalid image id')
           }
@@ -129,16 +137,6 @@ module.exports = function (callback) {
     }
     
     callback(false)
-  }
-
-  var findMatchingImageFilename = function (id) {
-    var image = findMatchingImage(id)
-
-    if (!image) {
-      return false
-    }
-
-    return image.filename
   }
 
   var findMatchingImage = function (id) {

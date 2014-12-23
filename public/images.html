@@ -53,7 +53,7 @@
           $template.find('.author').text(image.author);
           $template.find('.author').attr('href', image.author_url);
           $template.find('.id').text('#' + image.id);
-          $template.find('.id').attr('href', 'https://unsplash.it/0/0?image=' + image.id);
+          $template.find('.id').attr('href', 'https://unsplash.it/' + image.width + '/' + image.height + '?image=' + image.id);
           $template.find('.post').attr('href', image.post_url);
           $template.find('.lead').text(image.author_url);
           $template.find('code').text('https://unsplash.it/200/300?image=' + image.id);
