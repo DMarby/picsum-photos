@@ -85,7 +85,7 @@ module.exports = function (callback) {
         var blur = false
        
         if (req.query.image) {
-          var matchingImage = findMatchingImage(req.query.image)
+          var matchingImage = findMatchingImageFilename(req.query.image)
           
           if (matchingImage) {
             filePath = matchingImage
@@ -116,14 +116,32 @@ module.exports = function (callback) {
       return callback(true, 400, 'Invalid arguments')
     }
     
-    if (params.size > config.max_width || params.size > config.max_height || params.width > config.max_height || params.height > config.max_width) {
+    if (params.size > config.max_width || params.size > config.max_height || params.height > config.max_height || params.width > config.max_width) {
+      if (queryparams.image) {
+        var matchingImage = findMatchingImage(queryparams.image)
+          
+        if (matchingImage && params.height == matchingImage.height && params.width == matchingImage.width) {
+          return callback(false)
+        }
+      }
+
       return callback(true, 413, 'Specified dimensions too large')
     }
     
     callback(false)
   }
 
-  var findMatchingImage = function (id, callback) {
+  var findMatchingImageFilename = function (id) {
+    var image = findMatchingImage(id)
+
+    if (!image) {
+      return false
+    }
+
+    return image.filename
+  }
+
+  var findMatchingImage = function (id) {
     var matchingImages = images.filter(function (image) { 
       return image.id == id
     })
@@ -132,7 +150,7 @@ module.exports = function (callback) {
       return false
     }
 
-    return matchingImages[0].filename
+    return matchingImages[0]
   }
 
   var displayError = function (res, code, message) {

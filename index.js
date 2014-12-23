@@ -210,7 +210,8 @@ if (cluster.isMaster) {
 
   loadImages()
 } else {
+  var config = require('./config')()
   require('./server')(function (callback) {
-    callback.listen(process.env.PORT || 5000, 'localhost')
+    callback.listen(process.env.PORT || config.port, 'localhost')
   })
 }
