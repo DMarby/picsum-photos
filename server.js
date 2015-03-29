@@ -69,7 +69,7 @@ module.exports = function (callback) {
     serveImage(req, res, false, true)
   })
 
-  app.get('*', function (req, res, next) {
+  app.all('*', function (req, res, next) {
     res.status(404)
     res.send({ error: 'Resource not found' })
   })
