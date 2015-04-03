@@ -92,7 +92,7 @@ if (cluster.isMaster) {
         existingImage.post_url = image.post_url
         existingImage.author = image.author
         existingImage.author_url = image.author_url
-        newImages.push(image)
+        newImages.push(existingImage)
 
         return next()
       }
