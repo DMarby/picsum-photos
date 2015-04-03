@@ -113,7 +113,7 @@ module.exports = function (callback) {
           }
 
           res.sendFile(imagePath)
-          countImage()
+          process.send(imagePath)
         })
       })
     })
@@ -154,10 +154,6 @@ module.exports = function (callback) {
   var displayError = function (res, code, message) {
     res.status(code)
     res.send({ error: message })
-  }
-
-  var countImage = function () {
-    process.send('count')
   }
 
   callback(app)

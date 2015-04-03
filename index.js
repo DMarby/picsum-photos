@@ -9,6 +9,7 @@ if (cluster.isMaster) {
   var io = require('socket.io')(config.stats_port)
   var vnstat = require('vnstat-dumpdb')
   var metadata = require(config.metadata_path)
+  var moment = require('moment')
   console.log('Config:')
   console.log(config)
 
@@ -22,6 +23,12 @@ if (cluster.isMaster) {
     var images = require(config.image_store_path)
   } catch (e) {
     var images = []
+  }
+
+  try {
+    var cache = require(config.cache_metadata_path)
+  } catch (e) {
+    var cache = {}
   }
 
   var publicStats = {}
@@ -56,26 +63,29 @@ if (cluster.isMaster) {
   fetchBandwidth()
   fetchStats()
 
-  var cleanupAndExit = function () {
-    cleanup()
-    process.exit()
+  var saveToFileAndExit = function () {
+    saveToFile(function () {
+      process.exit(0)
+    })
   }
 
-  var cleanup = function () {
-    saveStatsToFile()
+  var saveToFile = function (callback) {
+    fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (error) {
+      fs.writeFile(config.cache_metadata_path, JSON.stringify(cache), 'utf8', function (error) {
+        if (callback) {
+          callback()
+        }
+      })
+    })
   }
 
-  var saveStatsToFile = function () {
-    fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8')
-  }
-
-  process.on('exit', cleanup)
-  process.on('SIGINT', cleanupAndExit)
-  process.on('SIGTERM', cleanupAndExit)
+  process.on('exit', saveToFile)
+  process.on('SIGINT', saveToFileAndExit)
+  process.on('SIGTERM', saveToFileAndExit)
   process.on('uncaughtException', function (error) {
     console.log('Uncaught exception: ')
     console.trace(error)
-    cleanupAndExit()
+    saveToFileAndExit()
   })
 
   var loadImages = function () {
@@ -139,30 +149,75 @@ if (cluster.isMaster) {
     images = newImages
 
     fs.writeFile(config.image_store_path, JSON.stringify(newImages), 'utf8', function (error) {
-      startWebServers()
+      findMissingCacheFiles(function () {
+        startWebServers()
+      })
+    })
+  }
+
+  var findMissingCacheFiles = function (callback) {
+    fs.readdir(config.cache_folder_path, function (error, list) {
+      if (error) {
+        console.log('Error reading cache directory!')
+        return callback()
+      }
+
+      async.each(list, function (filename, next) {
+        filename = path.resolve(config.cache_folder_path, filename)
+        if (cache[filename] === undefined) {
+          fs.unlink(filename, function (error) {
+            next()
+          })
+        } else {
+          next()
+        }
+      }, function (error) {
+        callback()
+      })
     })
   }
 
   var startWebServers = function () {
-    fs.mkdir(config.cache_folder_path, function (error) {
-      var cpuCount = require('os').cpus().length - 1
+    var cpuCount = require('os').cpus().length - 1
 
-      if (cpuCount < 2) {
-        cpuCount = 2
-      }
+    if (cpuCount < 2) {
+      cpuCount = 2
+    }
 
-      for (var i = 0, il=cpuCount; i < il; i++) {
-        startWorker()
-      }
+    for (var i = 0, il=cpuCount; i < il; i++) {
+      startWorker()
+    }
 
-      cluster.on('exit', function (worker) {
-        console.log('Worker ' + worker.id + ' died')
-        startWorker()
+    cluster.on('exit', function (worker) {
+      console.log('Worker ' + worker.id + ' died')
+      startWorker()
+    })
+
+    setInterval(function () {
+      saveToFile()
+    }, 1000 * 5)
+
+    var triggerCacheCleanup = function () {
+      cleanupCache(function () {
+        setTimeout(triggerCacheCleanup, 1000 * 60 * 5)
       })
+    }
 
-      setInterval(function () {
-        saveStatsToFile()
-      }, 5000)
+    setTimeout(triggerCacheCleanup, 1000 * 60 * 5)
+  }
+
+  var cleanupCache = function (callback) {
+    async.eachLimit(Object.keys(cache), 100, function (filename, next) {
+      if (moment().diff(cache[filename], 'days') >= 14) {
+        fs.unlink(filename, function (error) {
+          delete cache[filename]
+          next()
+        })
+      } else {
+        next()
+      }
+    }, function (error) {
+      callback()
     })
   }
 
@@ -174,9 +229,12 @@ if (cluster.isMaster) {
 
   var handleWorkerMessage = function (msg) {
     stats.count++
+    cache[msg] = new Date()
   }
 
-  loadImages()
+  fs.mkdir(config.cache_folder_path, function (error) {
+   loadImages() 
+  })
 } else {
   var config = require('./config')()
   require('./server')(function (callback) {

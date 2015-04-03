@@ -8,7 +8,8 @@
         "max_height": 5000,
         "max_width": 5000,
         "stats_port": 3000,
-        "port": 5000
+        "port": 5000,
+        "cache_metadata_path": "/opt/unsplash-it/cache.json"
     },
     "development": {
         "folder_path": "../unsplash-downloader/photos",
@@ -19,6 +20,7 @@
         "max_height": 5000,
         "max_width": 5000,
         "stats_port": 3000,
-        "port": 5000
+        "port": 5000,
+        "cache_metadata_path": "./cache.json"
     }
 }
