@@ -1,5 +1,5 @@
 ---
-- hosts: unsplash-it
+- hosts: all
   tasks:
     - name: Stop unsplash-it
       service: name=unsplash-it state=stopped

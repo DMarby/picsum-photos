@@ -1,5 +1,5 @@
 ---
-- hosts: unsplash-it
+- hosts: all
   tasks:
     - name: Update repo
       shell: "cd /opt/unsplash-downloader && su unsplash -c 'cd /opt/unsplash-downloader && git pull && npm install'"

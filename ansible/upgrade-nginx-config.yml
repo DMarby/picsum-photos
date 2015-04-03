@@ -1,5 +1,5 @@
 ---
-- hosts: unsplash-it
+- hosts: all
   tasks:
     - name: Update nginx config
       copy: src=files/nginx.conf dest=/etc/nginx/conf.d/unsplash.conf

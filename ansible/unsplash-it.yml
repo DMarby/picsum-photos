@@ -1,5 +1,5 @@
 ---
-- hosts: unsplash-it
+- hosts: all
   vars:
     dhparam: true
   tasks:

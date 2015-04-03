@@ -1,6 +1,0 @@
-[unsplash-it]
-104.131.1.207
-
-[unsplash-it:vars]
-ansible_connection=ssh
-ansible_ssh_user=root
