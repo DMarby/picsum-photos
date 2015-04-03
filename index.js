@@ -24,8 +24,6 @@ if (cluster.isMaster) {
     var images = []
   }
 
-  fs.mkdir(config.cache_folder_path, function (error) {})
-
   var publicStats = {}
   var bandWidth = 0
 
@@ -81,121 +79,91 @@ if (cluster.isMaster) {
   })
 
   var loadImages = function () {
-    var newimages = []
+    var newImages = []
 
-    images.forEach(function (image) {
-      var the_metadata = findMetadata(path.basename(image.filename))
-      image.post_url = the_metadata.post_url
-      image.author = the_metadata.author
-      image.author_url = the_metadata.author_url
-      newimages.push(image) 
-    })
-
-    scanDirectory(config.folder_path, function (error, results) {
-      if (error) throw error
-      
-      var filteredResults = results.filter(function (filename) {
-        return images.filter(function (image) { return image.filename == filename; }) == 0
-      })
-
-      if (filteredResults.length <= 0) {
-        console.log('Done scanning, no new images')
-        writeImagesToFile(newimages)
-        return
+    async.each(metadata, function (image, next) {
+      if (image.deleted) {
+        return next()
       }
 
-      async.each(filteredResults, function (filename, next) {
-        sharp(filename).metadata(function (error, result) {  
-          if (error) {
-            console.trace('imageScan error: %s filename: %s', error, filename)
-            return next(error)
-          }
+      var existingImage = imageExists(image)
 
-          result.filename = filename
-          var the_metadata = findMetadata(path.basename(filename))
-          result.id = parseInt(the_metadata.id)
-          result.post_url = the_metadata.post_url
-          result.author = the_metadata.author
-          result.author_url = the_metadata.author_url
-          newimages.push(result)
+      if (existingImage) {
+        existingImage.post_url = image.post_url
+        existingImage.author = image.author
+        existingImage.author_url = image.author_url
+        newImages.push(image)
 
-          next()
-        })
-      }, function (error) {
-        console.log('Done scanning')
-        writeImagesToFile(newimages)
+        return next()
+      }
+
+      var filename = path.resolve(config.folder_path, image.filename)
+
+      console.log('Getting info for new image %s', filename)
+
+      sharp(filename).metadata(function (error, result) {  
+        if (error) {
+          console.trace('imageScan error: %s filename: %s', error, filename)
+          return next()
+        }
+
+        result.filename = filename
+        result.id = image.id
+        result.post_url = image.post_url
+        result.author = image.author
+        result.author_url = image.author_url
+        newImages.push(result)
+
+        next()
       })
+    }, function (error) {
+      writeImagesToFile(newImages)
     })
   }
 
-  var findMetadata = function (filename) {
-    for (var i in metadata) {
-      if (metadata[i].filename == filename) {
-        return metadata[i]
+  var imageExists = function (image) {
+    for (var i in images) {
+      if (images[i].id === image.id) {
+        return images[i]
       }
     }
+
+    return false
   }
 
-  var scanDirectory = function (dir, done) {
-    var results = []
-    fs.readdir(dir, function (error, list) {
-      if (error) {
-        return done(error)
-      }
-      
-      if (!list.length) {
-        return done (null, results)
-      }
-
-      async.each(list, function (file, next) {
-        file = path.resolve(dir, file)
-        fs.stat(file, function (error, stat) {
-          if (stat && stat.isFile() && !endsWith(file, '.DS_Store') && !endsWith(file, 'metadata.json')) {
-            results.push(file)
-          }
-          next(error)          
-        })
-      }, function (error) {
-        done(error, results)
-      })
-    })
-  }
-
-  var endsWith = function (str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1
-  }
-
-  var writeImagesToFile = function (newimages) {
-    newimages.sort(function (a, b) { 
+  var writeImagesToFile = function (newImages) {
+    newImages.sort(function (a, b) { 
       return a.id - b.id
     })
 
-    images = newimages
+    images = newImages
 
-    fs.writeFile(config.image_store_path, JSON.stringify(newimages), 'utf8', function (error) {
+    fs.writeFile(config.image_store_path, JSON.stringify(newImages), 'utf8', function (error) {
       startWebServers()
     })
   }
 
   var startWebServers = function () {
-    var cpuCount = require('os').cpus().length - 1
+    fs.mkdir(config.cache_folder_path, function (error) {
+      var cpuCount = require('os').cpus().length - 1
 
-    if (cpuCount < 2) {
-      cpuCount = 2
-    }
+      if (cpuCount < 2) {
+        cpuCount = 2
+      }
 
-    for (var i = 0, il=cpuCount; i < il; i++) {
-      startWorker()
-    }
+      for (var i = 0, il=cpuCount; i < il; i++) {
+        startWorker()
+      }
 
-    cluster.on('exit', function (worker) {
-      console.log('Worker ' + worker.id + ' died')
-      startWorker()
+      cluster.on('exit', function (worker) {
+        console.log('Worker ' + worker.id + ' died')
+        startWorker()
+      })
+
+      setInterval(function () {
+        saveStatsToFile()
+      }, 5000)
     })
-
-    setInterval(function () {
-      saveStatsToFile()
-    }, 5000)
   }
 
   var startWorker = function () {

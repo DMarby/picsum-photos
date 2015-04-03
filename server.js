@@ -75,12 +75,12 @@ module.exports = function (callback) {
   })
 
   var serveImage = function(req, res, square, gray) {
-    checkParameters(req.params, req.query, square, function (err, code, message) {
-      imageProcessor.getWidthAndHeight(req.params, square, function (width, height) {
-        if (err) {
-          return displayError(res, code, message)
-        }
+    checkParameters(req.params, req.query, square, function (error, code, message) {
+      if (error) {
+        return displayError(res, code, message)
+      }
 
+      imageProcessor.getWidthAndHeight(req.params, square, function (width, height) {
         var filePath
         var blur = false
        
@@ -98,7 +98,7 @@ module.exports = function (callback) {
               height = matchingImage.height
             }
           } else {
-            return displayError(res, 400, 'Invalid image id')
+            return displayError(res, 404, 'Invalid image id')
           }
         } else {
           filePath = images[Math.floor(Math.random() * images.length)].filename
