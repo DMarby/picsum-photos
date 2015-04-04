@@ -193,7 +193,7 @@ if (cluster.isMaster) {
 
     var triggerSaveToFile = function () {
       saveToFile(function () {
-        setTimeout(triggerSaveToFile, 1000 * 5)
+        setImmediate(setTimeout, triggerSaveToFile, 1000 * 5)
       })
     }
 
@@ -201,7 +201,7 @@ if (cluster.isMaster) {
 
     var triggerCacheCleanup = function () {
       cleanupCache(function () {
-        setTimeout(triggerCacheCleanup, 1000 * 60 * 5)
+        setImmediate(setTimeout, triggerCacheCleanup, 1000 * 60 * 5)
       })
     }
 
