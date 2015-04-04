@@ -63,16 +63,24 @@ if (cluster.isMaster) {
   fetchBandwidth()
   fetchStats()
 
+  var exited = false
+
   var saveToFileAndExit = function () {
-    saveToFile(function () {
-      process.exit(0)
-    })
+    if (exited) {
+      return
+    } else {
+      exited = true
+    }
+
+    fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8')
+    fs.writeFileSync(config.cache_metadata_path, JSON.stringify(cache), 'utf8')
+    process.exit(0)
   }
 
   var saveToFile = function (callback) {
     fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (error) {
       fs.writeFile(config.cache_metadata_path, JSON.stringify(cache), 'utf8', function (error) {
-        setImmediate(callback)
+        callback()
       })
     })
   }
@@ -80,11 +88,11 @@ if (cluster.isMaster) {
   process.on('exit', saveToFileAndExit)
   process.on('SIGINT', saveToFileAndExit)
   process.on('SIGTERM', saveToFileAndExit)
-  /*process.on('uncaughtException', function (error) {
+  process.on('uncaughtException', function (error) {
     console.log('Uncaught exception: ')
     console.trace(error)
     saveToFileAndExit()
-  })*/
+  })
 
   var loadImages = function () {
     var newImages = []
