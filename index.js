@@ -69,7 +69,7 @@ if (cluster.isMaster) {
     })
   }
 
-  var saveToFileAndExit = function (callback) {
+  var saveToFile = function (callback) {
     fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (error) {
       fs.writeFile(config.cache_metadata_path, JSON.stringify(cache), 'utf8', function (error) {
         setImmediate(callback)
@@ -80,11 +80,11 @@ if (cluster.isMaster) {
   process.on('exit', saveToFileAndExit)
   process.on('SIGINT', saveToFileAndExit)
   process.on('SIGTERM', saveToFileAndExit)
-  process.on('uncaughtException', function (error) {
+  /*process.on('uncaughtException', function (error) {
     console.log('Uncaught exception: ')
     console.trace(error)
     saveToFileAndExit()
-  })
+  })*/
 
   var loadImages = function () {
     var newImages = []
