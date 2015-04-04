@@ -72,9 +72,7 @@ if (cluster.isMaster) {
   var saveToFile = function (callback) {
     fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (error) {
       fs.writeFile(config.cache_metadata_path, JSON.stringify(cache), 'utf8', function (error) {
-        if (callback) {
-          callback()
-        }
+        setImmediate(callback)
       })
     })
   }
@@ -93,7 +91,7 @@ if (cluster.isMaster) {
 
     async.each(metadata, function (image, next) {
       if (image.deleted) {
-        return next()
+        return setImmediate(next)
       }
 
       var existingImage = imageExists(image)
@@ -104,7 +102,7 @@ if (cluster.isMaster) {
         existingImage.author_url = image.author_url
         newImages.push(existingImage)
 
-        return next()
+        return setImmediate(next)
       }
 
       var filename = path.resolve(config.folder_path, image.filename)
@@ -114,7 +112,7 @@ if (cluster.isMaster) {
       sharp(filename).metadata(function (error, result) {  
         if (error) {
           console.trace('imageScan error: %s filename: %s', error, filename)
-          return next()
+          return setImmediate(next)
         }
 
         result.filename = filename
@@ -166,10 +164,10 @@ if (cluster.isMaster) {
         filename = path.resolve(config.cache_folder_path, filename)
         if (cache[filename] === undefined) {
           fs.unlink(filename, function (error) {
-            next()
+            setImmediate(next)
           })
         } else {
-          next()
+          setImmediate(next)
         }
       }, function (error) {
         callback()
@@ -193,9 +191,13 @@ if (cluster.isMaster) {
       startWorker()
     })
 
-    setInterval(function () {
-      saveToFile()
-    }, 1000 * 5)
+    var triggerSaveToFile = function () {
+      saveToFile(function () {
+        setTimeout(triggerSaveToFile, 1000 * 5)
+      })
+    }
+
+    setTimeout(triggerSaveToFile, 1000 * 5)
 
     var triggerCacheCleanup = function () {
       cleanupCache(function () {
@@ -211,10 +213,10 @@ if (cluster.isMaster) {
       if (moment().diff(cache[filename], 'days') >= 14) {
         fs.unlink(filename, function (error) {
           delete cache[filename]
-          next()
+          setImmediate(next)
         })
       } else {
-        next()
+        setImmediate(next)
       }
     }, function (error) {
       callback()
