@@ -69,7 +69,7 @@ if (cluster.isMaster) {
     })
   }
 
-  var saveToFile = function (callback) {
+  var saveToFileAndExit = function (callback) {
     fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (error) {
       fs.writeFile(config.cache_metadata_path, JSON.stringify(cache), 'utf8', function (error) {
         setImmediate(callback)
@@ -77,7 +77,7 @@ if (cluster.isMaster) {
     })
   }
 
-  process.on('exit', saveToFile)
+  process.on('exit', saveToFileAndExit)
   process.on('SIGINT', saveToFileAndExit)
   process.on('SIGTERM', saveToFileAndExit)
   process.on('uncaughtException', function (error) {
