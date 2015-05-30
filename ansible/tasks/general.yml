@@ -54,7 +54,7 @@
   file: path=/opt/photos state=directory owner=unsplash group=unsplash
 
 - name: Clone photos repo
-  shell: "cd /opt/photos && su unsplash -c 'git clone root@dmarby.se:photos.git /opt/photos'"
+  shell: "cd /opt/photos && su unsplash -c 'git clone upload@dmarby.se:photos.git /opt/photos'"
 
 - name: Install libvips
   shell: "curl -s https://raw.githubusercontent.com/lovell/sharp/edge/preinstall.sh | bash -"
