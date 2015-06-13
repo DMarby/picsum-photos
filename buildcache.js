@@ -26,7 +26,6 @@ fs.mkdir(config.cache_folder_path, function (error) {
   async.eachLimit(images, 5, function (image, next) {
     var width = 458
     var height = 354
-    var blur = false
     imageProcessor.getProcessedImage(width, height, null, false, false, image.filename, false, function (error, imagePath) {
       if (error) {
         console.log('filePath: ' + image.filename)
