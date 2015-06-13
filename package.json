@@ -17,7 +17,7 @@
     "cors": "^2.4.2",
     "express": "^4.8.2",
     "moment": "^2.9.0",
-    "sharp": "git://github.com/lovell/sharp.git#edge",
+    "sharp": "^0.10.1",
     "socket.io": "^1.0.6",
     "vnstat-dumpdb": "^1.0.2"
   }
