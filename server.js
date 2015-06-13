@@ -3,6 +3,7 @@ module.exports = function (callback) {
   var path = require('path')
   var express = require('express')
   var cors = require('cors')
+  var compress = require('compression')
   var sharp = require('sharp')
   var config = require('./config')()
   var packageinfo = require('./package.json')
@@ -10,7 +11,7 @@ module.exports = function (callback) {
 
   var app = express()
 
-  sharp.cache(0)
+  //sharp.cache(0)
 
   try {
     var images = require(config.image_store_path)
@@ -23,8 +24,10 @@ module.exports = function (callback) {
     console.trace(err)
   })
 
-  app.use(cors());
+  app.use(compress());
 
+  app.use(cors());
+  
   app.use(express.static(path.join(__dirname, 'public')));
 
   app.get('/info', function (req, res, next) {

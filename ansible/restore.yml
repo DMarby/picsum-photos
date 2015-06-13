@@ -7,10 +7,8 @@
       copy: src=files/vnstat.db dest=/var/lib/vnstat/eth0 owner=vnstat group=vnstat
     - name: Start vnstat
       service: name=vnstat state=started
-    - name: Copy photos.zip
-      copy: src=files/photos.zip dest=/opt/unsplash-downloader/photos.zip owner=unsplash group=unsplash
-    - name: Copy photos.json
-      fetch: src=files/photos.json dest=/opt/unsplash-downloader/photos.json owner=unsplash group=unsplash
+    #- name: Copy photos.zip
+    #  copy: src=files/photos.zip dest=/opt/unsplash-downloader/photos.zip owner=unsplash group=unsplash
     - name: Stop unsplash-it
       service: name=unsplash-it state=stopped
     - name: Copy stats.json

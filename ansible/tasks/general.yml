@@ -25,9 +25,6 @@
   notify:
     - restart sshd
 
-- name: Add nodejs ppa
-  apt_repository: repo='ppa:chris-lea/node.js-devel'
-
 - name: Install required packages
   apt: name={{ item }} state=latest update_cache=yes
   with_items:
@@ -37,9 +34,6 @@
     - vnstat
     - htop
     - pkg-config
-
-- name: Update alternatives
-  shell: "update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10"
 
 - name: Install global package forever
   shell: "npm install -g forever"
@@ -57,4 +51,4 @@
   shell: "cd /opt/photos && su unsplash -c 'git clone upload@dmarby.se:photos.git /opt/photos'"
 
 - name: Install libvips
-  shell: "curl -s https://raw.githubusercontent.com/lovell/sharp/edge/preinstall.sh | bash -"
+  shell: "curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -"

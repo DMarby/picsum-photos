@@ -3,6 +3,7 @@
   vars:
     dhparam: true
   tasks:
+    - include: tasks/node.yml
     - include: tasks/general.yml
     - include: tasks/iptables.yml
     - include: tasks/ip6tables.yml
