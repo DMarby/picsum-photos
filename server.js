@@ -11,7 +11,7 @@ module.exports = function (callback) {
 
   var app = express()
 
-  //sharp.cache(0)
+  sharp.cache(0)
 
   try {
     var images = require(config.image_store_path)
