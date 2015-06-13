@@ -53,7 +53,7 @@ if (cluster.isMaster) {
       if (error) {
         console.log('Couldn\'t fetch bandwidth: ' + error)
       } else {
-        bandWidth = data.traffic.total.tx
+        bandWidth = data.traffic ? data.traffic.total.tx : 0
       }
     })
   }
