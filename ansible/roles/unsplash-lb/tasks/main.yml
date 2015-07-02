@@ -1,0 +1,5 @@
+---
+- include: nginx.yml
+- include: iptables.yml
+- include: ip6tables.yml
+- include: unsplash.yml

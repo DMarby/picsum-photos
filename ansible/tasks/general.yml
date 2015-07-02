@@ -29,14 +29,11 @@
   apt: name={{ item }} state=latest update_cache=yes
   with_items:
     - curl
-    - nodejs
     - git
     - vnstat
     - htop
     - pkg-config
 
-- name: Install global package forever
-  shell: "npm install -g forever"
 
 - name: Add github to known_hosts file
   shell: "su unsplash -c 'ssh-keyscan -t rsa github.com > /home/unsplash/.ssh/known_hosts'"
@@ -49,6 +46,3 @@
 
 - name: Clone photos repo
   shell: "cd /opt/photos && su unsplash -c 'git clone upload@dmarby.se:photos.git /opt/photos'"
-
-- name: Install libvips
-  shell: "curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -"

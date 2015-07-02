@@ -1,4 +1,10 @@
 ---
+- name: Install libvips
+  shell: "curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -"
+
+- name: Install global package forever
+  shell: "npm install -g forever"
+
 - name: Create unsplash-it directory
   file: path=/opt/unsplash-it state=directory owner=unsplash group=unsplash
 
