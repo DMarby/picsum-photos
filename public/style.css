@@ -131,6 +131,16 @@ footer a:hover {
   background: rgba(0,0,0,0.6);
 }
 
+.digitalocean {
+  height: auto;
+  width: 200px;
+  margin-bottom: 10px;
+}
+
+.digitalocean:hover {
+  opacity: 0.7;
+}
+
 /* Gallery */
 
 .intro-message a {
