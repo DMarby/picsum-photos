@@ -72,6 +72,8 @@ if (cluster.isMaster) {
       exited = true
     }
 
+    console.log('Current stats:', stats)
+
     fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8')
     fs.writeFileSync(config.cache_metadata_path, JSON.stringify(cache), 'utf8')
     process.exit(0)
