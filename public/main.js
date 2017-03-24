@@ -1,7 +1,7 @@
 $(document).ready(function() {
   var setupRandomImage = function (element) {
     var $element = $(element);
-    var width = $element.width(); 
+    var width = $element.width();
     var height = $element.outerHeight();
     var src = 'https://unsplash.it/' + width + '/' + height + '?random&element=' + $element.prop('tagName');
 
@@ -14,7 +14,7 @@ $(document).ready(function() {
   var countToNumber = function (element, number, suffix, duration) {
     $({count: parseInt(element.text().split("+")[0].replace(/\,/g, ''))}).animate({count: number}, {
       duration: duration ? duration : 1000,
-      easing: 'swing', 
+      easing: 'swing',
       step: function (now) {
         element.text((Math.floor(now) + suffix).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,"));
       },
@@ -27,7 +27,7 @@ $(document).ready(function() {
   var first = true;
   var countingFromZero = true;
 
-  var socket = io.connect('https://unsplash.it:4000');
+  var socket = io.connect('https://ws.unsplash.it:4000');
   socket.on('stats', function (data) {
     if (!first && countingFromZero) {
       return;
