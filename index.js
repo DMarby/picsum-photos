@@ -250,6 +250,6 @@ if (cluster.isMaster) {
 } else {
   var config = require('./config')()
   require('./server')(function (callback) {
-    callback.listen(process.env.PORT || config.port, 'localhost')
+    callback.listen(process.env.PORT || config.port, '0.0.0.0')
   })
 }
