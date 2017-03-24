@@ -27,7 +27,7 @@ $(document).ready(function() {
   var first = true;
   var countingFromZero = true;
 
-  var socket = io.connect('https://ws.unsplash.it:4000');
+  var socket = io.connect('http://ws.unsplash.it:4000');
   socket.on('stats', function (data) {
     if (!first && countingFromZero) {
       return;
