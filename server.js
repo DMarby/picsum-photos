@@ -27,8 +27,10 @@ module.exports = function (callback) {
   app.use(compress());
 
   app.use(cors());
-  
-  app.use(express.static(path.join(__dirname, 'public')));
+
+  app.use(express.static(path.join(__dirname, 'public'), {
+    extensions: ['html']
+  }));
 
   app.get('/info', function (req, res, next) {
     res.jsonp({ name: packageinfo.name, version: packageinfo.version, author: packageinfo.author })
@@ -86,13 +88,13 @@ module.exports = function (callback) {
       imageProcessor.getWidthAndHeight(req.params, square, function (width, height) {
         var filePath
         var blur = false
-       
+
         if (req.query.image) {
           var matchingImage = findMatchingImage(req.query.image)
-          
+
           if (matchingImage) {
             filePath = matchingImage.filename
-            
+
             if (parseInt(width) == 0) {
               width = matchingImage.width
             }
@@ -126,11 +128,11 @@ module.exports = function (callback) {
     if ((square && !params.size) || (square && isNaN(parseInt(params.size))) || (!square && !params.width) || (!square && !params.height) || (!square && isNaN(parseInt(params.width))) || (!square && isNaN(parseInt(params.height))) || (queryparams.gravity && sharp.gravity[queryparams.gravity] != 0 && !sharp.gravity[queryparams.gravity])) {
       return callback(true, 400, 'Invalid arguments')
     }
-    
+
     if (params.size > config.max_width || params.size > config.max_height || params.height > config.max_height || params.width > config.max_width) {
       if (queryparams.image) {
         var matchingImage = findMatchingImage(queryparams.image)
-          
+
         if (matchingImage && params.height == matchingImage.height && params.width == matchingImage.width) {
           return callback(false)
         }
@@ -138,15 +140,15 @@ module.exports = function (callback) {
 
       return callback(true, 413, 'Specified dimensions too large')
     }
-    
+
     callback(false)
   }
 
   var findMatchingImage = function (id) {
-    var matchingImages = images.filter(function (image) { 
+    var matchingImages = images.filter(function (image) {
       return image.id == id
     })
-    
+
     if (!matchingImages.length) {
       return false
     }
