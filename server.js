@@ -109,6 +109,8 @@ module.exports = function (callback) {
           filePath = images[Math.floor(Math.random() * images.length)].filename
         }
 
+        var isRandom = (req.query.random || req.query.random === '')
+
         imageProcessor.getProcessedImage(parseInt(width), parseInt(height), req.query.gravity, gray, !(!req.query.blur && req.query.blur !== ''), filePath, (!req.query.image && !req.query.random && req.query.random !== ''), function (error, imagePath) {
           if (error) {
             console.log('filePath: ' + filePath)
@@ -117,7 +119,9 @@ module.exports = function (callback) {
             return displayError(res, 500, 'Something went wrong')
           }
 
-          res.sendFile(imagePath)
+          res.sendFile(imagePath, {
+            maxAge: isRandom ? 0 : '24h' // Lets set cache to 24h for now
+          })
           process.send(imagePath)
         })
       })
