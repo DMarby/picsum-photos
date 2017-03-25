@@ -1,5 +1,5 @@
-* { 
-  text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; box-sizing: border-box; 
+* {
+  text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; box-sizing: border-box;
 }
 
 body {
@@ -131,13 +131,19 @@ footer a:hover {
   background: rgba(0,0,0,0.6);
 }
 
-.digitalocean {
+.digitalocean, .belugacdn {
   height: auto;
   width: 200px;
   margin-bottom: 10px;
 }
 
-.digitalocean:hover {
+.plus {
+  padding-left: 20px;
+  padding-right: 15px;
+  color: rgba(255,255,255,1.0);
+}
+
+.digitalocean:hover, .belugacdn:hover {
   opacity: 0.7;
 }
 
