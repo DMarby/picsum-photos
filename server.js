@@ -29,7 +29,8 @@ module.exports = function (callback) {
   app.use(cors());
 
   app.use(express.static(path.join(__dirname, 'public'), {
-    extensions: ['html']
+    extensions: ['html'],
+    maxAge: '1h'
   }));
 
   app.get('/info', function (req, res, next) {
