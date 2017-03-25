@@ -42,11 +42,10 @@
   <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazyloadxt/1.0.5/jquery.lazyloadxt.fadein.css">
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazyloadxt/1.0.5/jquery.lazyloadxt.min.js"></script>
-  <script src="https://unsplash.it:4000/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="main.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-      $.ajax({ url: 'https://unsplash.it/list' }).done(function (data) {
+      $.ajax({ url: '/list' }).done(function (data) {
         for (var i in data) {
           var image = data[i];
           var $template = $('[data-template="image"] .col-md-3').clone();
@@ -57,7 +56,7 @@
           $template.find('.post').attr('href', image.post_url);
           $template.find('.lead').text(image.author_url);
           $template.find('code').text('https://unsplash.it/200/300?image=' + image.id);
-          $template.find('img').attr('data-src', 'https://unsplash.it/458/354?image=' + image.id);
+          $template.find('img').attr('data-src', '/458/354?image=' + image.id);
           $('.imageContainer').prepend($template);
         }
       });
@@ -93,25 +92,6 @@
 
   <!-- Page Content -->
 
-  <div class="content-section">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-4">
-            <h2 class="images">0</h2>
-            <h3>Images</h3>
-        </div>
-        <div class="col-lg-4">
-            <h2 class="imageCounter">0</h2>
-            <h3>Images Served</h3>
-        </div>
-        <div class="col-lg-4">
-            <h2 class="bandwidthCounter">0 GB</h2>
-            <h3>Bandwidth Used</h3>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="content-section-right">
     <div class="container">
       <div class="row">
@@ -123,7 +103,7 @@
           <pre><code>https://unsplash.it/200/300?image=0</code></pre>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="https://unsplash.it/458/354?image=0" alt="">
+          <img class="img-responsive" src="/458/354?image=0" alt="">
         </div>
       </div>
     </div>

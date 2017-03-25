@@ -42,13 +42,12 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
   <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
-  <script src="https://unsplash.it:4000/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="main.js"></script>
   <script>
     $(document).ready(function() {
       setInterval(function () {
         var $element = $('.random-image')
-        $element.attr('src', 'https://unsplash.it/458/354?random&time=' + (+new Date()));
+        $element.attr('src', '/458/354?random&time=' + (+new Date()));
       }, 1000 * 5)
     });
   </script>
@@ -82,29 +81,6 @@
   </div>
   <!-- /.intro-header -->
 
-  <!-- Page Content -->
-
-  <div class="content-section">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-4">
-          <a href="https://unsplash.it/images">
-            <h2 class="images">0</h2>
-            <h3>Images</h3>
-          </a>
-        </div>
-        <div class="col-lg-4">
-            <h2 class="imageCounter">0</h2>
-            <h3>Images Served</h3>
-        </div>
-        <div class="col-lg-4">
-            <h2 class="bandwidthCounter">0 GB</h2>
-            <h3>Bandwidth Used</h3>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="content-section-right">
     <div class="container">
       <div class="row">
@@ -117,7 +93,7 @@
           <pre><code>https://unsplash.it/200</code></pre>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="https://unsplash.it/458/354" alt="">
+          <img class="img-responsive" src="/458/354" alt="">
         </div>
       </div>
     </div>
@@ -133,7 +109,7 @@
           <pre><code>https://unsplash.it/200/300/?random</code></pre>
         </div>
         <div class="col-lg-5 col-sm-pull-6 col-sm-6">
-          <img class="img-responsive random-image" src="https://unsplash.it/458/354?random" alt="">
+          <img class="img-responsive random-image" src="/458/354?random" alt="">
         </div>
       </div>
     </div>
@@ -149,7 +125,7 @@
           <pre><code>https://unsplash.it/g/200/300</code></pre>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="https://unsplash.it/g/458/354" alt="">
+          <img class="img-responsive" src="/g/458/354" alt="">
         </div>
       </div>
     </div>
@@ -193,7 +169,7 @@
           <p>You can find a list of all images <a href="https://unsplash.it/images">here.</a></p>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="https://unsplash.it/458/354?image=0" alt="">
+          <img class="img-responsive" src="/458/354?image=0" alt="">
         </div>
       </div>
     </div>
@@ -209,7 +185,7 @@
           <pre><code>https://unsplash.it/200/300/?blur</code></pre>
         </div>
         <div class="col-lg-5 col-sm-pull-6 col-sm-6">
-          <img class="img-responsive" src="https://unsplash.it/458/354?image=0&blur" alt="">
+          <img class="img-responsive" src="/458/354?image=0&blur" alt="">
         </div>
       </div>
     </div>
@@ -226,7 +202,7 @@
           <pre><code>https://unsplash.it/200/300/?gravity=east</code></pre>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="https://unsplash.it/458/354?gravity=east" alt="">
+          <img class="img-responsive" src="/458/354?gravity=east" alt="">
         </div>
       </div>
     </div>
