@@ -45,7 +45,7 @@ p {
   color: rgba(255,255,255,0.6) !important;
 }
 
-.intro-message h3 {
+.intro-message h3, .intro-message h4 {
   font-family: Lato;
   color: hsla(0, 100%, 100%, 0.6);
 }
