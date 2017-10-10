@@ -1,4 +1,4 @@
-Unsplash It
+Lorem Picsum
 ===========
 
-Beautiful placeholders using images from [unsplash](http://unsplash.com)
+Lorem Ipsum... but for photos.
