@@ -25,12 +25,6 @@ if (cluster.isMaster) {
     var images = []
   }
 
-  try {
-    var cache = require(config.cache_metadata_path)
-  } catch (e) {
-    var cache = {}
-  }
-
   var publicStats = {}
   var bandWidth = 0
 
@@ -75,15 +69,12 @@ if (cluster.isMaster) {
     console.log('Current stats:', stats)
 
     fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8')
-    fs.writeFileSync(config.cache_metadata_path, JSON.stringify(cache), 'utf8')
     process.exit(0)
   }
 
   var saveToFile = function (callback) {
     fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (error) {
-      fs.writeFile(config.cache_metadata_path, JSON.stringify(cache), 'utf8', function (error) {
-        callback()
-      })
+      callback()
     })
   }
 
@@ -119,7 +110,7 @@ if (cluster.isMaster) {
 
       console.log('Getting info for new image %s', filename)
 
-      sharp(filename).metadata(function (error, result) {  
+      sharp(filename).metadata(function (error, result) {
         if (error) {
           console.trace('imageScan error: %s filename: %s', error, filename)
           return setImmediate(next)
@@ -150,38 +141,14 @@ if (cluster.isMaster) {
   }
 
   var writeImagesToFile = function (newImages) {
-    newImages.sort(function (a, b) { 
+    newImages.sort(function (a, b) {
       return a.id - b.id
     })
 
     images = newImages
 
     fs.writeFile(config.image_store_path, JSON.stringify(newImages), 'utf8', function (error) {
-      findMissingCacheFiles(function () {
-        startWebServers()
-      })
-    })
-  }
-
-  var findMissingCacheFiles = function (callback) {
-    fs.readdir(config.cache_folder_path, function (error, list) {
-      if (error) {
-        console.log('Error reading cache directory!')
-        return callback()
-      }
-
-      async.each(list, function (filename, next) {
-        filename = path.resolve(config.cache_folder_path, filename)
-        if (cache[filename] === undefined) {
-          fs.unlink(filename, function (error) {
-            setImmediate(next)
-          })
-        } else {
-          setImmediate(next)
-        }
-      }, function (error) {
-        callback()
-      })
+      startWebServers()
     })
   }
 
@@ -208,29 +175,6 @@ if (cluster.isMaster) {
     }
 
     setTimeout(triggerSaveToFile, 1000 * 5)
-
-    var triggerCacheCleanup = function () {
-      cleanupCache(function () {
-        setImmediate(setTimeout, triggerCacheCleanup, 1000 * 60 * 5)
-      })
-    }
-
-    setTimeout(triggerCacheCleanup, 1000 * 60 * 5)
-  }
-
-  var cleanupCache = function (callback) {
-    async.eachLimit(Object.keys(cache), 100, function (filename, next) {
-      if (moment().diff(cache[filename], 'days') >= 14) {
-        fs.unlink(filename, function (error) {
-          delete cache[filename]
-          setImmediate(next)
-        })
-      } else {
-        setImmediate(next)
-      }
-    }, function (error) {
-      callback()
-    })
   }
 
   var startWorker = function () {
@@ -241,12 +185,9 @@ if (cluster.isMaster) {
 
   var handleWorkerMessage = function (msg) {
     stats.count++
-    cache[msg] = new Date()
   }
 
-  fs.mkdir(config.cache_folder_path, function (error) {
-   loadImages() 
-  })
+  loadImages()
 } else {
   var config = require('./config')()
   require('./server')(function (callback) {
