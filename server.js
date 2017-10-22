@@ -8,6 +8,7 @@ module.exports = function (callback) {
   var config = require('./config')()
   var packageinfo = require('./package.json')
   var imageProcessor = require('./imageProcessor')(sharp, path, config, fs)
+  var util = require('util')
 
   var app = express()
 
@@ -88,7 +89,30 @@ module.exports = function (callback) {
 
       imageProcessor.getWidthAndHeight(req.params, square, function (width, height) {
         var filePath
-        var blur = false
+        var blur = !(!req.query.blur && req.query.blur !== '')
+        var isRandom = (req.query.random || req.query.random === '')
+
+        if (isRandom) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+
+          var params = 'image=' + images[Math.floor(Math.random() * images.length)].id
+
+          if (req.query.gravity) {
+            params += '&gravity=' + imageProcessor.getGravity(req.query.gravity)
+          }
+
+          if (blur) {
+            params += '&blur=true'
+          }
+
+          if (gray) {
+            res.redirect(util.format('/g/%s/%s/?%s', width, height, params))
+          } else {
+            res.redirect(util.format('/%s/%s/?%s', width, height, params))
+          }
+
+          return
+        }
 
         if (req.query.image) {
           var matchingImage = findMatchingImage(req.query.image)
@@ -110,9 +134,7 @@ module.exports = function (callback) {
           filePath = images[Math.floor(Math.random() * images.length)].filename
         }
 
-        var isRandom = (req.query.random || req.query.random === '')
-
-        imageProcessor.getProcessedImage(parseInt(width), parseInt(height), req.query.gravity, gray, !(!req.query.blur && req.query.blur !== ''), filePath, (!req.query.image && !req.query.random && req.query.random !== ''), function (error, imagePath) {
+        imageProcessor.getProcessedImage(parseInt(width), parseInt(height), req.query.gravity, gray, blur, filePath, !req.query.image, function (error, imagePath) {
           if (error) {
             console.log('filePath: ' + filePath)
             console.log('imagePath: ' + imagePath)
@@ -121,8 +143,9 @@ module.exports = function (callback) {
           }
 
           res.sendFile(imagePath, {
-            maxAge: isRandom ? 0 : '24h' // Lets set cache to 24h for now
+            maxAge: '24h' // Lets set cache to 24h for now
           })
+
           process.send(imagePath)
         })
       })
