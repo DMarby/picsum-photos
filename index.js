@@ -187,7 +187,9 @@ if (cluster.isMaster) {
     stats.count++
   }
 
-  loadImages()
+  fs.mkdir(config.cache_folder_path, function (error) {
+    loadImages()
+  })
 } else {
   var config = require('./config')()
   require('./server')(function (callback) {
