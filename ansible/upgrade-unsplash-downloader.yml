@@ -1,9 +1,0 @@
----
-- hosts: all
-  tasks:
-    - name: Update repo
-      shell: "cd /opt/unsplash-downloader && su unsplash -c 'cd /opt/unsplash-downloader && git pull && npm install'"
-    - name: Update config
-      copy: src=files/unsplash-downloader.conf dest=/opt/unsplash-downloader/config.js
-  handlers:
-   - include: handlers/handlers.yml

@@ -1,9 +1,4 @@
-node_modules
-images.json
-ansible/files/unsplash.key
-ansible/files/unsplash.crt
-ansible/files/unsplash_rsa
-ansible/files/vnstat.db
-ansible/files/photos.zip
-ansible/files/photos.json
-ansible/files/stats.json
+photos
+vendor
+**/debug
+**/debug.test
