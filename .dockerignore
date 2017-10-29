@@ -1,0 +1,16 @@
+# Ignore everything
+**/*
+
+# Include main file
+!main.go
+
+# Include Gopkg
+!Gopkg.lock
+!Gopkg.toml
+
+# Include packages
+!image
+
+# Exclude debug files
+**/debug
+**/debug.test

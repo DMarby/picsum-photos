@@ -1,0 +1,19 @@
+FROM golang:alpine
+
+# Install libvips
+RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-tools && \
+    apk add git
+
+# Install needed tools
+RUN go get \
+      github.com/golang/dep/cmd/dep \
+      github.com/derekparker/delve/cmd/dlv
+
+# Add the project
+ADD . /go/src/github.com/DMarby/picsum-photos
+WORKDIR /go/src/github.com/DMarby/picsum-photos
+
+# Install dependencies
+RUN dep ensure
+
+CMD ["dlv", "debug", "--headless", "--listen=:2345", "--log"]
