@@ -7,6 +7,6 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - .:/opt/go/src/github.com/DMarby/picsum-photos
+      - .:/go/src/github.com/DMarby/picsum-photos
     ports:
       - "2345:2345"
