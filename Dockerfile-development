@@ -7,13 +7,11 @@ RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/test
 # Install needed tools
 RUN go get \
       github.com/golang/dep/cmd/dep \
-      github.com/derekparker/delve/cmd/dlv
+      github.com/derekparker/delve/cmd/dlv \
+      github.com/cespare/reflex
 
 # Add the project
 ADD . /go/src/github.com/DMarby/picsum-photos
 WORKDIR /go/src/github.com/DMarby/picsum-photos
 
-# Install dependencies
-RUN dep ensure
-
-CMD ["dlv", "debug", "--headless", "--listen=:2345", "--log"]
+CMD reflex -r '\.go$' -s -- sh -c 'dep ensure && dlv debug --headless --listen=:2345 --log'
