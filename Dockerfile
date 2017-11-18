@@ -6,7 +6,8 @@ RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/test
 
 # Install needed tools
 RUN go get \
-      github.com/golang/dep/cmd/dep
+      github.com/golang/dep/cmd/dep \
+      github.com/onsi/ginkgo/ginkgo
 
 # Add the project
 ADD . /go/src/github.com/DMarby/picsum-photos
@@ -14,6 +15,9 @@ WORKDIR /go/src/github.com/DMarby/picsum-photos
 
 # Install dependencies
 RUN dep ensure
+
+# Run tests
+RUN ginkgo -r -p -noColor
 
 # Build
 RUN go install
