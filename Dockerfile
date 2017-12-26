@@ -1,8 +1,13 @@
 FROM golang:alpine
 
+# TODO: Can we get rid of pkgconf?
+# TODO: Do we need these extra packages for this or just for debug?
 # Install libvips
-RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-tools && \
-    apk add git
+RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-dev && \
+    apk add \
+          git \
+          pkgconf \
+          fftw-dev
 
 # Install needed tools
 RUN go get \
@@ -32,3 +37,4 @@ RUN apk del git &&\
       $GOPATH
 
 CMD ["/usr/bin/picsum-photos"]
+# TODO: Multi-stage?
