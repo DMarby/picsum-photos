@@ -1,12 +1,18 @@
 FROM golang:alpine
 
 # Install libvips
-RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-tools && \
-    apk add git
+RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-dev && \
+    apk add \
+          git \
+          pkgconf \
+          fftw-dev \
+          gcc \
+          musl-dev
 
 # Install needed tools
 RUN go get \
       github.com/golang/dep/cmd/dep \
+      github.com/onsi/ginkgo/ginkgo \
       github.com/derekparker/delve/cmd/dlv \
       github.com/cespare/reflex
 
