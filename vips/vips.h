@@ -9,6 +9,4 @@
 
 int loadImageFromBuffer(char *operation_name, void *buf, size_t len, VipsImage **out);
 int saveImageToBuffer(char *operation_name, VipsImage *image, void **buf, size_t *len);
-
-// TODO: Remove, just a test
-int invert_image(VipsImage *in, VipsImage **out);
+int process_image(VipsImage *in, VipsImage **out);
