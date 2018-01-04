@@ -128,26 +128,26 @@ func saveToBuffer(image *C.VipsImage) ([]byte, error) {
 func ProcessImage(image []byte) ([]byte, error) {
 	defer C.vips_thread_shutdown()
 
+	// TODO: Shrink when loading?
 	vipsImage, err := loadFromBuffer(image)
 	if err != nil {
 		return nil, err
 	}
 
-	var invertedImage *C.VipsImage
+	var processedImage *C.VipsImage
 
-	invertErr := C.invert_image(vipsImage, &invertedImage)
+	// TODO: Implement proper resize/crop
+	// https://github.com/jcupitt/libvips/blob/master/libvips/resample/thumbnail.c
+	// https://github.com/jcupitt/libvips/wiki/HOWTO----Image-shrinking
+	invertErr := C.process_image(vipsImage, &processedImage)
 	if invertErr != 0 {
 		return nil, fmt.Errorf("error inverting image %v", catchVipsError())
 	}
 
-	buffer, err := saveToBuffer(invertedImage)
+	buffer, err := saveToBuffer(processedImage)
 	if err != nil {
 		return nil, err
 	}
 
 	return buffer, nil
-}
-
-func freeCString(s *C.char) {
-	C.free(unsafe.Pointer(s))
 }

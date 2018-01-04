@@ -30,7 +30,6 @@ int saveImageToBuffer(char *operation_name, VipsImage *image, void **buf, size_t
 	return result;
 }
 
-// TODO: Remove, just a test
-int invert_image(VipsImage *in, VipsImage **out) {
-	return vips_invert(in, out, NULL);
+int process_image(VipsImage *in, VipsImage **out) {
+	return vips_resize(in, out, 0.5, NULL);
 }
