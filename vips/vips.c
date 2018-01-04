@@ -4,23 +4,21 @@ int loadImageFromBuffer(char *operation_name, void *buf, size_t len, VipsImage *
 	VipsBlob *blob;
 	int result;
 
-	// TODO: Is this needed?
 	blob = vips_blob_new(NULL, buf, len);
 
-	result = vips_call(operation_name, blob, out, "fail", TRUE, NULL); // TODO: Does this get cached?
+	result = vips_call(operation_name, blob, out, "fail", TRUE, "autorotate", TRUE, NULL);
 
 	vips_area_unref(VIPS_AREA(blob));
 
 	return result;
 }
 
-// TODO: Make this support optional args (per format?)
 int saveImageToBuffer(char *operation_name, VipsImage *image, void **buf, size_t *len) {
 	VipsArea *area = NULL;
 	int result;
 
-	// TODO: Progressive?
-	result = vips_call(operation_name, image, &area, NULL);
+	// Progressive, strip metadata
+	result = vips_call(operation_name, image, &area, "interlace", TRUE, "strip", TRUE, "optimize_coding", TRUE, NULL);
 
 	if (!result && area) {
 		*buf = area->data;

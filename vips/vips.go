@@ -58,12 +58,12 @@ func Shutdown() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
+	// Vips cannot be initialized after it's been shut down, thus we don't set initialize to false
 	if !initialized {
 		return
 	}
 
 	C.vips_shutdown()
-	initialized = false
 }
 
 // PrintDebugInfo prints libvips debug info to stdout
@@ -80,9 +80,7 @@ func catchVipsError() error {
 	return fmt.Errorf("%s", s)
 }
 
-// TODO: Vips thread shutdown?
-// TODO: send autorotate param to load?
-func LoadFromBuffer(buffer []byte) (*C.VipsImage, error) { // TODO: Wrap this in something so that we don't expose VipsImage? Or do that in image package instead?
+func loadFromBuffer(buffer []byte) (*C.VipsImage, error) {
 	// Prevent buffer from being garbage collected
 	// TODO: Do we need to do anything to clean up? Copy instead?
 	defer runtime.KeepAlive(buffer)
@@ -90,9 +88,11 @@ func LoadFromBuffer(buffer []byte) (*C.VipsImage, error) { // TODO: Wrap this in
 	imageBuffer := unsafe.Pointer(&buffer[0])
 	imageBufferSize := C.size_t(len(buffer))
 
-	// TODO: Validate against what loaders we have? Needed?
-	// TODO: If return is NULL then error
 	loader := C.vips_foreign_find_load_buffer(imageBuffer, imageBufferSize)
+
+	if loader == nil {
+		return nil, fmt.Errorf("error finding image type %v", catchVipsError())
+	}
 
 	var image *C.VipsImage
 
@@ -102,22 +102,11 @@ func LoadFromBuffer(buffer []byte) (*C.VipsImage, error) { // TODO: Wrap this in
 		return nil, fmt.Errorf("error loading image from buffer %v", catchVipsError())
 	}
 
-	fmt.Printf("Code %v, width %v", err, C.vips_image_get_width(image))
-
-	var invertedImage *C.VipsImage
-
-	err = C.invert_image(image, &invertedImage)
-
-	if err != 0 {
-		return nil, fmt.Errorf("error inverting image %v", catchVipsError())
-	}
-
-	return invertedImage, nil
+	return image, nil
 }
 
-// TODO: Support other formats
-func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
-	defer C.g_object_unref(C.gpointer(image)) // TODO: What if we want to use it more?
+func saveToBuffer(image *C.VipsImage) ([]byte, error) {
+	defer C.g_object_unref(C.gpointer(image))
 
 	var bufferPointer unsafe.Pointer
 	bufferLength := C.size_t(0)
@@ -130,8 +119,31 @@ func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
 
 	buffer := C.GoBytes(bufferPointer, C.int(bufferLength))
 
-	// TODO: Do we need additional cleanup? vips_error_clear?
 	C.g_free(C.gpointer(bufferPointer))
+
+	return buffer, nil
+}
+
+// ProcessImage performs the specified image operations and returns the resulting image
+func ProcessImage(image []byte) ([]byte, error) {
+	defer C.vips_thread_shutdown()
+
+	vipsImage, err := loadFromBuffer(image)
+	if err != nil {
+		return nil, err
+	}
+
+	var invertedImage *C.VipsImage
+
+	invertErr := C.invert_image(vipsImage, &invertedImage)
+	if invertErr != 0 {
+		return nil, fmt.Errorf("error inverting image %v", catchVipsError())
+	}
+
+	buffer, err := saveToBuffer(invertedImage)
+	if err != nil {
+		return nil, err
+	}
 
 	return buffer, nil
 }

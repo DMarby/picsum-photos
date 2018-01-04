@@ -10,10 +10,19 @@ import (
 type Processor struct {
 }
 
-// New instantiates a new image processor
+type Image struct {
+	data []byte
+}
+
+// New instantiates a new image processor and initializes vips
 func New() *Processor {
-	vips.Initialize() // TODO: When should we initialize/shutdown/etc? Since that's global, but processor is instantiated...make it not instantiated?
+	vips.Initialize()
 	return &Processor{}
+}
+
+// Shutdown shuts down the image processor and deinitialises vips
+func (p *Processor) Shutdown() {
+	vips.Shutdown()
 }
 
 // TODO: What should we expose? Just resize, crop, etc?
@@ -23,17 +32,12 @@ func (p *Processor) LoadImage(path string) error {
 		return err
 	}
 
-	image, err := vips.LoadFromBuffer(buf)
+	image, err := vips.ProcessImage(buf)
 	if err != nil {
 		return err
 	}
 
-	buffer, err := vips.SaveToBuffer(image)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile("./fixtures/result.jpg", buffer, 0644)
+	err = ioutil.WriteFile("./fixtures/result.jpg", image, 0644)
 	if err != nil {
 		return err
 	}
