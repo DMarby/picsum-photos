@@ -80,31 +80,6 @@ func catchVipsError() error {
 	return fmt.Errorf("%s", s)
 }
 
-func loadFromBuffer(buffer []byte) (*C.VipsImage, error) {
-	// Prevent buffer from being garbage collected
-	// TODO: Do we need to do anything to clean up? Copy instead?
-	defer runtime.KeepAlive(buffer)
-
-	imageBuffer := unsafe.Pointer(&buffer[0])
-	imageBufferSize := C.size_t(len(buffer))
-
-	loader := C.vips_foreign_find_load_buffer(imageBuffer, imageBufferSize)
-
-	if loader == nil {
-		return nil, fmt.Errorf("error finding image type %v", catchVipsError())
-	}
-
-	var image *C.VipsImage
-
-	err := C.loadImageFromBuffer(loader, imageBuffer, imageBufferSize, &image)
-
-	if err != 0 {
-		return nil, fmt.Errorf("error loading image from buffer %v", catchVipsError())
-	}
-
-	return image, nil
-}
-
 func saveToBuffer(image *C.VipsImage) ([]byte, error) {
 	defer C.g_object_unref(C.gpointer(image))
 
@@ -125,29 +100,26 @@ func saveToBuffer(image *C.VipsImage) ([]byte, error) {
 }
 
 // ProcessImage performs the specified image operations and returns the resulting image
-func ProcessImage(image []byte) ([]byte, error) {
-	defer C.vips_thread_shutdown()
+func ProcessImage(buffer []byte) ([]byte, error) {
+	// Prevent buffer from being garbage collected
+	// TODO: Do we need to do anything to clean up? Copy instead?
+	defer runtime.KeepAlive(buffer)
 
-	// TODO: Shrink when loading?
-	vipsImage, err := loadFromBuffer(image)
+	imageBuffer := unsafe.Pointer(&buffer[0])
+	imageBufferSize := C.size_t(len(buffer))
+
+	var image *C.VipsImage
+
+	errCode := C.process_image(imageBuffer, imageBufferSize, &image)
+
+	if errCode != 0 {
+		return nil, fmt.Errorf("error processing image from buffer %v", catchVipsError())
+	}
+
+	processedBuffer, err := saveToBuffer(image)
 	if err != nil {
 		return nil, err
 	}
 
-	var processedImage *C.VipsImage
-
-	// TODO: Implement proper resize/crop
-	// https://github.com/jcupitt/libvips/blob/master/libvips/resample/thumbnail.c
-	// https://github.com/jcupitt/libvips/wiki/HOWTO----Image-shrinking
-	invertErr := C.process_image(vipsImage, &processedImage)
-	if invertErr != 0 {
-		return nil, fmt.Errorf("error inverting image %v", catchVipsError())
-	}
-
-	buffer, err := saveToBuffer(processedImage)
-	if err != nil {
-		return nil, err
-	}
-
-	return buffer, nil
+	return processedBuffer, nil
 }
