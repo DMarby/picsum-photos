@@ -14,12 +14,23 @@ func TestImage(t *testing.T) {
 	RunSpecs(t, "image")
 }
 
-// TODO: Benchmarks
+// TODO: Just re-use one imageProcessor
+// TODO: Clean up after each test
 var _ = Describe("Image", func() {
 	It("Should do something", func() {
-		Ω(true).Should(Equal(true))
 		imageProcessor := image.New()
 		err := imageProcessor.LoadImage("./fixtures/fixture.jpg")
 		Ω(err).Should(BeNil())
 	})
+
+	Measure("Should do something perf", func(b Benchmarker) {
+		imageProcessor := image.New()
+
+		runtime := b.Time("runtime", func() {
+			err := imageProcessor.LoadImage("./fixtures/fixture.jpg")
+			Ω(err).Should(BeNil())
+		})
+
+		Ω(runtime.Seconds()).Should(BeNumerically("<", 0.2), "ProcessImage() shouldn't take too long.")
+	}, 10)
 })

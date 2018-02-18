@@ -1,18 +1,5 @@
 #include "vips.h"
 
-int loadImageFromBuffer(char *operation_name, void *buf, size_t len, VipsImage **out) {
-	VipsBlob *blob;
-	int result;
-
-	blob = vips_blob_new(NULL, buf, len);
-
-	result = vips_call(operation_name, blob, out, "fail", TRUE, "autorotate", TRUE, NULL);
-
-	vips_area_unref(VIPS_AREA(blob));
-
-	return result;
-}
-
 int saveImageToBuffer(char *operation_name, VipsImage *image, void **buf, size_t *len) {
 	VipsArea *area = NULL;
 	int result;
@@ -30,6 +17,15 @@ int saveImageToBuffer(char *operation_name, VipsImage *image, void **buf, size_t
 	return result;
 }
 
-int process_image(VipsImage *in, VipsImage **out) {
-	return vips_resize(in, out, 0.5, NULL);
+int process_image(void *buf, size_t len, VipsImage **out) {
+	VipsBlob *blob;
+	int result;
+
+	blob = vips_blob_new(NULL, buf, len);
+
+	result = vips_call("thumbnail_buffer", blob, out, 100, "height", 100, NULL);
+
+	vips_area_unref(VIPS_AREA(blob));
+
+	return result;
 }
