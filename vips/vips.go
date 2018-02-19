@@ -34,9 +34,9 @@ func Initialize() error {
 			return
 		}
 
-		// TODO: Do we want this?
-		//C.vips_cache_set_max_mem(maxCacheMem)
-		//C.vips_cache_set_max(maxCacheSize)
+		// Disable the cache for now
+		C.vips_cache_set_max_mem(0)
+		C.vips_cache_set_max(0)
 
 		// Set concurrency to 1 so that each job only uses one thread
 		C.vips_concurrency_set(1)
@@ -89,7 +89,7 @@ func ResizeImage(buffer []byte, width int, height int) (*C.VipsImage, error) {
 
 // SaveToBuffer saves an image to a buffer
 func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
-	defer C.g_object_unref(C.gpointer(image))
+	defer unrefImage(image)
 
 	var bufferPointer unsafe.Pointer
 	bufferLength := C.size_t(0)
@@ -109,7 +109,7 @@ func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
 
 // Grayscale converts an image to grayscale
 func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
-	defer C.g_object_unref(C.gpointer(image))
+	defer unrefImage(image)
 
 	var result *C.VipsImage
 
@@ -124,7 +124,7 @@ func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
 
 // Blur applies gaussian blur to an image
 func Blur(image *C.VipsImage, blur int) (*C.VipsImage, error) {
-	defer C.g_object_unref(C.gpointer(image))
+	defer unrefImage(image)
 
 	var result *C.VipsImage
 
@@ -135,6 +135,9 @@ func Blur(image *C.VipsImage, blur int) (*C.VipsImage, error) {
 	}
 
 	return result, nil
+}
+func unrefImage(image *C.VipsImage) {
+	C.g_object_unref(C.gpointer(image))
 }
 
 func emptyImage() *C.VipsImage {

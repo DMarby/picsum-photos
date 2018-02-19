@@ -24,8 +24,9 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("ResizeImage", func() {
 	It("Loads and resizes an image", func() {
-		_, err := ResizeImage(imageBuffer, 500, 500)
+		image, err := ResizeImage(imageBuffer, 500, 500)
 		Ω(err).Should(BeNil())
+		unrefImage(image)
 	})
 
 	It("Throws an error when given an empty buffer", func() {
@@ -43,8 +44,9 @@ var _ = Describe("ResizeImage", func() {
 var _ = Describe("Grayscale", func() {
 	It("Converts an image to grayscale", func() {
 		image, err := ResizeImage(imageBuffer, 500, 500)
-		_, err = Grayscale(image)
+		image, err = Grayscale(image)
 		Ω(err).Should(BeNil())
+		unrefImage(image)
 	})
 
 	It("Errors on an invalid image", func() {
@@ -56,8 +58,9 @@ var _ = Describe("Grayscale", func() {
 var _ = Describe("Blur", func() {
 	It("Blurs an image", func() {
 		image, err := ResizeImage(imageBuffer, 500, 500)
-		_, err = Blur(image, 5)
+		image, err = Blur(image, 5)
 		Ω(err).Should(BeNil())
+		unrefImage(image)
 	})
 
 	It("Errors on an invalid image", func() {
@@ -102,6 +105,10 @@ var _ = Describe("Reproducability", func() {
 		resultFixture, _ := ioutil.ReadFile("../test/fixtures/blur_result.jpg")
 		Ω(buf).Should(Equal(resultFixture))
 	})
+})
+
+var _ = It("Prints debug info", func() {
+	PrintDebugInfo()
 })
 
 var _ = AfterSuite(func() {
