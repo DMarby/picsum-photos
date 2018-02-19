@@ -10,3 +10,4 @@
 int saveImageToJpegBuffer(VipsImage *image, void **buf, size_t *len);
 int resize_image(void *buf, size_t len, VipsImage **out, int width, int height, VipsInteresting interesting);
 int change_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation colorspace);
+int blur_image(VipsImage *in, VipsImage **out, double blur);
