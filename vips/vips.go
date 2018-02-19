@@ -71,6 +71,7 @@ func ResizeImage(buffer []byte, width int, height int) (*C.VipsImage, error) {
 	}
 
 	// Prevent buffer from being garbage collected
+	defer C.vips_thread_shutdown()
 	defer runtime.KeepAlive(buffer)
 
 	imageBuffer := unsafe.Pointer(&buffer[0])
@@ -89,6 +90,7 @@ func ResizeImage(buffer []byte, width int, height int) (*C.VipsImage, error) {
 
 // SaveToBuffer saves an image to a buffer
 func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
+	defer C.vips_thread_shutdown()
 	defer unrefImage(image)
 
 	var bufferPointer unsafe.Pointer
@@ -109,6 +111,7 @@ func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
 
 // Grayscale converts an image to grayscale
 func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
+	defer C.vips_thread_shutdown()
 	defer unrefImage(image)
 
 	var result *C.VipsImage
@@ -124,6 +127,7 @@ func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
 
 // Blur applies gaussian blur to an image
 func Blur(image *C.VipsImage, blur int) (*C.VipsImage, error) {
+	defer C.vips_thread_shutdown()
 	defer unrefImage(image)
 
 	var result *C.VipsImage
