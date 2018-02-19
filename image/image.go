@@ -2,6 +2,7 @@ package image
 
 import (
 	"io/ioutil"
+	"sync"
 
 	"github.com/DMarby/picsum-photos/vips"
 )
@@ -10,14 +11,23 @@ import (
 type Processor struct {
 }
 
-type Image struct {
-	data []byte
+var instance *Processor
+var once sync.Once
+
+// GetInstance returns the processor instance, and creates it if neccesary.
+func GetInstance() (*Processor, error) {
+	var err error
+
+	once.Do(func() {
+		err = vips.Initialize()
+		instance = &Processor{}
+	})
+
+	return instance, err
 }
 
-// New instantiates a new image processor and initializes vips
-func New() *Processor {
-	vips.Initialize()
-	return &Processor{}
+type Image struct {
+	data []byte
 }
 
 // Shutdown shuts down the image processor and deinitialises vips
