@@ -110,7 +110,7 @@ func ProcessImage(buffer []byte) ([]byte, error) {
 
 	var image *C.VipsImage
 
-	errCode := C.resize_image(imageBuffer, imageBufferSize, &image, C.int(500), C.int(500))
+	errCode := C.resize_image(imageBuffer, imageBufferSize, &image, C.int(100), C.int(100), C.VIPS_INTERESTING_CENTRE)
 
 	if errCode != 0 {
 		return nil, fmt.Errorf("error processing image from buffer %v", catchVipsError())
@@ -122,4 +122,4 @@ func ProcessImage(buffer []byte) ([]byte, error) {
 	}
 
 	return processedBuffer, nil
-}
+} //VIPS_INTERESTING_CENTRE

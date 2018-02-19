@@ -17,14 +17,13 @@ int saveImageToJpegBuffer(VipsImage *image, void **buf, size_t *len) {
 	return result;
 }
 
-// TODO: Add options for crop strategy
-int resize_image(void *buf, size_t len, VipsImage **out, int width, int height) {
+int resize_image(void *buf, size_t len, VipsImage **out, int width, int height, VipsInteresting interesting) {
 	VipsBlob *blob;
 	int result;
 
 	blob = vips_blob_new(NULL, buf, len);
 
-	result = vips_call("thumbnail_buffer", blob, out, width, "height", height, "crop", VIPS_INTERESTING_CENTRE, NULL);
+	result = vips_call("thumbnail_buffer", blob, out, width, "height", height, "crop", interesting, NULL);
 
 	vips_area_unref(VIPS_AREA(blob));
 
