@@ -7,5 +7,5 @@
   #error "unsupported libvips version"
 #endif
 
-int saveImageToBuffer(char *operation_name, VipsImage *image, void **buf, size_t *len);
-int process_image(void *buf, size_t len, VipsImage **out);
+int saveImageToJpegBuffer(VipsImage *image, void **buf, size_t *len);
+int resize_image(void *buf, size_t len, VipsImage **out, int width, int height);

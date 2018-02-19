@@ -1,11 +1,11 @@
 #include "vips.h"
 
-int saveImageToBuffer(char *operation_name, VipsImage *image, void **buf, size_t *len) {
+int saveImageToJpegBuffer(VipsImage *image, void **buf, size_t *len) {
 	VipsArea *area = NULL;
 	int result;
 
 	// Progressive, strip metadata
-	result = vips_call(operation_name, image, &area, "interlace", TRUE, "strip", TRUE, "optimize_coding", TRUE, NULL);
+	result = vips_call("jpegsave_buffer", image, &area, "interlace", TRUE, "strip", TRUE, "optimize_coding", TRUE, NULL);
 
 	if (!result && area) {
 		*buf = area->data;
@@ -17,13 +17,14 @@ int saveImageToBuffer(char *operation_name, VipsImage *image, void **buf, size_t
 	return result;
 }
 
-int process_image(void *buf, size_t len, VipsImage **out) {
+// TODO: Add options for crop strategy
+int resize_image(void *buf, size_t len, VipsImage **out, int width, int height) {
 	VipsBlob *blob;
 	int result;
 
 	blob = vips_blob_new(NULL, buf, len);
 
-	result = vips_call("thumbnail_buffer", blob, out, 100, "height", 100, NULL);
+	result = vips_call("thumbnail_buffer", blob, out, width, "height", height, "crop", VIPS_INTERESTING_CENTRE, NULL);
 
 	vips_area_unref(VIPS_AREA(blob));
 
