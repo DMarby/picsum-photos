@@ -30,12 +30,10 @@ var _ = Describe("Image", func() {
 	})
 
 	Measure("Should do something perf", func(b Benchmarker) {
-		runtime := b.Time("runtime", func() {
+		b.Time("runtime", func() {
 			err := imageProcessor.LoadImage("../test/fixtures/fixture.jpg")
 			Ω(err).Should(BeNil())
 		})
-
-		Ω(runtime.Seconds()).Should(BeNumerically("<", 0.2), "ProcessImage() shouldn't take too long.")
 	}, 10)
 })
 
