@@ -52,6 +52,11 @@ func (p *Processor) LoadImage(path string) error {
 		return err
 	}
 
+	image, err = vips.Blur(image, 5)
+	if err != nil {
+		return err
+	}
+
 	imageBuffer, err := vips.SaveToBuffer(image)
 	if err != nil {
 		return err

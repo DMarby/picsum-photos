@@ -103,7 +103,7 @@ func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
 	return buffer, nil
 }
 
-// Grayscale converts the image to grayscale
+// Grayscale converts an image to grayscale
 func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
 	defer C.g_object_unref(C.gpointer(image))
 
@@ -113,6 +113,21 @@ func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
 
 	if err != 0 {
 		return nil, fmt.Errorf("error changing image colorspace %v", catchVipsError())
+	}
+
+	return result, nil
+}
+
+// Blur applies gaussian blur to an image
+func Blur(image *C.VipsImage, blur int) (*C.VipsImage, error) {
+	defer C.g_object_unref(C.gpointer(image))
+
+	var result *C.VipsImage
+
+	err := C.blur_image(image, &result, C.double(blur))
+
+	if err != 0 {
+		return nil, fmt.Errorf("error applying blur to image %v", catchVipsError())
 	}
 
 	return result, nil
