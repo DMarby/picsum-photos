@@ -13,6 +13,9 @@ import (
 	"unsafe"
 )
 
+// Image is a representation of the *C.VipsImage type
+type Image *C.VipsImage
+
 var once sync.Once
 
 // Initialize libvips if it's not already started
@@ -34,10 +37,6 @@ func Initialize() error {
 			return
 		}
 
-		// Disable the cache for now
-		C.vips_cache_set_max_mem(0)
-		C.vips_cache_set_max(0)
-
 		// Set concurrency to 1 so that each job only uses one thread
 		C.vips_concurrency_set(1)
 	})
@@ -57,7 +56,6 @@ func PrintDebugInfo() {
 
 // catchVipsError returns the vips error buffer as an error
 func catchVipsError() error {
-	defer C.vips_thread_shutdown()
 	defer C.vips_error_clear()
 
 	s := C.GoString(C.vips_error_buffer())
@@ -65,13 +63,12 @@ func catchVipsError() error {
 }
 
 // ResizeImage loads an image from a buffer and resizes it.
-func ResizeImage(buffer []byte, width int, height int) (*C.VipsImage, error) {
+func ResizeImage(buffer []byte, width int, height int) (Image, error) {
 	if len(buffer) == 0 {
 		return nil, fmt.Errorf("empty buffer")
 	}
 
 	// Prevent buffer from being garbage collected
-	defer C.vips_thread_shutdown()
 	defer runtime.KeepAlive(buffer)
 
 	imageBuffer := unsafe.Pointer(&buffer[0])
@@ -89,9 +86,8 @@ func ResizeImage(buffer []byte, width int, height int) (*C.VipsImage, error) {
 }
 
 // SaveToBuffer saves an image to a buffer
-func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
-	defer C.vips_thread_shutdown()
-	defer unrefImage(image)
+func SaveToBuffer(image Image) ([]byte, error) {
+	defer UnrefImage(image)
 
 	var bufferPointer unsafe.Pointer
 	bufferLength := C.size_t(0)
@@ -110,9 +106,8 @@ func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
 }
 
 // Grayscale converts an image to grayscale
-func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
-	defer C.vips_thread_shutdown()
-	defer unrefImage(image)
+func Grayscale(image Image) (Image, error) {
+	defer UnrefImage(image)
 
 	var result *C.VipsImage
 
@@ -126,9 +121,8 @@ func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
 }
 
 // Blur applies gaussian blur to an image
-func Blur(image *C.VipsImage, blur int) (*C.VipsImage, error) {
-	defer C.vips_thread_shutdown()
-	defer unrefImage(image)
+func Blur(image Image, blur int) (Image, error) {
+	defer UnrefImage(image)
 
 	var result *C.VipsImage
 
@@ -140,10 +134,13 @@ func Blur(image *C.VipsImage, blur int) (*C.VipsImage, error) {
 
 	return result, nil
 }
-func unrefImage(image *C.VipsImage) {
+
+// UnrefImage unrefs an image object
+func UnrefImage(image Image) {
 	C.g_object_unref(C.gpointer(image))
 }
 
-func emptyImage() *C.VipsImage {
+// NewEmptyImage returns an empty image object
+func NewEmptyImage() Image {
 	return C.vips_image_new()
 }
