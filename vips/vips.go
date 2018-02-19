@@ -66,6 +66,10 @@ func catchVipsError() error {
 
 // ResizeImage loads an image from a buffer and resizes it.
 func ResizeImage(buffer []byte, width int, height int) (*C.VipsImage, error) {
+	if len(buffer) == 0 {
+		return nil, fmt.Errorf("empty buffer")
+	}
+
 	// Prevent buffer from being garbage collected
 	defer runtime.KeepAlive(buffer)
 
@@ -77,7 +81,7 @@ func ResizeImage(buffer []byte, width int, height int) (*C.VipsImage, error) {
 	errCode := C.resize_image(imageBuffer, imageBufferSize, &image, C.int(width), C.int(height), C.VIPS_INTERESTING_CENTRE)
 
 	if errCode != 0 {
-		return nil, fmt.Errorf("error processing image from buffer %v", catchVipsError())
+		return nil, fmt.Errorf("error processing image from buffer %s", catchVipsError())
 	}
 
 	return image, nil
@@ -93,7 +97,7 @@ func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
 	err := C.saveImageToJpegBuffer(image, &bufferPointer, &bufferLength)
 
 	if err != 0 {
-		return nil, fmt.Errorf("error saving to buffer %v", catchVipsError())
+		return nil, fmt.Errorf("error saving to buffer %s", catchVipsError())
 	}
 
 	buffer := C.GoBytes(bufferPointer, C.int(bufferLength))
@@ -112,7 +116,7 @@ func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
 	err := C.change_colorspace(image, &result, C.VIPS_INTERPRETATION_B_W)
 
 	if err != 0 {
-		return nil, fmt.Errorf("error changing image colorspace %v", catchVipsError())
+		return nil, fmt.Errorf("error changing image colorspace %s", catchVipsError())
 	}
 
 	return result, nil
@@ -127,8 +131,12 @@ func Blur(image *C.VipsImage, blur int) (*C.VipsImage, error) {
 	err := C.blur_image(image, &result, C.double(blur))
 
 	if err != 0 {
-		return nil, fmt.Errorf("error applying blur to image %v", catchVipsError())
+		return nil, fmt.Errorf("error applying blur to image %s", catchVipsError())
 	}
 
 	return result, nil
+}
+
+func emptyImage() *C.VipsImage {
+	return C.vips_image_new()
 }

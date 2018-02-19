@@ -25,13 +25,13 @@ var _ = BeforeSuite(func() {
 // TODO: Clean up after each test
 var _ = Describe("Image", func() {
 	It("Should do something", func() {
-		err := imageProcessor.LoadImage("./fixtures/fixture.jpg")
+		err := imageProcessor.LoadImage("../test/fixtures/fixture.jpg")
 		Ω(err).Should(BeNil())
 	})
 
 	Measure("Should do something perf", func(b Benchmarker) {
 		runtime := b.Time("runtime", func() {
-			err := imageProcessor.LoadImage("./fixtures/fixture.jpg")
+			err := imageProcessor.LoadImage("../test/fixtures/fixture.jpg")
 			Ω(err).Should(BeNil())
 		})
 
