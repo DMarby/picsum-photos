@@ -1,71 +1,61 @@
 package image
 
-import (
-	"io/ioutil"
-	"sync"
-
-	"github.com/DMarby/picsum-photos/vips"
-)
-
-// Processor is an image processor
-type Processor struct {
-}
-
-var instance *Processor
-var once sync.Once
-
-// GetInstance returns the processor instance, and creates it if neccesary.
-func GetInstance() (*Processor, error) {
-	var err error
-
-	once.Do(func() {
-		err = vips.Initialize()
-		instance = &Processor{}
-	})
-
-	return instance, err
-}
+import "github.com/DMarby/picsum-photos/vips"
 
 type Image struct {
-	data []byte
+	vipsImage vips.Image
 }
 
-// Shutdown shuts down the image processor and deinitialises vips
-func (p *Processor) Shutdown() {
-	vips.Shutdown()
+func NewEmptyImage() *Image {
+	return &Image{
+		vipsImage: vips.NewEmptyImage(),
+	}
 }
 
-// TODO: What should we expose? Just resize, crop, etc?
-func (p *Processor) LoadImage(path string) error {
-	buf, err := ioutil.ReadFile(path)
+// ResizeImage loads an image from a byte buffer, resizes it and returns an Image object for further use
+func (p *Processor) ResizeImage(buffer []byte, width int, height int) (*Image, error) {
+	image, err := vips.ResizeImage(buffer, width, height)
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	image, err := vips.ResizeImage(buf, 500, 500)
+	return &Image{
+		vipsImage: image,
+	}, nil
+}
+
+// Grayscale turns an image into grayscale
+func (i *Image) Grayscale() (*Image, error) {
+	image, err := vips.Grayscale(i.vipsImage)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	image, err = vips.Grayscale(image)
+	return &Image{
+		vipsImage: image,
+	}, nil
+}
+
+// Blur applies gaussian blur to an image
+func (i *Image) Blur(blur int) (*Image, error) {
+	image, err := vips.Blur(i.vipsImage, blur)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	image, err = vips.Blur(image, 5)
+	return &Image{
+		vipsImage: image,
+	}, nil
+}
+
+// SaveToBuffer returns the image as a JPEG byte buffer
+func (i *Image) SaveToBuffer() ([]byte, error) {
+	imageBuffer, err := vips.SaveToBuffer(i.vipsImage)
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	imageBuffer, err := vips.SaveToBuffer(image)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile("./result.jpg", imageBuffer, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return imageBuffer, nil
 }
