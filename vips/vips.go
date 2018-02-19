@@ -13,56 +13,40 @@ import (
 	"unsafe"
 )
 
-var (
-	mutex       sync.Mutex
-	initialized bool
-)
+var once sync.Once
 
 // Initialize libvips if it's not already started
 func Initialize() error {
-	// Ensure that this doesn't run concurrenctly
-	mutex.Lock()
-	defer mutex.Unlock()
+	var err error
 
-	if initialized {
-		return nil
-	}
+	once.Do(func() {
+		// vips_init needs to run on the main thread
+		runtime.LockOSThread()
+		defer runtime.UnlockOSThread()
 
-	// vips_init needs to run on the main thread
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
+		if C.VIPS_MAJOR_VERSION != 8 || C.VIPS_MINOR_VERSION < 6 {
+			err = fmt.Errorf("unsupported libvips version")
+		}
 
-	if C.VIPS_MAJOR_VERSION != 8 || C.VIPS_MINOR_VERSION < 6 {
-		return fmt.Errorf("unsupported libvips version")
-	}
+		errorCode := C.vips_init(C.CString("picsum-photos"))
+		if errorCode != 0 {
+			err = fmt.Errorf("unable to initialize vips: %v", catchVipsError())
+			return
+		}
 
-	err := C.vips_init(C.CString("picsum-photos"))
-	if err != 0 {
-		return fmt.Errorf("unable to initialize vips: %v", catchVipsError())
-	}
+		// TODO: Do we want this?
+		//C.vips_cache_set_max_mem(maxCacheMem)
+		//C.vips_cache_set_max(maxCacheSize)
 
-	// TODO: Do we want this?
-	//C.vips_cache_set_max_mem(maxCacheMem)
-	//C.vips_cache_set_max(maxCacheSize)
+		// Set concurrency to 1 so that each job only uses one thread
+		C.vips_concurrency_set(1)
+	})
 
-	// Set concurrency to 1 so that each job only uses one thread
-	C.vips_concurrency_set(1)
-
-	initialized = true
-	return nil
+	return err
 }
 
-// Shutdown libvips if it's initialized
+// Shutdown libvips
 func Shutdown() {
-	// Ensure that this doesn't run concurrenctly
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	// Vips cannot be initialized after it's been shut down, thus we don't set initialize to false
-	if !initialized {
-		return
-	}
-
 	C.vips_shutdown()
 }
 
