@@ -32,12 +32,22 @@ func (p *Processor) LoadImage(path string) error {
 		return err
 	}
 
-	image, err := vips.ProcessImage(buf)
+	image, err := vips.ResizeImage(buf, 500, 500)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile("./fixtures/result.jpg", image, 0644)
+	image, err = vips.Grayscale(image)
+	if err != nil {
+		return err
+	}
+
+	imageBuffer, err := vips.SaveToBuffer(image)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile("./fixtures/result.jpg", imageBuffer, 0644)
 	if err != nil {
 		return err
 	}

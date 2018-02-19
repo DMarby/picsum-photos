@@ -80,7 +80,27 @@ func catchVipsError() error {
 	return fmt.Errorf("%s", s)
 }
 
-func saveToBuffer(image *C.VipsImage) ([]byte, error) {
+// ResizeImage loads an image from a buffer and resizes it.
+func ResizeImage(buffer []byte, width int, height int) (*C.VipsImage, error) {
+	// Prevent buffer from being garbage collected
+	defer runtime.KeepAlive(buffer)
+
+	imageBuffer := unsafe.Pointer(&buffer[0])
+	imageBufferSize := C.size_t(len(buffer))
+
+	var image *C.VipsImage
+
+	errCode := C.resize_image(imageBuffer, imageBufferSize, &image, C.int(width), C.int(height), C.VIPS_INTERESTING_CENTRE)
+
+	if errCode != 0 {
+		return nil, fmt.Errorf("error processing image from buffer %v", catchVipsError())
+	}
+
+	return image, nil
+}
+
+// SaveToBuffer saves an image to a buffer
+func SaveToBuffer(image *C.VipsImage) ([]byte, error) {
 	defer C.g_object_unref(C.gpointer(image))
 
 	var bufferPointer unsafe.Pointer
@@ -99,27 +119,17 @@ func saveToBuffer(image *C.VipsImage) ([]byte, error) {
 	return buffer, nil
 }
 
-// ProcessImage performs the specified image operations and returns the resulting image
-func ProcessImage(buffer []byte) ([]byte, error) {
-	// Prevent buffer from being garbage collected
-	// TODO: Do we need to do anything to clean up? Copy instead?
-	defer runtime.KeepAlive(buffer)
+// Grayscale converts the image to grayscale
+func Grayscale(image *C.VipsImage) (*C.VipsImage, error) {
+	defer C.g_object_unref(C.gpointer(image))
 
-	imageBuffer := unsafe.Pointer(&buffer[0])
-	imageBufferSize := C.size_t(len(buffer))
+	var result *C.VipsImage
 
-	var image *C.VipsImage
+	err := C.change_colorspace(image, &result, C.VIPS_INTERPRETATION_B_W)
 
-	errCode := C.resize_image(imageBuffer, imageBufferSize, &image, C.int(100), C.int(100), C.VIPS_INTERESTING_CENTRE)
-
-	if errCode != 0 {
-		return nil, fmt.Errorf("error processing image from buffer %v", catchVipsError())
+	if err != 0 {
+		return nil, fmt.Errorf("error changing image colorspace %v", catchVipsError())
 	}
 
-	processedBuffer, err := saveToBuffer(image)
-	if err != nil {
-		return nil, err
-	}
-
-	return processedBuffer, nil
-} //VIPS_INTERESTING_CENTRE
+	return result, nil
+}
