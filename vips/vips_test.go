@@ -97,12 +97,6 @@ var _ = Describe("Blur", func() {
 	})
 })
 
-var _ = Describe("PrintDebugInfo", func() {
-	It("Prints debug info", func() {
-		vips.PrintDebugInfo()
-	})
-})
-
 var _ = AfterSuite(func() {
 	vips.Shutdown()
 })
