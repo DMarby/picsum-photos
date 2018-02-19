@@ -62,7 +62,7 @@ func (p *Processor) LoadImage(path string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile("./fixtures/result.jpg", imageBuffer, 0644)
+	err = ioutil.WriteFile("./result.jpg", imageBuffer, 0644)
 	if err != nil {
 		return err
 	}
