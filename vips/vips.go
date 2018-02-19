@@ -86,7 +86,7 @@ func saveToBuffer(image *C.VipsImage) ([]byte, error) {
 	var bufferPointer unsafe.Pointer
 	bufferLength := C.size_t(0)
 
-	err := C.saveImageToBuffer(C.CString("jpegsave_buffer"), image, &bufferPointer, &bufferLength)
+	err := C.saveImageToJpegBuffer(image, &bufferPointer, &bufferLength)
 
 	if err != 0 {
 		return nil, fmt.Errorf("error saving to buffer %v", catchVipsError())
@@ -110,7 +110,7 @@ func ProcessImage(buffer []byte) ([]byte, error) {
 
 	var image *C.VipsImage
 
-	errCode := C.process_image(imageBuffer, imageBufferSize, &image)
+	errCode := C.resize_image(imageBuffer, imageBufferSize, &image, C.int(500), C.int(500))
 
 	if errCode != 0 {
 		return nil, fmt.Errorf("error processing image from buffer %v", catchVipsError())
