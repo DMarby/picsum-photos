@@ -1,6 +1,7 @@
 package queue_test
 
 import (
+	"context"
 	"fmt"
 
 	. "github.com/onsi/ginkgo"
@@ -17,10 +18,18 @@ func TestImage(t *testing.T) {
 }
 
 var workerQueue *queue.Queue
+var cancel context.CancelFunc
 
-var _ = BeforeEach(func() {
-	workerQueue = queue.New(5, func(data interface{}) (interface{}, error) {
-		stringData := data.(string)
+func setupQueue(f func(data interface{}) (interface{}, error)) (*queue.Queue, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(context.Background())
+	workerQueue := queue.New(ctx, 5, f)
+	go workerQueue.Run()
+	return workerQueue, cancel
+}
+
+var _ = BeforeSuite(func() {
+	workerQueue, cancel = setupQueue(func(data interface{}) (interface{}, error) {
+		stringData, _ := data.(string)
 		return stringData, nil
 	})
 })
@@ -34,29 +43,23 @@ var _ = Describe("Queue", func() {
 		})
 
 		It("Processes a task with error", func() {
-			errorQueue := queue.New(5, func(data interface{}) (interface{}, error) {
+			errorQueue, errorCancel := setupQueue(func(data interface{}) (interface{}, error) {
 				return nil, fmt.Errorf("custom error")
 			})
+			defer errorCancel()
 			_, err := errorQueue.Process("test")
 			Ω(err).Should(MatchError("custom error"))
-			errorQueue.Shutdown()
 		})
 
 		It("Errors when queue is shut down", func() {
-			workerQueue.Shutdown()
+			cancel()
 			_, err := workerQueue.Process("test")
 			Ω(err).Should(MatchError("queue has been shutdown"))
 		})
 	})
 
-	Describe("Shutdown", func() {
-		It("Can run twice", func() {
-			workerQueue.Shutdown()
-			workerQueue.Shutdown()
-		})
-	})
 })
 
-var _ = AfterEach(func() {
-	workerQueue.Shutdown()
+var _ = AfterSuite(func() {
+	cancel()
 })
