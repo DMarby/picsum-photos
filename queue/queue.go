@@ -1,15 +1,16 @@
 package queue
 
 import (
+	"context"
 	"fmt"
-	"sync"
 )
 
 // Queue is a worker queue with a fixed amount of workers
 type Queue struct {
+	workers int
 	queue   chan job
 	handler func(interface{}) (interface{}, error)
-	once    sync.Once
+	ctx     context.Context
 }
 
 type job struct {
@@ -23,17 +24,25 @@ type jobResult struct {
 }
 
 // New creates a new Queue with the specified amount of workers
-func New(workers int, handler func(interface{}) (interface{}, error)) *Queue {
+func New(ctx context.Context, workers int, handler func(interface{}) (interface{}, error)) *Queue {
 	queue := &Queue{
+		workers: workers,
 		queue:   make(chan job),
 		handler: handler,
-	}
-
-	for i := 0; i < workers; i++ {
-		go queue.worker()
+		ctx:     ctx,
 	}
 
 	return queue
+}
+
+// Run starts the queue and blocks until it's shut down
+func (q *Queue) Run() {
+	for i := 0; i < q.workers; i++ {
+		go q.worker()
+	}
+
+	<-q.ctx.Done()
+	close(q.queue)
 }
 
 func (q *Queue) worker() {
@@ -49,13 +58,15 @@ func (q *Queue) worker() {
 				result: result,
 				err:    err,
 			}
+		case <-q.ctx.Done():
+			return
 		}
 	}
 }
 
 // Process adds a job to the queue, waits for it to process, and returns the result
 func (q *Queue) Process(data interface{}) (interface{}, error) {
-	if q.queue == nil {
+	if q.ctx.Err() != nil {
 		return nil, fmt.Errorf("queue has been shutdown")
 	}
 
@@ -74,12 +85,4 @@ func (q *Queue) Process(data interface{}) (interface{}, error) {
 	}
 
 	return result.result, nil
-}
-
-// Shutdown shuts down the queue after all currently running tasks are finished
-func (q *Queue) Shutdown() {
-	q.once.Do(func() {
-		close(q.queue)
-		q.queue = nil
-	})
 }
