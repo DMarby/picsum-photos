@@ -27,7 +27,7 @@ func setupQueue(f func(data interface{}) (interface{}, error)) (*queue.Queue, co
 	return workerQueue, cancel
 }
 
-var _ = BeforeSuite(func() {
+var _ = BeforeEach(func() {
 	workerQueue, cancel = setupQueue(func(data interface{}) (interface{}, error) {
 		stringData, _ := data.(string)
 		return stringData, nil
@@ -60,6 +60,6 @@ var _ = Describe("Queue", func() {
 
 })
 
-var _ = AfterSuite(func() {
+var _ = AfterEach(func() {
 	cancel()
 })
