@@ -1,8 +1,8 @@
 module.exports = function (sharp, path, config) {
   var ImageProcessor = {
-    getProcessedImage: function (width, height, gravity, gray, blur, filePath, shortName, callback) {
+    getProcessedImage: function (filePath, width, height, gravity, gray, blur, callback) {
       gravity = ImageProcessor.getGravity(gravity)
-      ImageProcessor.imageResize(width, height, gravity, filePath, gray, blur, function (error, image) {
+      ImageProcessor.imageResize(filePath, width, height, gravity, gray, blur, function (error, image) {
         if (error) {
           return callback(error)
         }
@@ -17,7 +17,7 @@ module.exports = function (sharp, path, config) {
       return gravity
     },
 
-    imageResize: function (width, height, gravity, filePath, gray, blur, callback) {
+    imageResize: function (filePath, width, height, gravity, gray, blur, callback) {
       try {
         var image = sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity])
 

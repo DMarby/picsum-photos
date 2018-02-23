@@ -134,7 +134,7 @@ module.exports = function (callback) {
           filePath = images[Math.floor(Math.random() * images.length)].filename
         }
 
-        imageProcessor.getProcessedImage(parseInt(width), parseInt(height), req.query.gravity, gray, blur, filePath, !req.query.image, function (error, image) {
+        imageProcessor.getProcessedImage(filePath, parseInt(width), parseInt(height), req.query.gravity, gray, blur, function (error, image) {
           if (error) {
             console.log('filePath: ' + filePath)
             console.log('error: ' + error)
