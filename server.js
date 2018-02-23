@@ -134,19 +134,16 @@ module.exports = function (callback) {
           filePath = images[Math.floor(Math.random() * images.length)].filename
         }
 
-        imageProcessor.getProcessedImage(parseInt(width), parseInt(height), req.query.gravity, gray, blur, filePath, !req.query.image, function (error, imagePath) {
+        imageProcessor.getProcessedImage(parseInt(width), parseInt(height), req.query.gravity, gray, blur, filePath, !req.query.image, function (error, image) {
           if (error) {
             console.log('filePath: ' + filePath)
-            console.log('imagePath: ' + imagePath)
             console.log('error: ' + error)
             return displayError(res, 500, 'Something went wrong')
           }
 
-          res.sendFile(imagePath, {
-            maxAge: '24h' // Lets set cache to 24h for now
-          })
-
-          process.send(imagePath)
+          res.setHeader('Cache-Control', 'public, max-age=604800') // Cache for 1 week
+          res.set('Content-Type', 'image/jpeg')
+          res.send(image)
         })
       })
     })

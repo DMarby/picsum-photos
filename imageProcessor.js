@@ -1,48 +1,26 @@
-module.exports = exports = function (sharp, path, config, fs) {
+module.exports = function (sharp, path, config) {
   var ImageProcessor = {
-    'getProcessedImage': function (width, height, gravity, gray, blur, filePath, shortName, callback) {
+    getProcessedImage: function (width, height, gravity, gray, blur, filePath, shortName, callback) {
       gravity = ImageProcessor.getGravity(gravity)
-      ImageProcessor.getAndCheckDestination(width, height, gravity, blur, filePath, gray ? 'gray-' : '', shortName, function (exists, destination) {
-        if (exists) {
-          return callback(null, destination)
+      ImageProcessor.imageResize(width, height, gravity, filePath, gray, blur, function (error, image) {
+        if (error) {
+          return callback(error)
         }
 
-        ImageProcessor.imageResize(width, height, gravity, filePath, destination, gray, blur, function (error, destination) {
-          if (error) {
-            ImageProcessor.deleteFile(destination)
-            return callback(error)
-          }
-          
-          callback(null, destination)
-        })
+        callback(null, image)
       })
     },
 
-    'getGravity': function(gravity) {
+    getGravity: function(gravity) {
       gravity = gravity ? gravity : 'center'
       gravity = gravity == 'centre' ? 'center' : gravity
       return gravity
     },
 
-    'getAndCheckDestination': function (width, height, gravity, blur, filePath, prefix, shortName, callback) {
-      var destination = shortName ? ImageProcessor.getShortDestination(width, height, gravity, blur, filePath, prefix) : ImageProcessor.getDestination(width, height, gravity, blur, filePath, prefix)
-      fs.exists(destination, function (exists) {
-        callback(exists, destination)
-      })
-    },
-
-    'getDestination': function (width, height, gravity, blur, filePath, prefix) {
-      return config.cache_folder_path + '/' + prefix + path.basename(filePath, path.extname(filePath)) + '-' + width + 'x' + height + '-' + gravity + (blur ? '-blur' : '') + '.jpeg'
-    },
-
-    'getShortDestination': function (width, height, gravity, blur, filePath, prefix) {
-      return config.cache_folder_path + '/' + prefix + width + '^' + height + '-' + gravity + (blur ? '-blurred' : '') + '.jpeg'
-    },
-
-    'imageResize': function (width, height, gravity, filePath, destination, gray, blur, callback) {
+    imageResize: function (width, height, gravity, filePath, gray, blur, callback) {
       try {
-        var image = sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity]);
-        
+        var image = sharp(filePath).rotate().resize(width, height).crop(sharp.gravity[gravity])
+
         if (gray) {
           image.grayscale()
         }
@@ -51,21 +29,15 @@ module.exports = exports = function (sharp, path, config, fs) {
           image.blur(10)
         }
 
-        image.jpeg().progressive().toFile(destination, function (error) {
-          callback(error, destination)
+        image.toFormat('jpeg', { progressive: true }).toBuffer(function (error, data) {
+          callback(error, data)
         })
       } catch (error) {
         callback(error, null)
       }
     },
 
-    'deleteFile': function (destination) {
-      fs.unlink(destination, function (error) {
-        console.log('Error, deleted file')
-      })
-    },
-
-    'getWidthAndHeight': function (params, square, callback) {
+    getWidthAndHeight: function (params, square, callback) {
       var width = square ? params.size : params.width
       var height = square ? params.size : params.height
       callback(width, height)

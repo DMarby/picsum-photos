@@ -6,18 +6,10 @@ if (cluster.isMaster) {
   var fs = require('fs')
   var path = require('path')
   var sharp = require('sharp')
-  var io = require('socket.io')(config.stats_port)
-  var vnstat = require('vnstat-dumpdb')
   var metadata = require(config.metadata_path)
   var moment = require('moment')
   console.log('Config:')
   console.log(config)
-
-  try {
-    var stats = require(config.stats_path)
-  } catch (error) {
-    var stats = { count: 0 }
-  }
 
   try {
     var images = require(config.image_store_path)
@@ -25,66 +17,12 @@ if (cluster.isMaster) {
     var images = []
   }
 
-  var publicStats = {}
-  var bandWidth = 0
-
-  io.on('connection', function (socket) {
-    socket.emit('stats', publicStats)
-  })
-
-  var fetchStats = function () {
-    publicStats = {
-      count: stats.count,
-      bandWidth: bandWidth,
-      images: images.length
-    }
-
-    io.emit('stats', publicStats)
-  }
-
-  var fetchBandwidth = function () {
-    vnstat.dumpdb(function (error, data) {
-      if (error) {
-        console.log('Couldn\'t fetch bandwidth: ' + error)
-      } else {
-        bandWidth = data.traffic ? data.traffic.total.tx : data.eth0.traffic.total.tx
-      }
-    })
-  }
-
-  setInterval(fetchBandwidth, 1000 * 30)
-  setInterval(fetchStats, 1000)
-  fetchBandwidth()
-  fetchStats()
-
   var exited = false
 
-  var saveToFileAndExit = function () {
-    if (exited) {
-      return
-    } else {
-      exited = true
-    }
-
-    console.log('Current stats:', stats)
-
-    fs.writeFileSync(config.stats_path, JSON.stringify(stats), 'utf8')
-    process.exit(0)
-  }
-
-  var saveToFile = function (callback) {
-    fs.writeFile(config.stats_path, JSON.stringify(stats), 'utf8', function (error) {
-      callback()
-    })
-  }
-
-  process.on('exit', saveToFileAndExit)
-  process.on('SIGINT', saveToFileAndExit)
-  process.on('SIGTERM', saveToFileAndExit)
   process.on('uncaughtException', function (error) {
     console.log('Uncaught exception: ')
     console.trace(error)
-    saveToFileAndExit()
+    process.exit(0)
   })
 
   var loadImages = function () {
@@ -167,29 +105,14 @@ if (cluster.isMaster) {
       console.log('Worker ' + worker.id + ' died')
       startWorker()
     })
-
-    var triggerSaveToFile = function () {
-      saveToFile(function () {
-        setImmediate(setTimeout, triggerSaveToFile, 1000 * 5)
-      })
-    }
-
-    setTimeout(triggerSaveToFile, 1000 * 5)
   }
 
   var startWorker = function () {
     var worker = cluster.fork()
-    worker.on('message', handleWorkerMessage)
     console.log('Worker ' + worker.id + ' started')
   }
 
-  var handleWorkerMessage = function (msg) {
-    stats.count++
-  }
-
-  fs.mkdir(config.cache_folder_path, function (error) {
-    loadImages()
-  })
+  loadImages()
 } else {
   var config = require('./config')()
   require('./server')(function (callback) {

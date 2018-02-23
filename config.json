@@ -1,26 +1,18 @@
 {
     "production": {
         "folder_path": "/opt/photos",
-        "cache_folder_path": "/opt/unsplash-it/cache",
         "image_store_path": "/opt/unsplash-it/images.json",
-        "stats_path": "/opt/unsplash-it/stats.json",
         "metadata_path": "/opt/photos/metadata.json",
         "max_height": 5000,
         "max_width": 5000,
-        "stats_port": 3000,
-        "port": 5000,
-        "cache_metadata_path": "/opt/unsplash-it/cache.json"
+        "port": 5000
     },
     "development": {
-        "folder_path": "../unsplash-downloader/photos",
-        "cache_folder_path": "/Users/DMarby/Projects/2014/unsplash-it/cache",
+        "folder_path": "./photos",
         "image_store_path": "./images.json",
-        "stats_path": "./stats.json",
-        "metadata_path": "../unsplash-downloader/photos/metadata.json",
+        "metadata_path": "./photos/metadata.json",
         "max_height": 5000,
         "max_width": 5000,
-        "stats_port": 3000,
-        "port": 5000,
-        "cache_metadata_path": "./cache.json"
+        "port": 5000
     }
 }

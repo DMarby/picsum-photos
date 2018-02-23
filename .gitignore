@@ -1,8 +1,5 @@
-cache
 node_modules
 images.json
-stats.json
-cache.json
 ansible/files/unsplash.key
 ansible/files/unsplash.crt
 ansible/files/unsplash_rsa

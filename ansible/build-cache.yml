@@ -1,9 +1,0 @@
----
-- hosts: all
-  tasks:
-    - name: Stop unsplash-it
-      service: name=unsplash-it state=stopped
-    - name: Build cache
-      shell: "cd /opt/unsplash-it && su unsplash -c 'node buildcache.js'"
-    - name: Start unsplash-it
-      service: name=unsplash-it state=started
