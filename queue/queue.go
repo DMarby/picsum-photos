@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"fmt"
+	"runtime"
 )
 
 // Queue is a worker queue with a fixed amount of workers
@@ -46,6 +47,10 @@ func (q *Queue) Run() {
 }
 
 func (q *Queue) worker() {
+	// Lock the thread to ensure that we get our own thread, and that tasks aren't moved between threads
+	// We won't unlock since it's uncertain how libvips would react
+	runtime.LockOSThread()
+
 	for {
 		select {
 		case job, open := <-q.queue:
