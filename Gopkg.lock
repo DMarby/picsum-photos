@@ -2,32 +2,19 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/gin-contrib/sse"
-  packages = ["."]
-  revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
-
-[[projects]]
-  name = "github.com/gin-gonic/gin"
+  name = "github.com/go-chi/chi"
   packages = [
     ".",
-    "binding",
-    "render"
+    "middleware"
   ]
-  revision = "d459835d2b077e44f7c9b453505ee29881d5d12d"
-  version = "v1.2"
+  revision = "e83ac2304db3c50cf03d96a2fcd39009d458bc35"
+  version = "v3.3.2"
 
 [[projects]]
-  name = "github.com/golang/protobuf"
-  packages = ["proto"]
-  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
-  version = "v1.0.0"
-
-[[projects]]
-  name = "github.com/mattn/go-isatty"
+  name = "github.com/go-chi/render"
   packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
+  revision = "9f855fadd4b8cde7773f9ef51f6b2705af239519"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/oklog/run"
@@ -80,12 +67,6 @@
   version = "v1.3.0"
 
 [[projects]]
-  name = "github.com/ugorji/go"
-  packages = ["codec"]
-  revision = "9831f2c3ac1068a78f50999a30db84270f647af6"
-  version = "v1.1"
-
-[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = [
@@ -126,12 +107,6 @@
   version = "v0.3.0"
 
 [[projects]]
-  name = "gopkg.in/go-playground/validator.v8"
-  packages = ["."]
-  revision = "5f1438d3fca68893a817e4a66806cea46a9e4ebf"
-  version = "v8.18.2"
-
-[[projects]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -140,6 +115,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a3029f1a34dbb5f3c47acd00399edf05bc3d9f6af471d34baa4ff0fa93112b48"
+  inputs-digest = "16e545c24e3b7bd4c82ac202ce036db7cb1492157349851a1bb56069a98e6d91"
   solver-name = "gps-cdcl"
   solver-version = 1

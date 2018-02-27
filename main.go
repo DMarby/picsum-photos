@@ -47,10 +47,10 @@ func main() {
 	})
 
 	// Start and listen on http
-	api := api.New()
+	api := api.New(workerQueue)
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: api,
+		Handler: api.Router(),
 	}
 
 	g.Add(func() error {
