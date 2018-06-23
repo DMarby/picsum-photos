@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 )
 
-func TestImage(t *testing.T) {
+func TestVips(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "vips")
 }
@@ -51,7 +51,7 @@ var _ = Describe("ResizeImage", func() {
 		image, err := vips.ResizeImage(imageBuffer, 500, 500)
 		Ω(err).ShouldNot(HaveOccurred())
 		buf, _ := vips.SaveToBuffer(image)
-		resultFixture, _ := ioutil.ReadFile("../test/fixtures/resize_result.jpg")
+		resultFixture, _ := ioutil.ReadFile("../test/fixtures/vips/resize_result.jpg")
 		Ω(buf).Should(Equal(resultFixture))
 	})
 
@@ -72,7 +72,7 @@ var _ = Describe("Grayscale", func() {
 		image, err := vips.Grayscale(resizedImage)
 		Ω(err).ShouldNot(HaveOccurred())
 		buf, _ := vips.SaveToBuffer(image)
-		resultFixture, _ := ioutil.ReadFile("../test/fixtures/grayscale_result.jpg")
+		resultFixture, _ := ioutil.ReadFile("../test/fixtures/vips/grayscale_result.jpg")
 		Ω(buf).Should(Equal(resultFixture))
 	})
 
@@ -87,7 +87,7 @@ var _ = Describe("Blur", func() {
 		image, err := vips.Blur(resizedImage, 5)
 		Ω(err).ShouldNot(HaveOccurred())
 		buf, _ := vips.SaveToBuffer(image)
-		resultFixture, _ := ioutil.ReadFile("../test/fixtures/blur_result.jpg")
+		resultFixture, _ := ioutil.ReadFile("../test/fixtures/vips/blur_result.jpg")
 		Ω(buf).Should(Equal(resultFixture))
 	})
 

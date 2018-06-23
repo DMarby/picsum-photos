@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestImage(t *testing.T) {
+func TestQueue(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "queue")
 }

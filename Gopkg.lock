@@ -17,6 +17,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/oceanicdev/chi-param"
+  packages = ["."]
+  revision = "102cd1fa5b75d02ad4a2328abc5fe4e5445f2484"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/oklog/run"
   packages = ["."]
   revision = "4dadeb3030eda0273a12382bb2348ffc7c9d1a39"
@@ -115,6 +121,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "16e545c24e3b7bd4c82ac202ce036db7cb1492157349851a1bb56069a98e6d91"
+  inputs-digest = "c6da138191b13d1e906db349bc04f20df80954ab1b086ddd0f9979ca6f3ba82c"
   solver-name = "gps-cdcl"
   solver-version = 1
