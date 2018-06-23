@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
 
 	"github.com/DMarby/picsum-photos/api"
-	"github.com/DMarby/picsum-photos/queue"
+	"github.com/DMarby/picsum-photos/image/vips"
+	"github.com/DMarby/picsum-photos/storage/file"
 	"github.com/oklog/run"
 )
 
@@ -26,28 +26,36 @@ func handleInterrupt(ctx context.Context) error {
 		return errors.New("canceled")
 	}
 }
-
 func main() {
 	var g run.Group
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Start worker queue
-	workerQueue := queue.New(ctx, runtime.NumCPU(), func(data interface{}) (interface{}, error) {
-		stringData := data.(string)
-		return stringData, nil
+	// Get imageProcessor instance
+	imageProcessor, err := vips.GetInstance(ctx)
+	if err != nil {
+		// TODO: Log, make sure this exits cleanly without canceling context or w/e
+		return
+	}
+
+	// Exit if we receieve SIGINT or SIGTERM
+	g.Add(func() error {
+		return handleInterrupt(ctx)
+	}, func(error) {
+		imageProcessor.Shutdown()
 	})
 
-	g.Add(func() error {
-		workerQueue.Run()
-		return nil
-	}, func(error) {
+	// TODO: Config option? Or just always do spaces + db
+	storage, err := file.New("./test/fixtures/file")
+	if err != nil {
+		// TODO: Log, make sure this exits everything cleanly
 		cancel()
-	})
+		return
+	}
 
 	// Start and listen on http
-	api := api.New(workerQueue)
+	api := api.New(imageProcessor, storage)
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: api.Router(),
@@ -59,12 +67,5 @@ func main() {
 		server.Shutdown(ctx)
 	})
 
-	// Exit if we receieve SIGINT or SIGTERM
-	g.Add(func() error {
-		return handleInterrupt(ctx)
-	}, func(error) {
-		cancel()
-	})
-
-	log.Print(g.Run())
+	log.Print(g.Run().Error())
 }
