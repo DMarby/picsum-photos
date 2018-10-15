@@ -8,13 +8,14 @@ if (cluster.isMaster) {
   var sharp = require('sharp')
   var metadata = require(config.metadata_path)
   var moment = require('moment')
+  var images = null
   console.log('Config:')
   console.log(config)
 
   try {
-    var images = require(config.image_store_path)
+    images = require(config.image_store_path)
   } catch (e) {
-    var images = []
+    images = []
   }
 
   var exited = false
