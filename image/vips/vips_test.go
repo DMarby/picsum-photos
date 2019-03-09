@@ -2,165 +2,175 @@ package vips_test
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
+	"reflect"
+	"runtime"
 
 	"github.com/DMarby/picsum-photos/image"
 	"github.com/DMarby/picsum-photos/image/vips"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/DMarby/picsum-photos/logger"
+	"go.uber.org/zap"
 
 	"testing"
 )
 
-func TestImage(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "vips")
+func setup() (context.CancelFunc, *vips.Processor, []byte, error) {
+	log := logger.New(zap.ErrorLevel)
+	defer log.Sync()
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	processor, err := vips.GetInstance(ctx, log)
+	if err != nil {
+		cancel()
+		return nil, nil, nil, err
+	}
+
+	buf, err := ioutil.ReadFile("../../test/fixtures/fixture.jpg")
+	if err != nil {
+		cancel()
+		return nil, nil, nil, err
+	}
+
+	return cancel, processor, buf, nil
 }
 
-var buf []byte
-var processor *vips.Processor
-var cancel context.CancelFunc
-
-var _ = BeforeSuite(func() {
-	var ctx context.Context
-	ctx, cancel = context.WithCancel(context.Background())
-	var err error
-	processor, err = vips.GetInstance(ctx)
-	Ω(err).Should(BeNil())
-	buf, err = ioutil.ReadFile("../../test/fixtures/fixture.jpg")
-	Ω(err).ShouldNot(HaveOccurred())
-})
-
-var _ = Describe("Processor", func() {
-	Describe("ResizeImage", func() {
-		It("Resizes an image", func() {
-			_, err := processor.ResizeImage(buf, 500, 500)
-			Ω(err).ShouldNot(HaveOccurred())
-		})
-
-		It("Handles errors correctly", func() {
-			_, err := processor.ResizeImage(make([]byte, 0), 500, 500)
-			Ω(err).Should(MatchError("empty buffer"))
-		})
-
-		Measure("Performs", func(b Benchmarker) {
-			b.Time("runtime", func() {
-				_, err := processor.ResizeImage(buf, 500, 500)
-				Ω(err).ShouldNot(HaveOccurred())
-			})
-		}, 10)
-	})
-
-	Describe("ProcessImage", func() {
-		It("Resizes an image", func() {
-			_, err := processor.ProcessImage(image.NewTask(buf, 500, 500))
-			Ω(err).ShouldNot(HaveOccurred())
-		})
-
-		It("Handles errors correctly", func() {
-			_, err := processor.ProcessImage(image.NewTask(make([]byte, 0), 500, 500))
-			Ω(err).Should(MatchError("empty buffer"))
-		})
-
-		Measure("Performs", func(b Benchmarker) {
-			b.Time("runtime", func() {
-				_, err := processor.ProcessImage(image.NewTask(buf, 500, 500))
-				Ω(err).ShouldNot(HaveOccurred())
-			})
-		}, 10)
-	})
-})
-
-var _ = Describe("Image", func() {
-	var resizedImage *vips.Image
-
-	var _ = BeforeEach(func() {
-		var err error
-		resizedImage, err = processor.ResizeImage(buf, 500, 500)
-		Ω(err).ShouldNot(HaveOccurred())
-	})
-
-	Describe("Grayscale", func() {
-		It("Converts the image to grayscale", func() {
-			_, err := resizedImage.Grayscale()
-			Ω(err).ShouldNot(HaveOccurred())
-		})
-
-		It("Handles errors correctly", func() {
-			testImage := vips.NewEmptyImage()
-			_, err := testImage.Grayscale()
-			Ω(err).Should(MatchError("error changing image colorspace vips_image_pio_input: no image data\n"))
-		})
-
-		Measure("Performs", func(b Benchmarker) {
-			b.Time("runtime", func() {
-				_, err := resizedImage.Grayscale()
-				Ω(err).ShouldNot(HaveOccurred())
-			})
-		}, 10)
-	})
-
-	Describe("Blur", func() {
-		It("Applies gaussian blur to the image", func() {
-			_, err := resizedImage.Blur(5)
-			Ω(err).ShouldNot(HaveOccurred())
-		})
-
-		It("Handles errors correctly", func() {
-			testImage := vips.NewEmptyImage()
-			_, err := testImage.Blur(5)
-			Ω(err).Should(MatchError("error applying blur to image vips_image_pio_input: no image data\n"))
-		})
-
-		Measure("Performs", func(b Benchmarker) {
-			b.Time("runtime", func() {
-				_, err := resizedImage.Blur(5)
-				Ω(err).ShouldNot(HaveOccurred())
-			})
-		}, 10)
-	})
-
-	Describe("SaveToBuffer", func() {
-		It("Saves the image to a buffer", func() {
-			_, err := resizedImage.SaveToBuffer()
-			Ω(err).ShouldNot(HaveOccurred())
-		})
-
-		It("Handles errors correctly", func() {
-			testImage := vips.NewEmptyImage()
-			_, err := testImage.SaveToBuffer()
-			Ω(err).Should(MatchError("error saving to buffer vips_image_pio_input: no image data\n"))
-		})
-
-		Measure("Performs", func(b Benchmarker) {
-			b.Time("runtime", func() {
-				_, err := resizedImage.SaveToBuffer()
-				Ω(err).ShouldNot(HaveOccurred())
-			})
-		}, 10)
-	})
-})
-
-func fullTest() {
+func fullTest(processor *vips.Processor, buf []byte) []byte {
 	task := image.NewTask(buf, 500, 500).Grayscale().Blur(5)
 	imageBuffer, _ := processor.ProcessImage(task)
-	resultFixture, _ := ioutil.ReadFile("../../test/fixtures/image/complete_result.jpg")
-	Ω(imageBuffer).Should(Equal(resultFixture))
+	return imageBuffer
 }
 
-var _ = Describe("Full test", func() {
-	It("Produces the expected result", func() {
-		fullTest()
+func TestVips(t *testing.T) {
+	cancel, processor, buf, err := setup()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cancel()
+	defer processor.Shutdown()
+
+	t.Run("Processor", func(t *testing.T) {
+		t.Run("resize image", func(t *testing.T) {
+			_, err := processor.ResizeImage(buf, 500, 500)
+			if err != nil {
+				t.Error(err)
+			}
+		})
+
+		t.Run("resize image handles errors", func(t *testing.T) {
+			_, err := processor.ResizeImage(make([]byte, 0), 500, 500)
+			if err == nil || err.Error() != "empty buffer" {
+				t.Error()
+			}
+		})
+
+		t.Run("process image", func(t *testing.T) {
+			_, err := processor.ProcessImage(image.NewTask(buf, 500, 500))
+			if err != nil {
+				t.Error(err)
+			}
+		})
+
+		t.Run("process image handles errors", func(t *testing.T) {
+			_, err := processor.ProcessImage(image.NewTask(make([]byte, 0), 500, 500))
+			if err == nil || err.Error() != "empty buffer" {
+				t.Error()
+			}
+		})
+
+		t.Run("full test", func(t *testing.T) {
+			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../../test/fixtures/image/complete_result_%s.jpg", runtime.GOOS))
+			testResult := fullTest(processor, buf)
+			if !reflect.DeepEqual(testResult, resultFixture) {
+				t.Error("image data doesn't match")
+			}
+		})
 	})
 
-	Measure("Performs", func(b Benchmarker) {
-		b.Time("runtime", func() {
-			fullTest()
-		})
-	}, 10)
-})
+	t.Run("Image", func(t *testing.T) {
+		resizedImage, err := processor.ResizeImage(buf, 500, 500)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-var _ = AfterSuite(func() {
-	processor.Shutdown()
-	cancel()
-})
+		t.Run("converts an image to grayscale", func(t *testing.T) {
+			_, err := resizedImage.Grayscale()
+			if err != nil {
+				t.Error(err)
+			}
+		})
+
+		t.Run("grayscale handles errors", func(t *testing.T) {
+			testImage := vips.NewEmptyImage()
+			_, err := testImage.Grayscale()
+			if err == nil || err.Error() != "error changing image colorspace vips_image_pio_input: no image data\n" {
+				t.Error("wrong error")
+			}
+		})
+
+		t.Run("blurs an image", func(t *testing.T) {
+			_, err := resizedImage.Blur(5)
+			if err != nil {
+				t.Error(err)
+			}
+		})
+
+		t.Run("blur handles errors", func(t *testing.T) {
+			testImage := vips.NewEmptyImage()
+			_, err := testImage.Blur(5)
+			if err == nil || err.Error() != "error applying blur to image vips_image_pio_input: no image data\n" {
+				t.Error("wrong error")
+			}
+		})
+
+		t.Run("save to buffer", func(t *testing.T) {
+			_, err := resizedImage.SaveToBuffer()
+			if err != nil {
+				t.Error(err)
+			}
+		})
+
+		t.Run("save to buffer handles errors", func(t *testing.T) {
+			testImage := vips.NewEmptyImage()
+			_, err := testImage.SaveToBuffer()
+			if err == nil || err.Error() != "error saving to buffer vips_image_pio_input: no image data\n" {
+				t.Error("wrong error")
+			}
+		})
+	})
+}
+
+func BenchmarkVips(b *testing.B) {
+	cancel, processor, buf, err := setup()
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer cancel()
+	defer processor.Shutdown()
+
+	resizedImage, err := processor.ResizeImage(buf, 500, 500)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.Run("full test", func(b *testing.B) {
+		fullTest(processor, buf)
+	})
+
+	b.Run("resizeImage", func(b *testing.B) {
+		processor.ResizeImage(buf, 500, 500)
+	})
+
+	b.Run("grayscale", func(b *testing.B) {
+		resizedImage.Grayscale()
+	})
+
+	b.Run("blur", func(b *testing.B) {
+		resizedImage.Blur(5)
+	})
+
+	b.Run("saveToBuffer", func(b *testing.B) {
+		resizedImage.SaveToBuffer()
+	})
+}

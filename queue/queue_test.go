@@ -3,22 +3,10 @@ package queue_test
 import (
 	"context"
 	"fmt"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"testing"
 
 	queue "github.com/DMarby/picsum-photos/queue"
-
-	"testing"
 )
-
-func TestQueue(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "queue")
-}
-
-var workerQueue *queue.Queue
-var cancel context.CancelFunc
 
 func setupQueue(f func(data interface{}) (interface{}, error)) (*queue.Queue, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -27,39 +15,46 @@ func setupQueue(f func(data interface{}) (interface{}, error)) (*queue.Queue, co
 	return workerQueue, cancel
 }
 
-var _ = BeforeEach(func() {
-	workerQueue, cancel = setupQueue(func(data interface{}) (interface{}, error) {
+func TestProcess(t *testing.T) {
+	workerQueue, cancel := setupQueue(func(data interface{}) (interface{}, error) {
 		stringData, _ := data.(string)
 		return stringData, nil
 	})
-})
 
-var _ = Describe("Queue", func() {
-	Describe("Process", func() {
-		It("Processes a task without error", func() {
-			data, err := workerQueue.Process("test")
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(data).Should(Equal("test"))
-		})
+	defer cancel()
 
-		It("Processes a task with error", func() {
-			errorQueue, errorCancel := setupQueue(func(data interface{}) (interface{}, error) {
-				return nil, fmt.Errorf("custom error")
-			})
-			defer errorCancel()
-			_, err := errorQueue.Process("test")
-			Ω(err).Should(MatchError("custom error"))
-		})
+	data, err := workerQueue.Process("test")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		It("Errors when queue is shut down", func() {
-			cancel()
-			_, err := workerQueue.Process("test")
-			Ω(err).Should(MatchError("queue has been shutdown"))
-		})
+	if data != "test" {
+		t.Fatal(err)
+	}
+}
+
+func TestShutdown(t *testing.T) {
+	workerQueue, cancel := setupQueue(func(data interface{}) (interface{}, error) {
+		return "", nil
 	})
 
-})
-
-var _ = AfterEach(func() {
 	cancel()
-})
+
+	_, err := workerQueue.Process("test")
+	if err == nil || err.Error() != "queue has been shutdown" {
+		t.FailNow()
+	}
+}
+
+func TestTaskWithError(t *testing.T) {
+	errorQueue, cancel := setupQueue(func(data interface{}) (interface{}, error) {
+		return nil, fmt.Errorf("custom error")
+	})
+
+	defer cancel()
+	_, err := errorQueue.Process("test")
+
+	if err == nil || err.Error() != "custom error" {
+		t.Fatal("Invalid error")
+	}
+}

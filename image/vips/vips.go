@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/DMarby/picsum-photos/image"
+	"github.com/DMarby/picsum-photos/logger"
 	"github.com/DMarby/picsum-photos/queue"
 	"github.com/DMarby/picsum-photos/vips"
 )
@@ -20,7 +21,7 @@ var instance *Processor
 var once sync.Once
 
 // GetInstance returns the processor instance, and creates it if neccesary.
-func GetInstance(ctx context.Context) (*Processor, error) {
+func GetInstance(ctx context.Context, log *logger.Logger) (*Processor, error) {
 	var instance *Processor
 	var err error
 
@@ -30,24 +31,21 @@ func GetInstance(ctx context.Context) (*Processor, error) {
 			return
 		}
 
-		workerQueue := queue.New(ctx, getWorkerCount(), instance.processImage)
+		workers := getWorkerCount()
+		workerQueue := queue.New(ctx, workers, instance.processImage)
 		instance = &Processor{
 			queue: workerQueue,
 		}
 
 		go workerQueue.Run()
+		log.Infof("starting vips worker queue with %d workers", workers)
 	})
 
 	return instance, err
 }
 
 func getWorkerCount() int {
-	workers := runtime.NumCPU() - 1
-
-	if workers < 1 {
-		workers = 1
-	}
-
+	workers := runtime.NumCPU()
 	return workers
 }
 

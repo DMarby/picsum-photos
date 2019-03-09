@@ -1,40 +1,27 @@
-FROM golang:alpine
+# First stage for building the app
+FROM golang:1.12-alpine3.9 as gobuilder
 
-# TODO: Can we get rid of pkgconf?
-# TODO: Do we need these extra packages for this or just for debug?
 # Install libvips
 RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-dev && \
     apk add \
-          git \
-          pkgconf \
-          fftw-dev
-
-# Install needed tools
-RUN go get \
-      github.com/golang/dep/cmd/dep \
-      github.com/onsi/ginkgo/ginkgo
+      git \
+      make \
+      gcc \
+      musl-dev
 
 # Add the project
-ADD . /go/src/github.com/DMarby/picsum-photos
-WORKDIR /go/src/github.com/DMarby/picsum-photos
+ADD . /picsum-photos
+WORKDIR /picsum-photos
 
-# Install dependencies
-RUN dep ensure
+# Run tests and build
+RUN make
 
-# Run tests
-RUN ginkgo -r -p -noColor
+# Second stage with only the things needed for the app to run
+FROM alpine:3.9
 
-# Build
-RUN go install
+RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips
 
-# Copy binary
-RUN cp /go/bin/picsum-photos /usr/bin/picsum-photos
+WORKDIR /app
+COPY --from=gobuilder /go/bin/picsum-photos .
 
-# Clean up
-RUN apk del git &&\
-    rm -rf \
-      /var/cache/apk/* \
-      $GOPATH
-
-CMD ["/usr/bin/picsum-photos"]
-# TODO: Multi-stage?
+CMD ["./picsum-photos"]

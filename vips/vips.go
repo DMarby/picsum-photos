@@ -51,7 +51,7 @@ func Shutdown() {
 
 // PrintDebugInfo prints libvips debug info to stdout
 func PrintDebugInfo() {
-	C.im__print_all()
+	C.vips_object_print_all()
 }
 
 // catchVipsError returns the vips error buffer as an error
