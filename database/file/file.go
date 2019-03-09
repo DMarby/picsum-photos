@@ -59,7 +59,7 @@ func (p *Provider) Get(id string) (*database.Image, error) {
 	return image, nil
 }
 
-// GetRandom returns a random image
+// GetRandom returns a random image ID
 func (p *Provider) GetRandom() (id string, err error) {
 	return p.images[p.random.Intn(len(p.images))].ID, nil
 }

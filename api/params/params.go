@@ -28,9 +28,16 @@ var (
 	ErrInvalidBlurAmount = fmt.Errorf("Invalid blur amount")
 )
 
+const (
+	minImageDimension = 1
+	defaultBlurAmount = 5
+	minBlurAmount     = 1
+	maxBlurAmount     = 10
+)
+
 // ValidateParams checks that the size is within the allowed limit
 func ValidateParams(maxImageSize int, image *database.Image, width int, height int, blur bool, blurAmount int) error {
-	if width < 1 || height < 1 {
+	if width < minImageDimension || height < minImageDimension {
 		return ErrInvalidSize
 	}
 
@@ -42,11 +49,11 @@ func ValidateParams(maxImageSize int, image *database.Image, width int, height i
 		return ErrInvalidSize
 	}
 
-	if blur && blurAmount < 1 {
+	if blur && blurAmount < minBlurAmount {
 		return ErrInvalidBlurAmount
 	}
 
-	if blur && blurAmount > 10 {
+	if blur && blurAmount > maxBlurAmount {
 		return ErrInvalidBlurAmount
 	}
 
@@ -82,7 +89,7 @@ func GetQueryParams(r *http.Request) (grayscale bool, blur bool, blurAmount int)
 
 	if _, ok := r.URL.Query()["blur"]; ok {
 		blur = true
-		blurAmount = 5
+		blurAmount = defaultBlurAmount
 
 		if val, err := strconv.Atoi(r.URL.Query().Get("blur")); err == nil {
 			blurAmount = val
