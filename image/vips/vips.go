@@ -76,7 +76,7 @@ func (p *Processor) processImage(data interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	if task.BlurAmount != 0 {
+	if task.ApplyBlur {
 		image, err = image.Blur(task.BlurAmount)
 		if err != nil {
 			return nil, err

@@ -33,7 +33,7 @@ func (a *API) listHandler(w http.ResponseWriter, r *http.Request) *handler.Error
 				Height: image.Height,
 				URL:    image.URL,
 			},
-			DownloadURL: fmt.Sprintf("https://picsum.photos/id/%s/%d/%d", image.ID, image.Width, image.Height),
+			DownloadURL: fmt.Sprintf("%s/id/%s/%d/%d", a.RootURL, image.ID, image.Width, image.Height),
 		})
 	}
 

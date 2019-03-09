@@ -3,6 +3,7 @@ package file
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -13,6 +14,10 @@ type Provider struct {
 
 // New returns a new Provider instance
 func New(path string) (*Provider, error) {
+	if _, err := os.Stat(path); err != nil {
+		return nil, err
+	}
+
 	return &Provider{
 		path,
 	}, nil

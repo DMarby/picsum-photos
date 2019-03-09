@@ -38,6 +38,8 @@ func readFixture(fixtureName string) []byte {
 	return fixture
 }
 
+const rootURL = "https://example.com"
+
 func TestAPI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -55,10 +57,10 @@ func TestAPI(t *testing.T) {
 	mockChecker := health.New(ctx, &mockProcessor.Processor{}, &mockStorage.Provider{}, &mockDatabase.Provider{})
 	mockChecker.Run()
 
-	router := (&api.API{imageProcessor, storage, db, checker, log, 200}).Router()
-	mockStorageRouter := (&api.API{imageProcessor, &mockStorage.Provider{}, db, mockChecker, log, 200}).Router()
-	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, storage, db, checker, log, 200}).Router()
-	mockDatabaseRouter := (&api.API{imageProcessor, storage, &mockDatabase.Provider{}, checker, log, 200}).Router()
+	router := (&api.API{imageProcessor, storage, db, checker, log, 200, rootURL}).Router()
+	mockStorageRouter := (&api.API{imageProcessor, &mockStorage.Provider{}, db, mockChecker, log, 200, rootURL}).Router()
+	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, storage, db, checker, log, 200, rootURL}).Router()
+	mockDatabaseRouter := (&api.API{imageProcessor, storage, &mockDatabase.Provider{}, checker, log, 200, rootURL}).Router()
 
 	tests := []struct {
 		Name                string
@@ -82,7 +84,7 @@ func TestAPI(t *testing.T) {
 						Width:  300,
 						Height: 400,
 					},
-					DownloadURL: "https://picsum.photos/id/1/300/400",
+					DownloadURL: fmt.Sprintf("%s/id/1/300/400", rootURL),
 				},
 			}),
 			ExpectedContentType: "application/json",

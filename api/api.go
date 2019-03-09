@@ -22,6 +22,7 @@ type API struct {
 	HealthChecker  *health.Checker
 	Log            *logger.Logger
 	MaxImageSize   int
+	RootURL        string
 }
 
 // Utility methods for logging

@@ -17,6 +17,7 @@ import (
 	vipsProcessor "github.com/DMarby/picsum-photos/image/vips"
 	"github.com/DMarby/picsum-photos/logger"
 	fileStorage "github.com/DMarby/picsum-photos/storage/file"
+	"github.com/jamiealquiza/envy"
 	"go.uber.org/zap"
 )
 
@@ -38,7 +39,13 @@ const maxImageSize = 5000 // The max allowed image width/height to be requested
 func main() {
 	// Set up commandline flags
 	listen := flag.String("listen", ":8080", "listen address")
-	loglevel := zap.LevelFlag("level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
+	rootURL := flag.String("root_url", "https://picsum.photos", "root url")
+	loglevel := zap.LevelFlag("log_level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
+
+	// Parse environment variables
+	envy.Parse("PICSUM")
+
+	// Parse commandline flags
 	flag.Parse()
 
 	// Initialize the logger
@@ -87,6 +94,7 @@ func main() {
 		HealthChecker:  checker,
 		Log:            log,
 		MaxImageSize:   maxImageSize,
+		RootURL:        *rootURL,
 	}
 	server := &http.Server{
 		Addr:         *listen,

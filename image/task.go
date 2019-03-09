@@ -5,6 +5,7 @@ type Task struct {
 	Buffer         []byte
 	Width          int
 	Height         int
+	ApplyBlur      bool
 	BlurAmount     int
 	ApplyGrayscale bool
 }
@@ -20,6 +21,7 @@ func NewTask(buffer []byte, width int, height int) *Task {
 
 // Blur applies gaussian blur to the image
 func (t *Task) Blur(amount int) *Task {
+	t.ApplyBlur = true
 	t.BlurAmount = amount
 	return t
 }
