@@ -1,15 +1,27 @@
 # Ignore everything
 **/*
 
+# Include makefile
+!Makefile
+
+# Include go module information
+!go.mod
+!go.sum
+
 # Include main file
 !main.go
 
-# Include Gopkg
-!Gopkg.lock
-!Gopkg.toml
-
 # Include packages
+!api
+!cache
+!database
+!health
 !image
+!logger
+!queue
+!storage
+!test
+!vips
 
 # Exclude debug files
 **/debug

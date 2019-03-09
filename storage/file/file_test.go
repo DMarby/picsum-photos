@@ -2,60 +2,35 @@ package file_test
 
 import (
 	"io/ioutil"
+	"reflect"
 
-	"github.com/DMarby/picsum-photos/storage"
 	"github.com/DMarby/picsum-photos/storage/file"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 
 	"testing"
 )
 
 func TestFile(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "file")
-}
+	provider, err := file.New("../../test/fixtures/file")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-var provider storage.Provider
-
-var _ = BeforeSuite(func() {
-	var err error
-	provider, err = file.New("../../test/fixtures/file")
-	Ω(err).ShouldNot(HaveOccurred())
-})
-
-var _ = Describe("Get", func() {
-	It("Gets an image by id", func() {
+	t.Run("Get an image by id", func(t *testing.T) {
 		buf, err := provider.Get("1")
-		Ω(err).ShouldNot(HaveOccurred())
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		resultFixture, _ := ioutil.ReadFile("../../test/fixtures/file/1.jpg")
-		Ω(buf).Should(Equal(resultFixture))
+		if !reflect.DeepEqual(buf, resultFixture) {
+			t.Error("image data doesn't match")
+		}
 	})
 
-	It("Errors on a nonexistant image", func() {
+	t.Run("Returns error on a nonexistant image", func(t *testing.T) {
 		_, err := provider.Get("2")
-		Ω(err).Should(MatchError(storage.ErrNotFound))
+		if err == nil {
+			t.FailNow()
+		}
 	})
-})
-
-var _ = Describe("GetRandom", func() {
-	It("Returns a random image", func() {
-		image, err := provider.GetRandom()
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(image).Should(Equal("1"))
-	})
-})
-
-var _ = Describe("List", func() {
-	It("Returns a list of images", func() {
-		images, err := provider.List()
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(images).Should(Equal([]storage.Image{
-			storage.Image{
-				ID:     "1",
-				Author: "David Marby",
-				URL:    "https://dmarby.se",
-			},
-		}))
-	})
-})
+}

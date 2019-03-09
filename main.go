@@ -3,20 +3,24 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/DMarby/picsum-photos/api"
-	"github.com/DMarby/picsum-photos/image/vips"
-	"github.com/DMarby/picsum-photos/storage/file"
-	"github.com/oklog/run"
+	fileDatabase "github.com/DMarby/picsum-photos/database/file"
+	"github.com/DMarby/picsum-photos/health"
+	vipsProcessor "github.com/DMarby/picsum-photos/image/vips"
+	"github.com/DMarby/picsum-photos/logger"
+	fileStorage "github.com/DMarby/picsum-photos/storage/file"
+	"go.uber.org/zap"
 )
 
-func handleInterrupt(ctx context.Context) error {
+func waitForInterrupt(ctx context.Context) error {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	select {
@@ -26,46 +30,88 @@ func handleInterrupt(ctx context.Context) error {
 		return errors.New("canceled")
 	}
 }
-func main() {
-	var g run.Group
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+const readTimeout = 5 * time.Second
+const writeTimeout = 30 * time.Second
+const maxImageSize = 5000 // The max allowed image width/height to be requested
+
+func main() {
+	// Set up commandline flags
+	listen := flag.String("listen", ":8080", "listen address")
+	loglevel := zap.LevelFlag("level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
+	flag.Parse()
+
+	// Initialize the logger
+	log := logger.New(*loglevel)
+	defer log.Sync()
+
+	// Set up context for shutting down
+	shutdownCtx, shutdown := context.WithCancel(context.Background())
+	defer shutdown()
 
 	// Get imageProcessor instance
-	imageProcessor, err := vips.GetInstance(ctx)
+	imageProcessorCtx, imageProcessorCancel := context.WithCancel(context.Background())
+	defer imageProcessorCancel()
+
+	imageProcessor, err := vipsProcessor.GetInstance(imageProcessorCtx, log)
 	if err != nil {
-		// TODO: Log, make sure this exits cleanly without canceling context or w/e
+		log.Fatalf("error initializing image processor %s", err.Error())
+	}
+
+	// Initialize the storage
+	storage, err := fileStorage.New("./test/fixtures/file")
+	if err != nil {
+		log.Fatalf("error initializing storage %s", err.Error())
 		return
 	}
 
-	// Exit if we receieve SIGINT or SIGTERM
-	g.Add(func() error {
-		return handleInterrupt(ctx)
-	}, func(error) {
-		imageProcessor.Shutdown()
-	})
-
-	// TODO: Config option? Or just always do spaces + db
-	storage, err := file.New("./test/fixtures/file")
+	// Initialize the database
+	database, err := fileDatabase.New("./test/fixtures/file/metadata.json")
 	if err != nil {
-		// TODO: Log, make sure this exits everything cleanly
-		cancel()
+		log.Fatalf("error initializing database %s", err.Error())
 		return
 	}
+
+	// Initialize and start the health checker
+	checkerCtx, checkerCancel := context.WithCancel(context.Background())
+	defer checkerCancel()
+
+	checker := health.New(checkerCtx, imageProcessor, storage, database)
+	go checker.Run()
 
 	// Start and listen on http
-	api := api.New(imageProcessor, storage)
+	api := &api.API{
+		ImageProcessor: imageProcessor,
+		Storage:        storage,
+		Database:       database,
+		HealthChecker:  checker,
+		Log:            log,
+		MaxImageSize:   maxImageSize,
+	}
 	server := &http.Server{
-		Addr:    ":8080",
-		Handler: api.Router(),
+		Addr:         *listen,
+		Handler:      api.Router(),
+		ReadTimeout:  readTimeout,
+		WriteTimeout: writeTimeout,
 	}
 
-	g.Add(func() error {
-		return server.ListenAndServe()
-	}, func(error) {
-		server.Shutdown(ctx)
-	})
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			log.Infof("shutting down the http server: %s", err)
+			shutdown()
+		}
+	}()
 
-	log.Print(g.Run().Error())
+	log.Infof("http server listening on %s", *listen)
+
+	// Wait for shutdown or error
+	err = waitForInterrupt(shutdownCtx)
+	log.Infof("shutting down: %s", err)
+
+	// Shut down http server
+	serverCtx, serverCancel := context.WithTimeout(context.Background(), writeTimeout)
+	defer serverCancel()
+	if err := server.Shutdown(serverCtx); err != nil {
+		log.Warnf("error shutting down: %s", err)
+	}
 }
