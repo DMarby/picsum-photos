@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/DMarby/picsum-photos/api"
+	memoryCache "github.com/DMarby/picsum-photos/cache/memory"
 	fileDatabase "github.com/DMarby/picsum-photos/database/file"
 	"github.com/DMarby/picsum-photos/health"
 	vipsProcessor "github.com/DMarby/picsum-photos/image/vips"
@@ -72,6 +73,10 @@ func main() {
 		return
 	}
 
+	// Initialize the cache
+	cache := memoryCache.New()
+	imageCache := api.NewCache(cache, storage)
+
 	// Initialize the database
 	database, err := fileDatabase.New("./test/fixtures/file/metadata.json")
 	if err != nil {
@@ -89,7 +94,7 @@ func main() {
 	// Start and listen on http
 	api := &api.API{
 		ImageProcessor: imageProcessor,
-		Storage:        storage,
+		Cache:          imageCache,
 		Database:       database,
 		HealthChecker:  checker,
 		Log:            log,

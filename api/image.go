@@ -47,9 +47,9 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 		return handler.BadRequest(err.Error())
 	}
 
-	imageBuffer, err := a.Storage.Get(imageID)
+	imageBuffer, err := a.Cache.Get(imageID)
 	if err != nil {
-		a.logError(r, "error getting image from storage", err)
+		a.logError(r, "error getting image from cache", err)
 		return handler.InternalServerError()
 	}
 

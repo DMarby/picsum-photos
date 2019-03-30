@@ -10,14 +10,13 @@ import (
 	"github.com/DMarby/picsum-photos/health"
 	"github.com/DMarby/picsum-photos/image"
 	"github.com/DMarby/picsum-photos/logger"
-	"github.com/DMarby/picsum-photos/storage"
 	"github.com/gorilla/mux"
 )
 
 // API is a http api
 type API struct {
 	ImageProcessor image.Processor
-	Storage        storage.Provider
+	Cache          *ImageCache
 	Database       database.Provider
 	HealthChecker  *health.Checker
 	Log            *logger.Logger
