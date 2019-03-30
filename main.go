@@ -88,7 +88,13 @@ func main() {
 	checkerCtx, checkerCancel := context.WithCancel(context.Background())
 	defer checkerCancel()
 
-	checker := health.New(checkerCtx, imageProcessor, storage, database)
+	checker := &health.Checker{
+		Ctx:            checkerCtx,
+		ImageProcessor: imageProcessor,
+		Storage:        storage,
+		Database:       database,
+		Cache:          cache,
+	}
 	go checker.Run()
 
 	// Start and listen on http

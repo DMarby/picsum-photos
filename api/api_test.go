@@ -26,6 +26,7 @@ import (
 	mockStorage "github.com/DMarby/picsum-photos/storage/mock"
 
 	memoryCache "github.com/DMarby/picsum-photos/cache/memory"
+	mockCache "github.com/DMarby/picsum-photos/cache/mock"
 
 	"testing"
 )
@@ -46,24 +47,37 @@ func TestAPI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log := logger.New(zap.ErrorLevel)
+	log := logger.New(zap.FatalLevel)
 	defer log.Sync()
 
 	imageProcessor, _ := vipsProcessor.GetInstance(ctx, log)
 	storage, _ := fileStorage.New("../test/fixtures/file")
 	db, _ := fileDatabase.New("../test/fixtures/file/metadata.json")
-	cache := api.NewCache(memoryCache.New(), storage)
+	cache := memoryCache.New()
+	apiCache := api.NewCache(cache, storage)
 
-	checker := health.New(ctx, imageProcessor, storage, db)
+	checker := &health.Checker{
+		Ctx:            ctx,
+		ImageProcessor: imageProcessor,
+		Storage:        storage,
+		Database:       db,
+		Cache:          cache,
+	}
 	checker.Run()
 
-	mockChecker := health.New(ctx, &mockProcessor.Processor{}, &mockStorage.Provider{}, &mockDatabase.Provider{})
+	mockChecker := &health.Checker{
+		Ctx:            ctx,
+		ImageProcessor: &mockProcessor.Processor{},
+		Storage:        &mockStorage.Provider{},
+		Database:       &mockDatabase.Provider{},
+		Cache:          &mockCache.Provider{},
+	}
 	mockChecker.Run()
 
-	router := (&api.API{imageProcessor, cache, db, checker, log, 200, rootURL}).Router()
+	router := (&api.API{imageProcessor, apiCache, db, checker, log, 200, rootURL}).Router()
 	mockStorageRouter := (&api.API{imageProcessor, api.NewCache(memoryCache.New(), &mockStorage.Provider{}), db, mockChecker, log, 200, rootURL}).Router()
-	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, cache, db, checker, log, 200, rootURL}).Router()
-	mockDatabaseRouter := (&api.API{imageProcessor, cache, &mockDatabase.Provider{}, checker, log, 200, rootURL}).Router()
+	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, apiCache, db, checker, log, 200, rootURL}).Router()
+	mockDatabaseRouter := (&api.API{imageProcessor, apiCache, &mockDatabase.Provider{}, checker, log, 200, rootURL}).Router()
 
 	tests := []struct {
 		Name                string
@@ -112,12 +126,13 @@ func TestAPI(t *testing.T) {
 			ExpectedContentType: "application/json",
 		},
 		{
-			Name:           "/health returns health status",
+			Name:           "/health returns healthy health status",
 			URL:            "/health",
 			Router:         router,
 			ExpectedStatus: 200,
 			ExpectedResponse: marshalJson(health.Status{
 				Healthy:   true,
+				Cache:     "healthy",
 				Database:  "healthy",
 				Storage:   "healthy",
 				Processor: "healthy",
@@ -125,12 +140,13 @@ func TestAPI(t *testing.T) {
 			ExpectedContentType: "application/json",
 		},
 		{
-			Name:           "/health returns health status",
+			Name:           "/health returns unhealthy health status",
 			URL:            "/health",
 			Router:         mockStorageRouter,
 			ExpectedStatus: 500,
 			ExpectedResponse: marshalJson(health.Status{
 				Healthy:   false,
+				Cache:     "unhealthy",
 				Database:  "unhealthy",
 				Storage:   "unknown",
 				Processor: "unknown",

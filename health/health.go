@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DMarby/picsum-photos/cache"
 	"github.com/DMarby/picsum-photos/database"
 	"github.com/DMarby/picsum-photos/image"
 	"github.com/DMarby/picsum-photos/storage"
@@ -15,30 +16,22 @@ const checkTimeout = 20 * time.Second
 
 // Checker is a periodic health checker
 type Checker struct {
-	ctx            context.Context
+	Ctx            context.Context
+	ImageProcessor image.Processor
+	Storage        storage.Provider
+	Database       database.Provider
+	Cache          cache.Provider
 	status         Status
-	imageProcessor image.Processor
-	storage        storage.Provider
-	database       database.Provider
 	mutex          sync.RWMutex
 }
 
 // Status contains the healtcheck status
 type Status struct {
 	Healthy   bool   `json:"healthy"`
+	Cache     string `json:"cache"`
 	Database  string `json:"database"`
 	Processor string `json:"processor"`
 	Storage   string `json:"storage"`
-}
-
-// New creates and returns a new health checker
-func New(ctx context.Context, imageProcessor image.Processor, storage storage.Provider, database database.Provider) *Checker {
-	return &Checker{
-		ctx:            ctx,
-		imageProcessor: imageProcessor,
-		storage:        storage,
-		database:       database,
-	}
 }
 
 // Run starts the health checker
@@ -49,7 +42,7 @@ func (c *Checker) Run() {
 			select {
 			case <-ticker.C:
 				c.runCheck()
-			case <-c.ctx.Done():
+			case <-c.Ctx.Done():
 				ticker.Stop()
 				return
 			}
@@ -83,6 +76,7 @@ func (c *Checker) runCheck() {
 	case <-ctx.Done():
 		c.status = Status{
 			Healthy:   false,
+			Cache:     "unknown",
 			Database:  "unknown",
 			Processor: "unknown",
 			Storage:   "unknown",
@@ -97,12 +91,20 @@ func (c *Checker) check(channel chan Status) {
 
 	status := Status{
 		Healthy:   true,
+		Cache:     "unknown",
 		Database:  "unknown",
 		Storage:   "unknown",
 		Processor: "unknown",
 	}
 
-	id, err := c.database.GetRandom()
+	if _, err := c.Cache.Get("healthcheck"); err != cache.ErrNotFound {
+		status.Healthy = false
+		status.Cache = "unhealthy"
+	} else {
+		status.Cache = "healthy"
+	}
+
+	id, err := c.Database.GetRandom()
 	if err != nil {
 		status.Healthy = false
 		status.Database = "unhealthy"
@@ -111,7 +113,7 @@ func (c *Checker) check(channel chan Status) {
 	}
 	status.Database = "healthy"
 
-	buf, err := c.storage.Get(id)
+	buf, err := c.Storage.Get(id)
 	if err != nil {
 		status.Healthy = false
 		status.Storage = "unhealthy"
@@ -121,7 +123,7 @@ func (c *Checker) check(channel chan Status) {
 	status.Storage = "healthy"
 
 	task := image.NewTask(buf, 1, 1)
-	_, err = c.imageProcessor.ProcessImage(task)
+	_, err = c.ImageProcessor.ProcessImage(task)
 	if err != nil {
 		status.Healthy = false
 		status.Processor = "unhealthy"
