@@ -75,6 +75,8 @@ func main() {
 
 	// Initialize the cache
 	cache := memoryCache.New()
+	defer cache.Shutdown()
+
 	imageCache := api.NewCache(cache, storage)
 
 	// Initialize the database

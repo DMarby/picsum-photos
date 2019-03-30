@@ -10,6 +10,7 @@ import (
 type Provider interface {
 	Get(key string) (data []byte, err error)
 	Set(key string, data []byte) (err error)
+	Shutdown()
 }
 
 // LoaderFunc is a function for loading data into a cache

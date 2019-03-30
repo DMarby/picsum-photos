@@ -30,3 +30,6 @@ func (p *Provider) Set(key string, data []byte) (err error) {
 
 	return nil
 }
+
+// Shutdown shuts down the cache
+func (p *Provider) Shutdown() {}
