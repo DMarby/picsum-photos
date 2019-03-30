@@ -7,7 +7,7 @@ import (
 	"github.com/DMarby/picsum-photos/cache/memory"
 )
 
-func TestGet(t *testing.T) {
+func TestMemory(t *testing.T) {
 	provider := memory.New()
 
 	t.Run("get item", func(t *testing.T) {
