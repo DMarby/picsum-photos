@@ -15,7 +15,7 @@ func (p *Provider) Get(key string) (data []byte, err error) {
 		return nil, cache.ErrNotFound
 	}
 
-	if key == "error" || key == "healthcheck" {
+	if key == "error" {
 		return nil, fmt.Errorf("error")
 	}
 
