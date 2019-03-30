@@ -5,31 +5,8 @@ import (
 	"testing"
 
 	"github.com/DMarby/picsum-photos/cache"
+	"github.com/DMarby/picsum-photos/cache/mock"
 )
-
-type mockProvider struct{}
-
-// Get returns an object from the cache if it exists
-func (p *mockProvider) Get(key string) (data []byte, err error) {
-	if key == "notfound" || key == "notfounderr" || key == "seterror" {
-		return nil, cache.ErrNotFound
-	}
-
-	if key == "error" {
-		return nil, fmt.Errorf("error")
-	}
-
-	return []byte("foo"), nil
-}
-
-// Set returns an object from the cache if it exists
-func (p *mockProvider) Set(key string, data []byte) (err error) {
-	if key == "seterror" {
-		return fmt.Errorf("seterror")
-	}
-
-	return nil
-}
 
 var mockLoaderFunc cache.LoaderFunc = func(key string) (data []byte, err error) {
 	if key == "notfounderr" {
@@ -41,7 +18,7 @@ var mockLoaderFunc cache.LoaderFunc = func(key string) (data []byte, err error) 
 
 func TestAuto(t *testing.T) {
 	auto := &cache.Auto{
-		Provider: &mockProvider{},
+		Provider: &mock.Provider{},
 		Loader:   mockLoaderFunc,
 	}
 
