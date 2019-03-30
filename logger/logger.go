@@ -21,7 +21,7 @@ func New(loglevel zapcore.Level) *Logger {
 
 	// Log errors to stderr
 	stderrLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= zapcore.ErrorLevel
+		return lvl >= loglevel && lvl >= zapcore.ErrorLevel
 	})
 
 	stdoutLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
