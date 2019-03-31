@@ -19,6 +19,7 @@
 !image
 !logger
 !queue
+!static
 !storage
 !test
 !vips

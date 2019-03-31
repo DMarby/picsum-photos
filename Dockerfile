@@ -23,5 +23,5 @@ RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/te
 
 WORKDIR /app
 COPY --from=gobuilder /go/bin/picsum-photos .
-
+COPY --from=gobuilder /picsum-photos/static static
 CMD ["./picsum-photos"]

@@ -36,16 +36,6 @@ func logFields(r *http.Request, keysAndValues ...interface{}) []interface{} {
 	return append([]interface{}{"request-id", id}, keysAndValues...)
 }
 
-// Handle not found errors
-var notFoundError = &handler.Error{
-	Message: "page not found",
-	Code:    http.StatusNotFound,
-}
-
-func (a *API) notFoundHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
-	return notFoundError
-}
-
 // Router returns a http router
 func (a *API) Router() http.Handler {
 	router := mux.NewRouter()
@@ -85,6 +75,28 @@ func (a *API) Router() http.Handler {
 	router.Handle("/g/{size:[0-9]+}", handler.Handler(a.deprecatedImageHandler)).Methods("GET")
 	router.Handle("/g/{width:[0-9]+}/{height:[0-9]+}", handler.Handler(a.deprecatedImageHandler)).Methods("GET")
 
+	// Static files
+	router.HandleFunc("/", serveFile("./static/index.html"))
+	router.HandleFunc("/images", serveFile("./static/images.html"))
+	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./static/assets/"))))
+
 	// Set up middleware for adding a request id, handling panics, request logging, and setting CORS headers
 	return middleware.AddRequestID(middleware.Recovery(a.Log, middleware.Logger(a.Log, middleware.CORS(router))))
+}
+
+// Handle not found errors
+var notFoundError = &handler.Error{
+	Message: "page not found",
+	Code:    http.StatusNotFound,
+}
+
+func (a *API) notFoundHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
+	return notFoundError
+}
+
+// Serve a static file
+func serveFile(name string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, name)
+	}
 }
