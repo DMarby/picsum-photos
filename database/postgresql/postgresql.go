@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// Provider implements a file-based image storage
+// Provider implements a postgresql based storage
 type Provider struct {
 	db *sqlx.DB
 }
