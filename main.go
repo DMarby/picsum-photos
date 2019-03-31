@@ -85,6 +85,7 @@ func main() {
 		log.Fatalf("error initializing database %s", err.Error())
 		return
 	}
+	defer database.Shutdown()
 
 	// Initialize and start the health checker
 	checkerCtx, checkerCancel := context.WithCancel(context.Background())

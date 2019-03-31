@@ -24,3 +24,6 @@ func (p *Provider) GetRandom() (id string, err error) {
 func (p *Provider) List() ([]database.Image, error) {
 	return nil, fmt.Errorf("list error")
 }
+
+// Shutdown shuts down the database client
+func (p *Provider) Shutdown() {}

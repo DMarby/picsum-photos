@@ -1,10 +1,10 @@
-package file_test
+package postgresql_test
 
 import (
 	"reflect"
 
 	"github.com/DMarby/picsum-photos/database"
-	"github.com/DMarby/picsum-photos/database/file"
+	"github.com/DMarby/picsum-photos/database/postgresql"
 
 	"testing"
 )
@@ -17,11 +17,16 @@ var image = database.Image{
 	Height: 400,
 }
 
-func TestFile(t *testing.T) {
-	provider, err := file.New("../../test/fixtures/file/metadata.json")
+func TestPostgresql(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration tests in short mode")
+	}
+
+	provider, err := postgresql.New("postgresql://postgres@localhost/postgres")
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	defer provider.Shutdown()
 
 	t.Run("Get an image by id", func(t *testing.T) {
@@ -65,15 +70,8 @@ func TestFile(t *testing.T) {
 	})
 }
 
-func TestMissingMetadata(t *testing.T) {
-	_, err := file.New("")
-	if err == nil {
-		t.FailNow()
-	}
-}
-
-func TestInvalidJson(t *testing.T) {
-	_, err := file.New("../../test/fixtures/file/invalid_metadata.json")
+func TestNew(t *testing.T) {
+	_, err := postgresql.New("")
 	if err == nil {
 		t.FailNow()
 	}

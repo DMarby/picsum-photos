@@ -18,6 +18,7 @@ type Provider interface {
 	Get(id string) (*Image, error)
 	GetRandom() (id string, err error)
 	List() ([]Image, error)
+	Shutdown()
 }
 
 // Errors

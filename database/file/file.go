@@ -68,3 +68,6 @@ func (p *Provider) GetRandom() (id string, err error) {
 func (p *Provider) List() ([]database.Image, error) {
 	return p.images, nil
 }
+
+// Shutdown shuts down the database client
+func (p *Provider) Shutdown() {}
