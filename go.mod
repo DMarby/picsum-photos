@@ -1,6 +1,7 @@
 module github.com/DMarby/picsum-photos
 
 require (
+	github.com/aws/aws-sdk-go v1.19.6
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/gorilla/mux v1.7.0
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
