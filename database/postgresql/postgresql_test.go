@@ -1,3 +1,5 @@
+// +build integration
+
 package postgresql_test
 
 import (
@@ -18,10 +20,6 @@ var image = database.Image{
 }
 
 func TestPostgresql(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration tests in short mode")
-	}
-
 	provider, err := postgresql.New("postgresql://postgres@localhost/postgres")
 	if err != nil {
 		t.Fatal(err)

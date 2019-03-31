@@ -1,3 +1,5 @@
+// +build integration
+
 package redis_test
 
 import (
@@ -8,10 +10,6 @@ import (
 )
 
 func TestRedis(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration tests in short mode")
-	}
-
 	provider, err := redis.New("127.0.0.1:6379", 10)
 	if err != nil {
 		t.Fatal(err)
