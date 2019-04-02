@@ -7,6 +7,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/database"
 	"github.com/DMarby/picsum-photos/database/postgresql"
+	"github.com/jmoiron/sqlx"
 
 	"testing"
 )
@@ -27,13 +28,24 @@ var secondImage = database.Image{
 	Height: 400,
 }
 
+var address = "postgresql://postgres@localhost/postgres"
+
 func TestPostgresql(t *testing.T) {
-	provider, err := postgresql.New("postgresql://postgres@localhost/postgres")
+	provider, err := postgresql.New(address)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	defer provider.Shutdown()
+
+	db := sqlx.MustConnect("pgx", address)
+	defer db.Close()
+
+	// Add some test data to the database
+	db.MustExec(`
+		insert into image(id, author, url, width, height) VALUES
+		(1, 'John Doe', 'https://picsum.photos', 300, 400),
+		(2, 'John Doe', 'https://picsum.photos', 300, 400)
+	`)
 
 	t.Run("Get an image by id", func(t *testing.T) {
 		buf, err := provider.Get("1")
@@ -85,6 +97,9 @@ func TestPostgresql(t *testing.T) {
 			t.Error("image data doesn't match")
 		}
 	})
+
+	// Clean up the test data
+	db.MustExec("truncate table image")
 }
 
 func TestNew(t *testing.T) {
