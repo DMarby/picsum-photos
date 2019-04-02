@@ -25,12 +25,13 @@ func New(address string, poolSize int) (*Provider, error) {
 
 // Get returns an object from the cache if it exists
 func (p *Provider) Get(key string) (data []byte, err error) {
-	err = p.pool.Do(radix.Cmd(&data, "GET", key))
+	mn := radix.MaybeNil{Rcv: &data}
+	err = p.pool.Do(radix.Cmd(&mn, "GET", key))
 	if err != nil {
 		return nil, err
 	}
 
-	if len(data) == 0 {
+	if mn.Nil {
 		return nil, cache.ErrNotFound
 	}
 
