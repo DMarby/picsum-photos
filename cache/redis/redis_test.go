@@ -7,13 +7,25 @@ import (
 
 	"github.com/DMarby/picsum-photos/cache"
 	"github.com/DMarby/picsum-photos/cache/redis"
+	"github.com/mediocregopher/radix/v3"
+)
+
+const (
+	address  = "127.0.0.1:6379"
+	poolSize = 10
 )
 
 func TestRedis(t *testing.T) {
-	provider, err := redis.New("127.0.0.1:6379", 10)
+	provider, err := redis.New(address, poolSize)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	pool, err := radix.NewPool("tcp", address, poolSize)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
 
 	t.Run("get item", func(t *testing.T) {
 		// Add item to the cache
@@ -48,6 +60,9 @@ func TestRedis(t *testing.T) {
 			t.Fatal("no error")
 		}
 	})
+
+	// Clean up
+	pool.Do(radix.Cmd(nil, "FLUSHALL"))
 }
 
 func TestNew(t *testing.T) {
