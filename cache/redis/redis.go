@@ -37,7 +37,7 @@ func (p *Provider) Get(key string) (data []byte, err error) {
 	return
 }
 
-// Set returns an object from the cache if it exists
+// Set adds an object to the cache
 func (p *Provider) Set(key string, data []byte) (err error) {
 	return p.pool.Do(radix.FlatCmd(nil, "SET", key, data))
 }

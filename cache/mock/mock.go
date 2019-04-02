@@ -22,7 +22,7 @@ func (p *Provider) Get(key string) (data []byte, err error) {
 	return []byte("foo"), nil
 }
 
-// Set returns an object from the cache if it exists
+// Set adds an object to the cache
 func (p *Provider) Set(key string, data []byte) (err error) {
 	if key == "seterror" {
 		return fmt.Errorf("seterror")

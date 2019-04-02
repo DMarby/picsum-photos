@@ -32,7 +32,7 @@ func (p *Provider) Get(key string) (data []byte, err error) {
 	return data, nil
 }
 
-// Set returns an object from the cache if it exists
+// Set adds an object to the cache
 func (p *Provider) Set(key string, data []byte) (err error) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
