@@ -64,9 +64,24 @@ func (p *Provider) GetRandom() (id string, err error) {
 	return p.images[p.random.Intn(len(p.images))].ID, nil
 }
 
-// List returns a list of all the images
-func (p *Provider) List() ([]database.Image, error) {
+// ListAll returns a list of all the images
+func (p *Provider) ListAll() ([]database.Image, error) {
 	return p.images, nil
+}
+
+// List returns a list of all the images with an offset/limit
+func (p *Provider) List(offset, limit int) ([]database.Image, error) {
+	images := len(p.images)
+	if offset > images {
+		offset = images
+	}
+
+	limit = offset + limit
+	if limit > images {
+		limit = images
+	}
+
+	return p.images[offset:limit], nil
 }
 
 // Shutdown shuts down the database client

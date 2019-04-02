@@ -51,10 +51,22 @@ func (p *Provider) GetRandom() (id string, err error) {
 	return
 }
 
-// List returns a list of all the images
-func (p *Provider) List() ([]database.Image, error) {
+// ListAll returns a list of all the images
+func (p *Provider) ListAll() ([]database.Image, error) {
 	i := []database.Image{}
 	err := p.db.Select(&i, "select * from image")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return i, nil
+}
+
+// List returns a list of all the images with an offset/limit
+func (p *Provider) List(offset, limit int) ([]database.Image, error) {
+	i := []database.Image{}
+	err := p.db.Select(&i, "select * from image OFFSET $1 LIMIT $2", offset, limit)
 
 	if err != nil {
 		return nil, err

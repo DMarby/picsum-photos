@@ -23,7 +23,7 @@ type DeprecatedImage struct {
 }
 
 func (a *API) deprecatedListHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
-	list, err := a.Database.List()
+	list, err := a.Database.ListAll()
 	if err != nil {
 		a.logError(r, "error getting image list from database", err)
 		return handler.InternalServerError()

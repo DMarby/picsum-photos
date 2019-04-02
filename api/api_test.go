@@ -154,8 +154,8 @@ func TestAPI(t *testing.T) {
 			ExpectedContentType: "application/json",
 		},
 		// Errors
-		{"invalid image id", "/id/2/200", router, 404, []byte("Image does not exist\n"), "text/plain; charset=utf-8"},
-		{"invalid image id", "/id/2/200/300", router, 404, []byte("Image does not exist\n"), "text/plain; charset=utf-8"},
+		{"invalid image id", "/id/nonexistant/200", router, 404, []byte("Image does not exist\n"), "text/plain; charset=utf-8"},
+		{"invalid image id", "/id/nonexistant/200/300", router, 404, []byte("Image does not exist\n"), "text/plain; charset=utf-8"},
 		{"invalid size", "/id/1/0", router, 400, []byte("Invalid size\n"), "text/plain; charset=utf-8"},
 		{"invalid size", "/id/1/0/0", router, 400, []byte("Invalid size\n"), "text/plain; charset=utf-8"},
 		{"invalid size", "/id/1/1/9223372036854775808", router, 400, []byte("Invalid size\n"), "text/plain; charset=utf-8"}, // Number larger then max int size to fail int parsing

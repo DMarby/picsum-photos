@@ -17,7 +17,8 @@ type Image struct {
 type Provider interface {
 	Get(id string) (*Image, error)
 	GetRandom() (id string, err error)
-	List() ([]Image, error)
+	ListAll() ([]Image, error)
+	List(offset, limit int) ([]Image, error)
 	Shutdown()
 }
 

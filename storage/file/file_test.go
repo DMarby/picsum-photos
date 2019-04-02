@@ -35,7 +35,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("Returns error on a nonexistant image", func(t *testing.T) {
-		_, err := provider.Get("2")
+		_, err := provider.Get("nonexistant")
 		if err == nil {
 			t.FailNow()
 		}

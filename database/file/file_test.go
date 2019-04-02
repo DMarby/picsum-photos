@@ -17,8 +17,16 @@ var image = database.Image{
 	Height: 400,
 }
 
+var secondImage = database.Image{
+	ID:     "2",
+	Author: "John Doe",
+	URL:    "https://picsum.photos",
+	Width:  300,
+	Height: 400,
+}
+
 func TestFile(t *testing.T) {
-	provider, err := file.New("../../test/fixtures/file/metadata.json")
+	provider, err := file.New("../../test/fixtures/file/metadata_multiple.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +44,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("Returns error on a nonexistant image", func(t *testing.T) {
-		_, err := provider.Get("2")
+		_, err := provider.Get("nonexistant")
 		if err == nil || err.Error() != database.ErrNotFound.Error() {
 			t.FailNow()
 		}
@@ -48,19 +56,37 @@ func TestFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if image != "1" {
+		if image != "1" && image != "2" {
 			t.Error("wrong image")
 		}
 	})
 
-	t.Run("Returns a list of images", func(t *testing.T) {
-		images, err := provider.List()
+	t.Run("Returns a list of all the images", func(t *testing.T) {
+		images, err := provider.ListAll()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if !reflect.DeepEqual(images, []database.Image{image}) {
+		if !reflect.DeepEqual(images, []database.Image{image, secondImage}) {
 			t.Error("image data doesn't match")
+		}
+	})
+
+	t.Run("Returns a list of images", func(t *testing.T) {
+		images, err := provider.List(1, 1)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(images, []database.Image{secondImage}) {
+			t.Error("image data doesn't match")
+		}
+	})
+
+	t.Run("Handles offset and limit larger then db", func(t *testing.T) {
+		_, err := provider.List(10, 30)
+		if err != nil {
+			t.Fatal(err)
 		}
 	})
 }

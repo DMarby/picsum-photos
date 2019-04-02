@@ -20,8 +20,13 @@ func (p *Provider) GetRandom() (id string, err error) {
 	return "", fmt.Errorf("random error")
 }
 
-// List returns a list of all the images
-func (p *Provider) List() ([]database.Image, error) {
+// ListAll returns a list of all the images
+func (p *Provider) ListAll() ([]database.Image, error) {
+	return nil, fmt.Errorf("list error")
+}
+
+// List returns a list of all the images with an offset/limit
+func (p *Provider) List(offset, limit int) ([]database.Image, error) {
 	return nil, fmt.Errorf("list error")
 }
 

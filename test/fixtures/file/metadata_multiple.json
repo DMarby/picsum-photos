@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1",
+    "author": "John Doe",
+    "url": "https://picsum.photos",
+    "width": 300,
+    "height": 400
+  },
+  {
+    "id": "2",
+    "author": "John Doe",
+    "url": "https://picsum.photos",
+    "width": 300,
+    "height": 400
+  }
+]
