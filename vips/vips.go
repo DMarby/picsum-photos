@@ -2,7 +2,7 @@ package vips
 
 /*
 #cgo pkg-config: vips
-#include "vips.h"
+#include "vips-bridge.h"
 */
 import "C"
 
@@ -11,16 +11,23 @@ import (
 	"runtime"
 	"sync"
 	"unsafe"
+
+	"github.com/DMarby/picsum-photos/logger"
 )
 
 // Image is a representation of the *C.VipsImage type
 type Image *C.VipsImage
 
-var once sync.Once
+var (
+	once sync.Once
+	log  *logger.Logger
+)
 
 // Initialize libvips if it's not already started
-func Initialize() error {
+func Initialize(logger *logger.Logger) error {
 	var err error
+
+	log = logger
 
 	once.Do(func() {
 		// vips_init needs to run on the main thread
@@ -37,11 +44,20 @@ func Initialize() error {
 			return
 		}
 
+		// Catch vips logging/warnings
+		C.setup_logging()
+
 		// Set concurrency to 1 so that each job only uses one thread
 		C.vips_concurrency_set(1)
 	})
 
 	return err
+}
+
+// log_callback catches logs from libvips
+//export log_callback
+func log_callback(message *C.char) {
+	log.Debug(C.GoString(message))
 }
 
 // Shutdown libvips
@@ -92,7 +108,7 @@ func SaveToBuffer(image Image) ([]byte, error) {
 	var bufferPointer unsafe.Pointer
 	bufferLength := C.size_t(0)
 
-	err := C.saveImageToJpegBuffer(image, &bufferPointer, &bufferLength)
+	err := C.save_image_to_jpeg_buffer(image, &bufferPointer, &bufferLength)
 
 	if err != 0 {
 		return nil, fmt.Errorf("error saving to buffer %s", catchVipsError())

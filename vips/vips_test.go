@@ -5,15 +5,29 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/DMarby/picsum-photos/logger"
 	"github.com/DMarby/picsum-photos/vips"
+	"go.uber.org/zap"
 
 	"testing"
 
 	"io/ioutil"
 )
 
+func resizeImage(t *testing.T, imageBuffer []byte) vips.Image {
+	resizedImage, err := vips.ResizeImage(imageBuffer, 500, 500)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return resizedImage
+}
+
 func TestVips(t *testing.T) {
-	err := vips.Initialize()
+	log := logger.New(zap.FatalLevel)
+	defer log.Sync()
+
+	err := vips.Initialize(log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,14 +39,9 @@ func TestVips(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resizedImage, err := vips.ResizeImage(imageBuffer, 500, 500)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	t.Run("SaveToBuffer", func(t *testing.T) {
 		t.Run("saves an image to buffer", func(t *testing.T) {
-			_, err := vips.SaveToBuffer(resizedImage)
+			_, err := vips.SaveToBuffer(resizeImage(t, imageBuffer))
 			if err != nil {
 				t.Error(err)
 			}
@@ -78,7 +87,7 @@ func TestVips(t *testing.T) {
 
 	t.Run("Grayscale", func(t *testing.T) {
 		t.Run("converts an image to grayscale", func(t *testing.T) {
-			image, err := vips.Grayscale(resizedImage)
+			image, err := vips.Grayscale(resizeImage(t, imageBuffer))
 			if err != nil {
 				t.Error(err)
 			}
@@ -100,7 +109,7 @@ func TestVips(t *testing.T) {
 
 	t.Run("Blur", func(t *testing.T) {
 		t.Run("blurs an image", func(t *testing.T) {
-			image, err := vips.Blur(resizedImage, 5)
+			image, err := vips.Blur(resizeImage(t, imageBuffer), 5)
 			if err != nil {
 				t.Error(err)
 			}

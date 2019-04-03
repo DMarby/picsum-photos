@@ -26,7 +26,7 @@ func GetInstance(ctx context.Context, log *logger.Logger) (*Processor, error) {
 	var err error
 
 	once.Do(func() {
-		err = vips.Initialize()
+		err = vips.Initialize(log)
 		if err != nil {
 			return
 		}

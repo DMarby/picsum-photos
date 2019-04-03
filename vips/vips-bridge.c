@@ -1,6 +1,14 @@
-#include "vips.h"
+#include "vips-bridge.h"
 
-int saveImageToJpegBuffer(VipsImage *image, void **buf, size_t *len) {
+void setup_logging() {
+  g_log_set_handler("VIPS", G_LOG_LEVEL_WARNING, log_handler, NULL);
+}
+
+void log_handler(char const* log_domain, GLogLevelFlags log_level, char const* message, void* ignore) {
+  log_callback((char*)message);
+}
+
+int save_image_to_jpeg_buffer(VipsImage *image, void **buf, size_t *len) {
   // Progressive, strip metadata
   return vips_jpegsave_buffer(image, buf, len, "interlace", TRUE, "strip", TRUE, "optimize_coding", TRUE, NULL);
 }
