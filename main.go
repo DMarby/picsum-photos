@@ -34,7 +34,7 @@ func waitForInterrupt(ctx context.Context) error {
 }
 
 const readTimeout = 5 * time.Second
-const writeTimeout = 30 * time.Second
+const writeTimeout = 45 * time.Second
 const maxImageSize = 5000 // The max allowed image width/height to be requested
 
 func main() {
