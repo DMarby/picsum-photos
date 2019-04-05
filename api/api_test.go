@@ -110,8 +110,9 @@ func TestAPI(t *testing.T) {
 				},
 			}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
-				"Link":         fmt.Sprintf("<%s/v2/list?page=2&limit=30>; rel=\"next\"", rootURL),
+				"Content-Type":  "application/json",
+				"Link":          fmt.Sprintf("<%s/v2/list?page=2&limit=30>; rel=\"next\"", rootURL),
+				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -142,8 +143,9 @@ func TestAPI(t *testing.T) {
 				},
 			}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
-				"Link":         fmt.Sprintf("<%s/v2/list?page=2&limit=100>; rel=\"next\"", rootURL),
+				"Content-Type":  "application/json",
+				"Link":          fmt.Sprintf("<%s/v2/list?page=2&limit=100>; rel=\"next\"", rootURL),
+				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -164,8 +166,9 @@ func TestAPI(t *testing.T) {
 				},
 			}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
-				"Link":         fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"next\"", rootURL),
+				"Content-Type":  "application/json",
+				"Link":          fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"next\"", rootURL),
+				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -186,8 +189,9 @@ func TestAPI(t *testing.T) {
 				},
 			}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
-				"Link":         fmt.Sprintf("<%s/v2/list?page=1&limit=1>; rel=\"prev\", <%s/v2/list?page=3&limit=1>; rel=\"next\"", rootURL, rootURL),
+				"Content-Type":  "application/json",
+				"Link":          fmt.Sprintf("<%s/v2/list?page=1&limit=1>; rel=\"prev\", <%s/v2/list?page=3&limit=1>; rel=\"next\"", rootURL, rootURL),
+				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -197,8 +201,9 @@ func TestAPI(t *testing.T) {
 			ExpectedStatus:   http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
-				"Link":         fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"prev\"", rootURL),
+				"Content-Type":  "application/json",
+				"Link":          fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"prev\"", rootURL),
+				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -219,7 +224,8 @@ func TestAPI(t *testing.T) {
 				},
 			}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
+				"Content-Type":  "application/json",
+				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -256,33 +262,33 @@ func TestAPI(t *testing.T) {
 		},
 
 		// Static page handling
-		{"index", "/", router, http.StatusOK, readFile(path.Join(staticPath, "index.html")), map[string]string{"Content-Type": "text/html; charset=utf-8"}},
-		{"images", "/images", router, http.StatusOK, readFile(path.Join(staticPath, "images.html")), map[string]string{"Content-Type": "text/html; charset=utf-8"}},
-		{"favicon", "/assets/images/favicon.ico", router, http.StatusOK, readFile(path.Join(staticPath, "assets/images/favicon.ico")), map[string]string{"Content-Type": "image/x-icon"}},
+		{"index", "/", router, http.StatusOK, readFile(path.Join(staticPath, "index.html")), map[string]string{"Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600"}},
+		{"images", "/images", router, http.StatusOK, readFile(path.Join(staticPath, "images.html")), map[string]string{"Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600"}},
+		{"favicon", "/assets/images/favicon.ico", router, http.StatusOK, readFile(path.Join(staticPath, "assets/images/favicon.ico")), map[string]string{"Content-Type": "image/x-icon", "Cache-Control": "public, max-age=3600"}},
 
 		// Errors
-		{"invalid image id", "/id/nonexistant/200", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid image id", "/id/nonexistant/200/300", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid size", "/id/1/0", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid size", "/id/1/0/0", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid size", "/id/1/1/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/9223372036854775808/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/5500/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},                // Number larger then maxImageSize to fail int parsing
-		{"invalid blur amount", "/id/1/100/100?blur=11", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid blur amount", "/id/1/100/100?blur=0", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid image id", "/id/nonexistant/200", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"invalid image id", "/id/nonexistant/200/300", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"invalid size", "/id/1/0", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"invalid size", "/id/1/0/0", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"invalid size", "/id/1/1/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/id/1/9223372036854775808/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/id/1/5500/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},                // Number larger then maxImageSize to fail int parsing
+		{"invalid blur amount", "/id/1/100/100?blur=11", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"invalid blur amount", "/id/1/100/100?blur=0", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// Deprecated handler errors
-		{"invalid size", "/g/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/g/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
 		// Storage errors
-		{"Get()", "/id/1/100", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"Get()", "/id/1/100", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// Database errors
-		{"List()", "/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"List()", "/v2/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"GetRandom()", "/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"Get()", "/id/1/100", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"List()", "/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"List()", "/v2/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"GetRandom()", "/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"Get()", "/id/1/100", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// Processor errors
-		{"processor error", "/id/1/100/100", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"processor error", "/id/1/100/100", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// 404
-		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 	}
 
 	for _, test := range tests {
@@ -334,9 +340,12 @@ func TestAPI(t *testing.T) {
 			continue
 		}
 
-		contentType := w.Header().Get("Content-Type")
-		if contentType != "image/jpeg" {
+		if contentType := w.Header().Get("Content-Type"); contentType != "image/jpeg" {
 			t.Errorf("%s: wrong content type, %#v", test.Name, contentType)
+		}
+
+		if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "public, max-age=86400" {
+			t.Errorf("%s: wrong cache header, %#v", test.Name, cacheControl)
 		}
 
 		if !reflect.DeepEqual(w.Body.Bytes(), test.ExpectedResponse) {
@@ -345,45 +354,46 @@ func TestAPI(t *testing.T) {
 	}
 
 	redirectTests := []struct {
-		Name        string
-		URL         string
-		ExpectedURL string
+		Name            string
+		URL             string
+		ExpectedURL     string
+		TestCacheHeader bool
 	}{
-		{"/:size", "/200", "/id/1/200/200"},
-		{"/:width/:height", "/200/300", "/id/1/200/300"},
-		{"/:size?grayscale", "/200?grayscale", "/id/1/200/200?grayscale"},
-		{"/:width/:height?grayscale", "/200/300?grayscale", "/id/1/200/300?grayscale"},
+		{"/:size", "/200", "/id/1/200/200", true},
+		{"/:width/:height", "/200/300", "/id/1/200/300", true},
+		{"/:size?grayscale", "/200?grayscale", "/id/1/200/200?grayscale", true},
+		{"/:width/:height?grayscale", "/200/300?grayscale", "/id/1/200/300?grayscale", true},
 		// Default blur amount
-		{"/:size?blur", "/200?blur", "/id/1/200/200?blur=5"},
-		{"/:width/:height?blur", "/200/300?blur", "/id/1/200/300?blur=5"},
-		{"/:size?grayscale&blur", "/200?grayscale&blur", "/id/1/200/200?grayscale&blur=5"},
-		{"/:width/:height?grayscale&blur", "/200/300?grayscale&blur", "/id/1/200/300?grayscale&blur=5"},
+		{"/:size?blur", "/200?blur", "/id/1/200/200?blur=5", true},
+		{"/:width/:height?blur", "/200/300?blur", "/id/1/200/300?blur=5", true},
+		{"/:size?grayscale&blur", "/200?grayscale&blur", "/id/1/200/200?grayscale&blur=5", true},
+		{"/:width/:height?grayscale&blur", "/200/300?grayscale&blur", "/id/1/200/300?grayscale&blur=5", true},
 		// Custom blur amount
-		{"/:size?blur=10", "/200?blur=10", "/id/1/200/200?blur=10"},
-		{"/:width/:height?blur=10", "/200/300?blur=10", "/id/1/200/300?blur=10"},
-		{"/:size?grayscale&blur=10", "/200?grayscale&blur=10", "/id/1/200/200?grayscale&blur=10"},
-		{"/:width/:height?grayscale&blur=10", "/200/300?grayscale&blur=10", "/id/1/200/300?grayscale&blur=10"},
+		{"/:size?blur=10", "/200?blur=10", "/id/1/200/200?blur=10", true},
+		{"/:width/:height?blur=10", "/200/300?blur=10", "/id/1/200/300?blur=10", true},
+		{"/:size?grayscale&blur=10", "/200?grayscale&blur=10", "/id/1/200/200?grayscale&blur=10", true},
+		{"/:width/:height?grayscale&blur=10", "/200/300?grayscale&blur=10", "/id/1/200/300?grayscale&blur=10", true},
 		// Deprecated routes
-		{"/g/:size", "/g/200", "/200/200?grayscale"},
-		{"/g/:width/:height", "/g/200/300", "/200/300?grayscale"},
-		{"/g/:size?blur", "/g/200?blur", "/200/200?grayscale&blur=5"},
-		{"/g/:width/:height?blur", "/g/200/300?blur", "/200/300?grayscale&blur=5"},
-		{"/g/:size?image=:id", "/g/200?image=1", "/id/1/200/200?grayscale"},
-		{"/g/:width/:height?image=:id", "/g/200/300?image=1", "/id/1/200/300?grayscale"},
+		{"/g/:size", "/g/200", "/200/200?grayscale", true},
+		{"/g/:width/:height", "/g/200/300", "/200/300?grayscale", true},
+		{"/g/:size?blur", "/g/200?blur", "/200/200?grayscale&blur=5", true},
+		{"/g/:width/:height?blur", "/g/200/300?blur", "/200/300?grayscale&blur=5", true},
+		{"/g/:size?image=:id", "/g/200?image=1", "/id/1/200/200?grayscale", true},
+		{"/g/:width/:height?image=:id", "/g/200/300?image=1", "/id/1/200/300?grayscale", true},
 		// Deprecated query params
-		{"/:size?image=:id", "/200?image=1", "/id/1/200/200"},
-		{"/:width/:height?image=:id", "/200/300?image=1", "/id/1/200/300"},
-		{"/:size?image=:id&grayscale", "/200?image=1&grayscale", "/id/1/200/200?grayscale"},
-		{"/:width/:height?image=:id&grayscale", "/200/300?image=1&grayscale", "/id/1/200/300?grayscale"},
-		{"/:size?image=:id&blur", "/200?image=1&blur", "/id/1/200/200?blur=5"},
-		{"/:width/:height?image=:id&blur", "/200/300?image=1&blur", "/id/1/200/300?blur=5"},
-		{"/:size?image=:id&grayscale&blur", "/200?image=1&grayscale&blur", "/id/1/200/200?grayscale&blur=5"},
-		{"/:width/:height?image=:id&grayscale&blur", "/200/300?image=1&grayscale&blur", "/id/1/200/300?grayscale&blur=5"},
+		{"/:size?image=:id", "/200?image=1", "/id/1/200/200", true},
+		{"/:width/:height?image=:id", "/200/300?image=1", "/id/1/200/300", true},
+		{"/:size?image=:id&grayscale", "/200?image=1&grayscale", "/id/1/200/200?grayscale", true},
+		{"/:width/:height?image=:id&grayscale", "/200/300?image=1&grayscale", "/id/1/200/300?grayscale", true},
+		{"/:size?image=:id&blur", "/200?image=1&blur", "/id/1/200/200?blur=5", true},
+		{"/:width/:height?image=:id&blur", "/200/300?image=1&blur", "/id/1/200/300?blur=5", true},
+		{"/:size?image=:id&grayscale&blur", "/200?image=1&grayscale&blur", "/id/1/200/200?grayscale&blur=5", true},
+		{"/:width/:height?image=:id&grayscale&blur", "/200/300?image=1&grayscale&blur", "/id/1/200/300?grayscale&blur=5", true},
 		// Trailing slashes
-		{"/:size", "/200/", "/200"},
-		{"/:width/:height", "/200/300/", "/200/300"},
-		{"/id/:id/:size/", "/id/1/200/", "/id/1/200"},
-		{"/id/:id/:width/:height/", "/id/1/200/120/", "/id/1/200/120"},
+		{"/:size/", "/200/", "/200", false},
+		{"/:width/:height/", "/200/300/", "/200/300", false},
+		{"/id/:id/:size/", "/id/1/200/", "/id/1/200", false},
+		{"/id/:id/:width/:height/", "/id/1/200/120/", "/id/1/200/120", false},
 	}
 
 	for _, test := range redirectTests {
@@ -398,6 +408,12 @@ func TestAPI(t *testing.T) {
 		location := w.Header().Get("Location")
 		if location != test.ExpectedURL {
 			t.Errorf("%s: wrong redirect %s", test.Name, location)
+		}
+
+		if test.TestCacheHeader {
+			if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "no-cache, no-store, must-revalidate" {
+				t.Errorf("%s: wrong cache header, %#v", test.Name, cacheControl)
+			}
 		}
 	}
 }
