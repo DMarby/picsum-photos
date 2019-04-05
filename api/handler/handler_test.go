@@ -31,15 +31,18 @@ func TestHandler(t *testing.T) {
 
 		req, err := http.NewRequest("GET", ts.URL, nil)
 		if err != nil {
-			t.Fatal(err)
+			t.Errorf("%s: %s", test.Name, err)
+			continue
 		}
 
 		req.Header.Set("Accept", test.AcceptHeader)
 
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatal(err)
+			t.Errorf("%s: %s", test.Name, err)
+			continue
 		}
+
 		defer res.Body.Close()
 
 		if res.StatusCode != test.ExpectedStatus {
@@ -50,11 +53,13 @@ func TestHandler(t *testing.T) {
 		contentType := res.Header.Get("Content-Type")
 		if contentType != test.ExpectedContentType {
 			t.Errorf("%s: wrong content type, %#v", test.Name, contentType)
+			continue
 		}
 
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			t.Fatal(err)
+			t.Errorf("%s: %s", test.Name, err)
+			continue
 		}
 
 		if !reflect.DeepEqual(body, test.ExpectedResponse) {
