@@ -1,6 +1,6 @@
-package middleware
+package handler
 
-// Based on the request_id middleware from Chi, source:
+// Based on the request_id handler from Chi, source:
 // https://github.com/go-chi/chi/blob/master/middleware/request_id.go
 
 import (
@@ -39,7 +39,7 @@ func init() {
 	prefix = fmt.Sprintf("%s/%s", hostname, b64[0:10])
 }
 
-// AddRequestID is a middleware that injects a request ID into the context of each
+// AddRequestID is a handler that injects a request ID into the context of each
 // request. A request ID is a string of the form "host.example.com/random-0001",
 // where "random" is a base62 random string that uniquely identifies this go
 // process, and where the last number is an atomically incremented request

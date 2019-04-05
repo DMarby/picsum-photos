@@ -1,4 +1,4 @@
-package middleware
+package handler
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/DMarby/picsum-photos/logger"
 )
 
-// Recovery is a middleware for handling panics
+// Recovery is a handler for handling panics
 func Recovery(log *logger.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {

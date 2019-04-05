@@ -1,4 +1,4 @@
-package middleware
+package handler
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/DMarby/picsum-photos/api/params"
 )
 
-// DeprecatedParams is a middleware to handle deprecated query params for regular routes
+// DeprecatedParams is a handler to handle deprecated query params for regular routes
 func DeprecatedParams(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Look for the deprecated ?image query parameter

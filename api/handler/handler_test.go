@@ -10,7 +10,7 @@ import (
 	"github.com/DMarby/picsum-photos/api/handler"
 )
 
-func TestRecovery(t *testing.T) {
+func TestHandler(t *testing.T) {
 	tests := []struct {
 		Name                string
 		AcceptHeader        string

@@ -1,4 +1,4 @@
-package middleware
+package handler
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/DMarby/picsum-photos/logger"
 )
 
-// Logger is a middleware that logs requests using Zap
+// Logger is a handler that logs requests using Zap
 func Logger(log *logger.Logger, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

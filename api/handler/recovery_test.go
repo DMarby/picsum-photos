@@ -1,11 +1,11 @@
-package middleware_test
+package handler_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/DMarby/picsum-photos/api/middleware"
+	"github.com/DMarby/picsum-photos/api/handler"
 	"github.com/DMarby/picsum-photos/logger"
 	"go.uber.org/zap"
 )
@@ -14,7 +14,7 @@ func TestRecovery(t *testing.T) {
 	log := logger.New(zap.FatalLevel)
 	defer log.Sync()
 
-	ts := httptest.NewServer(middleware.Recovery(log, http.HandlerFunc(panicHandler)))
+	ts := httptest.NewServer(handler.Recovery(log, http.HandlerFunc(panicHandler)))
 	defer ts.Close()
 
 	res, err := http.Get(ts.URL)

@@ -5,7 +5,6 @@ import (
 	"path"
 
 	"github.com/DMarby/picsum-photos/api/handler"
-	"github.com/DMarby/picsum-photos/api/middleware"
 
 	"github.com/DMarby/picsum-photos/database"
 	"github.com/DMarby/picsum-photos/health"
@@ -33,7 +32,7 @@ func (a *API) logError(r *http.Request, message string, err error) {
 
 func logFields(r *http.Request, keysAndValues ...interface{}) []interface{} {
 	ctx := r.Context()
-	id := middleware.GetReqID(ctx)
+	id := handler.GetReqID(ctx)
 
 	return append([]interface{}{"request-id", id}, keysAndValues...)
 }
@@ -55,7 +54,7 @@ func (a *API) Router() http.Handler {
 
 	// Image routes
 	imageRouter := router.PathPrefix("").Subrouter()
-	imageRouter.Use(middleware.DeprecatedParams)
+	imageRouter.Use(handler.DeprecatedParams)
 
 	imageRouter.Handle("/{size:[0-9]+}", handler.Handler(a.imageHandler)).Methods("GET")
 	imageRouter.Handle("/{width:[0-9]+}/{height:[0-9]+}", handler.Handler(a.imageHandler)).Methods("GET")
@@ -82,8 +81,8 @@ func (a *API) Router() http.Handler {
 	router.HandleFunc("/images", serveFile(path.Join(a.StaticPath, "images.html")))
 	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))))
 
-	// Set up middleware for adding a request id, handling panics, request logging, and setting CORS headers
-	return middleware.AddRequestID(middleware.Recovery(a.Log, middleware.Logger(a.Log, middleware.CORS(router))))
+	// Set up handlers for adding a request id, handling panics, request logging, and setting CORS headers
+	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS(router))))
 }
 
 // Handle not found errors
