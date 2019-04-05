@@ -10,6 +10,7 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"time"
 
 	"github.com/DMarby/picsum-photos/api"
 	"github.com/DMarby/picsum-photos/health"
@@ -68,11 +69,11 @@ func TestAPI(t *testing.T) {
 
 	staticPath := "../static"
 
-	router := (&api.API{imageProcessor, apiCache, db, checker, log, 200, rootURL, staticPath}).Router()
-	paginationRouter := (&api.API{imageProcessor, apiCache, dbMultiple, checker, log, 200, rootURL, staticPath}).Router()
-	mockStorageRouter := (&api.API{imageProcessor, api.NewCache(memoryCache.New(), &mockStorage.Provider{}), db, mockChecker, log, 200, rootURL, staticPath}).Router()
-	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, apiCache, db, checker, log, 200, rootURL, staticPath}).Router()
-	mockDatabaseRouter := (&api.API{imageProcessor, apiCache, &mockDatabase.Provider{}, checker, log, 200, rootURL, staticPath}).Router()
+	router := (&api.API{imageProcessor, apiCache, db, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	paginationRouter := (&api.API{imageProcessor, apiCache, dbMultiple, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	mockStorageRouter := (&api.API{imageProcessor, api.NewCache(memoryCache.New(), &mockStorage.Provider{}), db, mockChecker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, apiCache, db, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	mockDatabaseRouter := (&api.API{imageProcessor, apiCache, &mockDatabase.Provider{}, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
 
 	tests := []struct {
 		Name             string

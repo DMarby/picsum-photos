@@ -33,16 +33,23 @@ func waitForInterrupt(ctx context.Context) error {
 	}
 }
 
-const readTimeout = 5 * time.Second
-const writeTimeout = 45 * time.Second
-const maxImageSize = 5000     // The max allowed image width/height to be requested
-const staticPath = "./static" // Path where the static files are located
+// Http timeouts
+const (
+	readTimeout    = 5 * time.Second
+	writeTimeout   = time.Minute
+	handlerTimeout = 45 * time.Second
+)
+
+const (
+	maxImageSize = 5000       // The max allowed image width/height to be requested
+	staticPath   = "./static" // Path where the static files are located
+)
 
 func main() {
 	// Set up commandline flags
 	listen := flag.String("listen", ":8080", "listen address")
-	rootURL := flag.String("root_url", "https://picsum.photos", "root url")
-	loglevel := zap.LevelFlag("log_level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
+	rootURL := flag.String("root-url", "https://picsum.photos", "root url")
+	loglevel := zap.LevelFlag("log-level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
 
 	// Parse environment variables
 	envy.Parse("PICSUM")
@@ -111,6 +118,7 @@ func main() {
 		MaxImageSize:   maxImageSize,
 		RootURL:        *rootURL,
 		StaticPath:     staticPath,
+		HandlerTimeout: handlerTimeout,
 	}
 	server := &http.Server{
 		Addr:         *listen,

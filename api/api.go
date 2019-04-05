@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/DMarby/picsum-photos/api/handler"
 
@@ -23,6 +24,7 @@ type API struct {
 	MaxImageSize   int
 	RootURL        string
 	StaticPath     string
+	HandlerTimeout time.Duration
 }
 
 // Utility methods for logging
@@ -81,8 +83,8 @@ func (a *API) Router() http.Handler {
 	router.HandleFunc("/images", serveFile(path.Join(a.StaticPath, "images.html")))
 	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))).ServeHTTP))
 
-	// Set up handlers for adding a request id, handling panics, request logging, and setting CORS headers
-	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS(router))))
+	// Set up handlers for adding a request id, handling panics, request logging, setting CORS headers, and handler execution timeout
+	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS(http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")))))
 }
 
 // Handle not found errors
