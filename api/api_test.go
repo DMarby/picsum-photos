@@ -335,8 +335,9 @@ func TestAPI(t *testing.T) {
 			continue
 		}
 
-		if w.Header()["Content-Type"][0] != "image/jpeg" {
-			t.Errorf("%s: wrong content type, %#v", test.Name, w.Header()["Content-Type"][0])
+		contentType := w.Header().Get("Content-Type")
+		if contentType != "image/jpeg" {
+			t.Errorf("%s: wrong content type, %#v", test.Name, contentType)
 		}
 
 		if !reflect.DeepEqual(w.Body.Bytes(), test.ExpectedResponse) {
@@ -395,8 +396,9 @@ func TestAPI(t *testing.T) {
 			continue
 		}
 
-		if w.Header()["Location"][0] != test.ExpectedURL {
-			t.Errorf("%s: wrong redirect %s", test.Name, w.Header()["Location"][0])
+		location := w.Header().Get("Location")
+		if location != test.ExpectedURL {
+			t.Errorf("%s: wrong redirect %s", test.Name, location)
 		}
 	}
 }

@@ -14,11 +14,7 @@ func TestRecovery(t *testing.T) {
 	log := logger.New(zap.FatalLevel)
 	defer log.Sync()
 
-	handler := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		panic("panicking handler")
-	})
-
-	ts := httptest.NewServer(middleware.Recovery(log, handler))
+	ts := httptest.NewServer(middleware.Recovery(log, http.HandlerFunc(panicHandler)))
 	defer ts.Close()
 
 	res, err := http.Get(ts.URL)
@@ -30,4 +26,8 @@ func TestRecovery(t *testing.T) {
 	if res.StatusCode != http.StatusInternalServerError {
 		t.Errorf("wrong status code %#v", res.StatusCode)
 	}
+}
+
+func panicHandler(rw http.ResponseWriter, req *http.Request) {
+	panic("panicking handler")
 }
