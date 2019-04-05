@@ -265,7 +265,7 @@ func TestAPI(t *testing.T) {
 		// Static page handling
 		{"index", "/", router, http.StatusOK, readFile(path.Join(staticPath, "index.html")), map[string]string{"Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600"}},
 		{"images", "/images", router, http.StatusOK, readFile(path.Join(staticPath, "images.html")), map[string]string{"Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600"}},
-		{"favicon", "/assets/images/favicon.ico", router, http.StatusOK, readFile(path.Join(staticPath, "assets/images/favicon.ico")), map[string]string{"Content-Type": "image/x-icon", "Cache-Control": "public, max-age=3600"}},
+		{"favicon", "/assets/images/digitalocean.png", router, http.StatusOK, readFile(path.Join(staticPath, "assets/images/digitalocean.png")), map[string]string{"Content-Type": "image/png", "Cache-Control": "public, max-age=3600"}},
 
 		// Errors
 		{"invalid image id", "/id/nonexistant/200", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
