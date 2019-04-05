@@ -43,6 +43,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}{err.Message}
 
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(err.Code)
 			if err := json.NewEncoder(w).Encode(data); err != nil {
 				http.Error(w, "Something went wrong", http.StatusInternalServerError)
 				return
