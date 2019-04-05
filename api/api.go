@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"path"
 
 	"github.com/DMarby/picsum-photos/api/handler"
 	"github.com/DMarby/picsum-photos/api/middleware"
@@ -22,6 +23,7 @@ type API struct {
 	Log            *logger.Logger
 	MaxImageSize   int
 	RootURL        string
+	StaticPath     string
 }
 
 // Utility methods for logging
@@ -76,9 +78,9 @@ func (a *API) Router() http.Handler {
 	router.Handle("/g/{width:[0-9]+}/{height:[0-9]+}", handler.Handler(a.deprecatedImageHandler)).Methods("GET")
 
 	// Static files
-	router.HandleFunc("/", serveFile("./static/index.html"))
-	router.HandleFunc("/images", serveFile("./static/images.html"))
-	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./static/assets/"))))
+	router.HandleFunc("/", serveFile(path.Join(a.StaticPath, "index.html")))
+	router.HandleFunc("/images", serveFile(path.Join(a.StaticPath, "images.html")))
+	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))))
 
 	// Set up middleware for adding a request id, handling panics, request logging, and setting CORS headers
 	return middleware.AddRequestID(middleware.Recovery(a.Log, middleware.Logger(a.Log, middleware.CORS(router))))

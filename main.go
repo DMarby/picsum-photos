@@ -35,7 +35,8 @@ func waitForInterrupt(ctx context.Context) error {
 
 const readTimeout = 5 * time.Second
 const writeTimeout = 45 * time.Second
-const maxImageSize = 5000 // The max allowed image width/height to be requested
+const maxImageSize = 5000     // The max allowed image width/height to be requested
+const staticPath = "./static" // Path where the static files are located
 
 func main() {
 	// Set up commandline flags
@@ -109,6 +110,7 @@ func main() {
 		Log:            log,
 		MaxImageSize:   maxImageSize,
 		RootURL:        *rootURL,
+		StaticPath:     staticPath,
 	}
 	server := &http.Server{
 		Addr:         *listen,

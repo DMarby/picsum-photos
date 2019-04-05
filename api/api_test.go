@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"path"
 	"reflect"
 	"runtime"
 
@@ -65,11 +66,13 @@ func TestAPI(t *testing.T) {
 	}
 	mockChecker.Run()
 
-	router := (&api.API{imageProcessor, apiCache, db, checker, log, 200, rootURL}).Router()
-	paginationRouter := (&api.API{imageProcessor, apiCache, dbMultiple, checker, log, 200, rootURL}).Router()
-	mockStorageRouter := (&api.API{imageProcessor, api.NewCache(memoryCache.New(), &mockStorage.Provider{}), db, mockChecker, log, 200, rootURL}).Router()
-	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, apiCache, db, checker, log, 200, rootURL}).Router()
-	mockDatabaseRouter := (&api.API{imageProcessor, apiCache, &mockDatabase.Provider{}, checker, log, 200, rootURL}).Router()
+	staticPath := "../static"
+
+	router := (&api.API{imageProcessor, apiCache, db, checker, log, 200, rootURL, staticPath}).Router()
+	paginationRouter := (&api.API{imageProcessor, apiCache, dbMultiple, checker, log, 200, rootURL, staticPath}).Router()
+	mockStorageRouter := (&api.API{imageProcessor, api.NewCache(memoryCache.New(), &mockStorage.Provider{}), db, mockChecker, log, 200, rootURL, staticPath}).Router()
+	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, apiCache, db, checker, log, 200, rootURL, staticPath}).Router()
+	mockDatabaseRouter := (&api.API{imageProcessor, apiCache, &mockDatabase.Provider{}, checker, log, 200, rootURL, staticPath}).Router()
 
 	tests := []struct {
 		Name             string
@@ -252,6 +255,11 @@ func TestAPI(t *testing.T) {
 			},
 		},
 
+		// Static page handling
+		{"index", "/", router, 200, readFile(path.Join(staticPath, "index.html")), map[string]string{"Content-Type": "text/html; charset=utf-8"}},
+		{"images", "/images", router, 200, readFile(path.Join(staticPath, "images.html")), map[string]string{"Content-Type": "text/html; charset=utf-8"}},
+		{"favicon", "/assets/images/favicon.ico", router, 200, readFile(path.Join(staticPath, "assets/images/favicon.ico")), map[string]string{"Content-Type": "image/x-icon"}},
+
 		// Errors
 		{"invalid image id", "/id/nonexistant/200", router, 404, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		{"invalid image id", "/id/nonexistant/200/300", router, 404, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
@@ -262,6 +270,8 @@ func TestAPI(t *testing.T) {
 		{"invalid size", "/id/1/5500/1", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},                // Number larger then maxImageSize to fail int parsing
 		{"invalid blur amount", "/id/1/100/100?blur=11", router, 400, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		{"invalid blur amount", "/id/1/100/100?blur=0", router, 400, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		// Deprecated handler errors
+		{"invalid size", "/g/9223372036854775808", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
 		// Storage errors
 		{"Get()", "/id/1/100", mockStorageRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// Database errors
@@ -271,6 +281,8 @@ func TestAPI(t *testing.T) {
 		{"Get()", "/id/1/100", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// Processor errors
 		{"processor error", "/id/1/100/100", mockProcessorRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		// 404
+		{"404", "/asdf", router, 404, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 	}
 
 	for _, test := range tests {
@@ -395,6 +407,9 @@ func marshalJson(v interface{}) []byte {
 }
 
 func readFixture(fixtureName string) []byte {
-	fixture, _ := ioutil.ReadFile(fmt.Sprintf("../test/fixtures/api/%s_%s.jpg", fixtureName, runtime.GOOS))
+	return readFile(fmt.Sprintf("../test/fixtures/api/%s_%s.jpg", fixtureName, runtime.GOOS))
+}
+func readFile(path string) []byte {
+	fixture, _ := ioutil.ReadFile(path)
 	return fixture
 }
