@@ -79,7 +79,7 @@ func (a *API) Router() http.Handler {
 	// Static files
 	router.HandleFunc("/", serveFile(path.Join(a.StaticPath, "index.html")))
 	router.HandleFunc("/images", serveFile(path.Join(a.StaticPath, "images.html")))
-	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))))
+	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))).ServeHTTP))
 
 	// Set up handlers for adding a request id, handling panics, request logging, and setting CORS headers
 	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS(router))))
@@ -95,9 +95,17 @@ func (a *API) notFoundHandler(w http.ResponseWriter, r *http.Request) *handler.E
 	return notFoundError
 }
 
+// Set headers for static file handlers
+func fileHeaders(handler func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		handler(w, r)
+	}
+}
+
 // Serve a static file
 func serveFile(name string) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return fileHeaders(func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, name)
-	}
+	})
 }
