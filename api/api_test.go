@@ -86,7 +86,7 @@ func TestAPI(t *testing.T) {
 			Name:           "/v2/list lists images",
 			URL:            "/v2/list",
 			Router:         paginationRouter,
-			ExpectedStatus: 200,
+			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{
 				api.ListImage{
 					Image: database.Image{
@@ -118,7 +118,7 @@ func TestAPI(t *testing.T) {
 			Name:           "/v2/list lists images with limit",
 			URL:            "/v2/list?limit=1000",
 			Router:         paginationRouter,
-			ExpectedStatus: 200,
+			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{
 				api.ListImage{
 					Image: database.Image{
@@ -150,7 +150,7 @@ func TestAPI(t *testing.T) {
 			Name:           "/v2/list pagination page 1",
 			URL:            "/v2/list?page=1&limit=1",
 			Router:         paginationRouter,
-			ExpectedStatus: 200,
+			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{
 				api.ListImage{
 					Image: database.Image{
@@ -172,7 +172,7 @@ func TestAPI(t *testing.T) {
 			Name:           "/v2/list pagination page 2",
 			URL:            "/v2/list?page=2&limit=1",
 			Router:         paginationRouter,
-			ExpectedStatus: 200,
+			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{
 				api.ListImage{
 					Image: database.Image{
@@ -194,7 +194,7 @@ func TestAPI(t *testing.T) {
 			Name:             "/v2/list pagination page 3",
 			URL:              "/v2/list?page=3&limit=1",
 			Router:           paginationRouter,
-			ExpectedStatus:   200,
+			ExpectedStatus:   http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{}),
 			ExpectedHeaders: map[string]string{
 				"Content-Type": "application/json",
@@ -205,7 +205,7 @@ func TestAPI(t *testing.T) {
 			Name:           "Deprecated /list lists images",
 			URL:            "/list",
 			Router:         router,
-			ExpectedStatus: 200,
+			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.DeprecatedImage{
 				api.DeprecatedImage{
 					Format:    "jpeg",
@@ -226,7 +226,7 @@ func TestAPI(t *testing.T) {
 			Name:           "/health returns healthy health status",
 			URL:            "/health",
 			Router:         router,
-			ExpectedStatus: 200,
+			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson(health.Status{
 				Healthy:   true,
 				Cache:     "healthy",
@@ -242,7 +242,7 @@ func TestAPI(t *testing.T) {
 			Name:           "/health returns unhealthy health status",
 			URL:            "/health",
 			Router:         mockStorageRouter,
-			ExpectedStatus: 500,
+			ExpectedStatus: http.StatusInternalServerError,
 			ExpectedResponse: marshalJson(health.Status{
 				Healthy:   false,
 				Cache:     "unhealthy",
@@ -256,33 +256,33 @@ func TestAPI(t *testing.T) {
 		},
 
 		// Static page handling
-		{"index", "/", router, 200, readFile(path.Join(staticPath, "index.html")), map[string]string{"Content-Type": "text/html; charset=utf-8"}},
-		{"images", "/images", router, 200, readFile(path.Join(staticPath, "images.html")), map[string]string{"Content-Type": "text/html; charset=utf-8"}},
-		{"favicon", "/assets/images/favicon.ico", router, 200, readFile(path.Join(staticPath, "assets/images/favicon.ico")), map[string]string{"Content-Type": "image/x-icon"}},
+		{"index", "/", router, http.StatusOK, readFile(path.Join(staticPath, "index.html")), map[string]string{"Content-Type": "text/html; charset=utf-8"}},
+		{"images", "/images", router, http.StatusOK, readFile(path.Join(staticPath, "images.html")), map[string]string{"Content-Type": "text/html; charset=utf-8"}},
+		{"favicon", "/assets/images/favicon.ico", router, http.StatusOK, readFile(path.Join(staticPath, "assets/images/favicon.ico")), map[string]string{"Content-Type": "image/x-icon"}},
 
 		// Errors
-		{"invalid image id", "/id/nonexistant/200", router, 404, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid image id", "/id/nonexistant/200/300", router, 404, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid size", "/id/1/0", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid size", "/id/1/0/0", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid size", "/id/1/1/9223372036854775808", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/9223372036854775808/1", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/5500/1", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},                // Number larger then maxImageSize to fail int parsing
-		{"invalid blur amount", "/id/1/100/100?blur=11", router, 400, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"invalid blur amount", "/id/1/100/100?blur=0", router, 400, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid image id", "/id/nonexistant/200", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid image id", "/id/nonexistant/200/300", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid size", "/id/1/0", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid size", "/id/1/0/0", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid size", "/id/1/1/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/id/1/9223372036854775808/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/id/1/5500/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},                // Number larger then maxImageSize to fail int parsing
+		{"invalid blur amount", "/id/1/100/100?blur=11", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid blur amount", "/id/1/100/100?blur=0", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// Deprecated handler errors
-		{"invalid size", "/g/9223372036854775808", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/g/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
 		// Storage errors
-		{"Get()", "/id/1/100", mockStorageRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"Get()", "/id/1/100", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// Database errors
-		{"List()", "/list", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"List()", "/v2/list", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"GetRandom()", "/200", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
-		{"Get()", "/id/1/100", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"List()", "/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"List()", "/v2/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"GetRandom()", "/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"Get()", "/id/1/100", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// Processor errors
-		{"processor error", "/id/1/100/100", mockProcessorRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"processor error", "/id/1/100/100", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// 404
-		{"404", "/asdf", router, 404, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 	}
 
 	for _, test := range tests {
@@ -311,26 +311,25 @@ func TestAPI(t *testing.T) {
 	imageTests := []struct {
 		Name             string
 		URL              string
-		ExpectedStatus   int
 		ExpectedResponse []byte
 	}{
 		// Images
-		{"/id/:id/:size", "/id/1/200", 200, readFixture("size")},
-		{"/id/:id/:width/:height", "/id/1/200/120", 200, readFixture("width_height")},
-		{"/id/:id/:size?blur", "/id/1/200?blur", 200, readFixture("blur")},
-		{"/id/:id/:width/:height?blur", "/id/1/200/200?blur", 200, readFixture("blur")},
-		{"/id/:id/:size?grayscale", "/id/1/200?grayscale", 200, readFixture("grayscale")},
-		{"/id/:id/:width/:height?grayscale", "/id/1/200/200?grayscale", 200, readFixture("grayscale")},
-		{"/id/:id/:size?blur&grayscale", "/id/1/200?blur&grayscale", 200, readFixture("all")},
-		{"/id/:id/:width/:height?blur&grayscale", "/id/1/200/200?blur&grayscale", 200, readFixture("all")},
-		{"width/height larger then max allowed but same size as image", "/id/1/300/400", 200, readFixture("max_allowed")},
+		{"/id/:id/:size", "/id/1/200", readFixture("size")},
+		{"/id/:id/:width/:height", "/id/1/200/120", readFixture("width_height")},
+		{"/id/:id/:size?blur", "/id/1/200?blur", readFixture("blur")},
+		{"/id/:id/:width/:height?blur", "/id/1/200/200?blur", readFixture("blur")},
+		{"/id/:id/:size?grayscale", "/id/1/200?grayscale", readFixture("grayscale")},
+		{"/id/:id/:width/:height?grayscale", "/id/1/200/200?grayscale", readFixture("grayscale")},
+		{"/id/:id/:size?blur&grayscale", "/id/1/200?blur&grayscale", readFixture("all")},
+		{"/id/:id/:width/:height?blur&grayscale", "/id/1/200/200?blur&grayscale", readFixture("all")},
+		{"width/height larger then max allowed but same size as image", "/id/1/300/400", readFixture("max_allowed")},
 	}
 
 	for _, test := range imageTests {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", test.URL, nil)
 		router.ServeHTTP(w, req)
-		if w.Code != test.ExpectedStatus {
+		if w.Code != http.StatusOK {
 			t.Errorf("%s: wrong response code, %#v", test.Name, w.Code)
 			continue
 		}
@@ -391,7 +390,7 @@ func TestAPI(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", test.URL, nil)
 		router.ServeHTTP(w, req)
-		if w.Code != 302 && w.Code != 301 {
+		if w.Code != http.StatusFound && w.Code != http.StatusMovedPermanently {
 			t.Errorf("%s: wrong response code, %#v", test.Name, w.Code)
 			continue
 		}
