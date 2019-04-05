@@ -23,9 +23,20 @@ func Logger(log *logger.Logger, h http.Handler) http.Handler {
 
 		log.Debugw("request started", fields...)
 
+		responseWriter := &loggingResponseWriter{w, -1}
 		start := time.Now()
-		h.ServeHTTP(w, r)
+		h.ServeHTTP(responseWriter, r)
 
-		log.Debugw("request completed", append(fields, "elapsed-ms", float64(time.Since(start).Nanoseconds())/1000000.0)...)
+		log.Debugw("request completed", append(fields, "status-code", responseWriter.statusCode, "elapsed-ms", float64(time.Since(start).Nanoseconds())/1000000.0)...)
 	})
+}
+
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (l *loggingResponseWriter) WriteHeader(code int) {
+	l.statusCode = code
+	l.ResponseWriter.WriteHeader(code)
 }
