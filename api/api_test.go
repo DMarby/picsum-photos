@@ -31,16 +31,6 @@ import (
 	"testing"
 )
 
-func marshalJson(v interface{}) []byte {
-	fixture, _ := json.Marshal(v)
-	return append(fixture[:], []byte("\n")...)
-}
-
-func readFixture(fixtureName string) []byte {
-	fixture, _ := ioutil.ReadFile(fmt.Sprintf("../test/fixtures/api/%s_%s.jpg", fixtureName, runtime.GOOS))
-	return fixture
-}
-
 const rootURL = "https://example.com"
 
 func TestAPI(t *testing.T) {
@@ -53,6 +43,7 @@ func TestAPI(t *testing.T) {
 	imageProcessor, _ := vipsProcessor.GetInstance(ctx, log)
 	storage, _ := fileStorage.New("../test/fixtures/file")
 	db, _ := fileDatabase.New("../test/fixtures/file/metadata.json")
+	dbMultiple, _ := fileDatabase.New("../test/fixtures/file/metadata_multiple.json")
 	cache := memoryCache.New()
 	apiCache := api.NewCache(cache, storage)
 
@@ -75,22 +66,87 @@ func TestAPI(t *testing.T) {
 	mockChecker.Run()
 
 	router := (&api.API{imageProcessor, apiCache, db, checker, log, 200, rootURL}).Router()
+	paginationRouter := (&api.API{imageProcessor, apiCache, dbMultiple, checker, log, 200, rootURL}).Router()
 	mockStorageRouter := (&api.API{imageProcessor, api.NewCache(memoryCache.New(), &mockStorage.Provider{}), db, mockChecker, log, 200, rootURL}).Router()
 	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, apiCache, db, checker, log, 200, rootURL}).Router()
 	mockDatabaseRouter := (&api.API{imageProcessor, apiCache, &mockDatabase.Provider{}, checker, log, 200, rootURL}).Router()
 
 	tests := []struct {
-		Name                string
-		URL                 string
-		Router              http.Handler
-		ExpectedStatus      int
-		ExpectedResponse    []byte
-		ExpectedContentType string
+		Name             string
+		URL              string
+		Router           http.Handler
+		ExpectedStatus   int
+		ExpectedResponse []byte
+		ExpectedHeaders  map[string]string
 	}{
 		{
 			Name:           "/v2/list lists images",
 			URL:            "/v2/list",
-			Router:         router,
+			Router:         paginationRouter,
+			ExpectedStatus: 200,
+			ExpectedResponse: marshalJson([]api.ListImage{
+				api.ListImage{
+					Image: database.Image{
+						ID:     "1",
+						Author: "John Doe",
+						URL:    "https://picsum.photos",
+						Width:  300,
+						Height: 400,
+					},
+					DownloadURL: fmt.Sprintf("%s/id/1/300/400", rootURL),
+				},
+				api.ListImage{
+					Image: database.Image{
+						ID:     "2",
+						Author: "John Doe",
+						URL:    "https://picsum.photos",
+						Width:  300,
+						Height: 400,
+					},
+					DownloadURL: fmt.Sprintf("%s/id/2/300/400", rootURL),
+				},
+			}),
+			ExpectedHeaders: map[string]string{
+				"Content-Type": "application/json",
+				"Link":         fmt.Sprintf("<%s/v2/list?page=2&limit=30>; rel=\"next\"", rootURL),
+			},
+		},
+		{
+			Name:           "/v2/list lists images with limit",
+			URL:            "/v2/list?limit=1000",
+			Router:         paginationRouter,
+			ExpectedStatus: 200,
+			ExpectedResponse: marshalJson([]api.ListImage{
+				api.ListImage{
+					Image: database.Image{
+						ID:     "1",
+						Author: "John Doe",
+						URL:    "https://picsum.photos",
+						Width:  300,
+						Height: 400,
+					},
+					DownloadURL: fmt.Sprintf("%s/id/1/300/400", rootURL),
+				},
+				api.ListImage{
+					Image: database.Image{
+						ID:     "2",
+						Author: "John Doe",
+						URL:    "https://picsum.photos",
+						Width:  300,
+						Height: 400,
+					},
+					DownloadURL: fmt.Sprintf("%s/id/2/300/400", rootURL),
+				},
+			}),
+			ExpectedHeaders: map[string]string{
+				"Content-Type": "application/json",
+				"Link":         fmt.Sprintf("<%s/v2/list?page=2&limit=100>; rel=\"next\"", rootURL),
+			},
+		},
+		{
+			Name:           "/v2/list pagination page 1",
+			URL:            "/v2/list?page=1&limit=1",
+			Router:         paginationRouter,
 			ExpectedStatus: 200,
 			ExpectedResponse: marshalJson([]api.ListImage{
 				api.ListImage{
@@ -104,7 +160,43 @@ func TestAPI(t *testing.T) {
 					DownloadURL: fmt.Sprintf("%s/id/1/300/400", rootURL),
 				},
 			}),
-			ExpectedContentType: "application/json",
+			ExpectedHeaders: map[string]string{
+				"Content-Type": "application/json",
+				"Link":         fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"next\"", rootURL),
+			},
+		},
+		{
+			Name:           "/v2/list pagination page 2",
+			URL:            "/v2/list?page=2&limit=1",
+			Router:         paginationRouter,
+			ExpectedStatus: 200,
+			ExpectedResponse: marshalJson([]api.ListImage{
+				api.ListImage{
+					Image: database.Image{
+						ID:     "2",
+						Author: "John Doe",
+						URL:    "https://picsum.photos",
+						Width:  300,
+						Height: 400,
+					},
+					DownloadURL: fmt.Sprintf("%s/id/2/300/400", rootURL),
+				},
+			}),
+			ExpectedHeaders: map[string]string{
+				"Content-Type": "application/json",
+				"Link":         fmt.Sprintf("<%s/v2/list?page=1&limit=1>; rel=\"prev\", <%s/v2/list?page=3&limit=1>; rel=\"next\"", rootURL, rootURL),
+			},
+		},
+		{
+			Name:             "/v2/list pagination page 3",
+			URL:              "/v2/list?page=3&limit=1",
+			Router:           paginationRouter,
+			ExpectedStatus:   200,
+			ExpectedResponse: marshalJson([]api.ListImage{}),
+			ExpectedHeaders: map[string]string{
+				"Content-Type": "application/json",
+				"Link":         fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"prev\"", rootURL),
+			},
 		},
 		{
 			Name:           "Deprecated /list lists images",
@@ -123,7 +215,9 @@ func TestAPI(t *testing.T) {
 					PostURL:   "https://picsum.photos",
 				},
 			}),
-			ExpectedContentType: "application/json",
+			ExpectedHeaders: map[string]string{
+				"Content-Type": "application/json",
+			},
 		},
 		{
 			Name:           "/health returns healthy health status",
@@ -137,7 +231,9 @@ func TestAPI(t *testing.T) {
 				Storage:   "healthy",
 				Processor: "healthy",
 			}),
-			ExpectedContentType: "application/json",
+			ExpectedHeaders: map[string]string{
+				"Content-Type": "application/json",
+			},
 		},
 		{
 			Name:           "/health returns unhealthy health status",
@@ -151,27 +247,30 @@ func TestAPI(t *testing.T) {
 				Storage:   "unknown",
 				Processor: "unknown",
 			}),
-			ExpectedContentType: "application/json",
+			ExpectedHeaders: map[string]string{
+				"Content-Type": "application/json",
+			},
 		},
+
 		// Errors
-		{"invalid image id", "/id/nonexistant/200", router, 404, []byte("Image does not exist\n"), "text/plain; charset=utf-8"},
-		{"invalid image id", "/id/nonexistant/200/300", router, 404, []byte("Image does not exist\n"), "text/plain; charset=utf-8"},
-		{"invalid size", "/id/1/0", router, 400, []byte("Invalid size\n"), "text/plain; charset=utf-8"},
-		{"invalid size", "/id/1/0/0", router, 400, []byte("Invalid size\n"), "text/plain; charset=utf-8"},
-		{"invalid size", "/id/1/1/9223372036854775808", router, 400, []byte("Invalid size\n"), "text/plain; charset=utf-8"}, // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/9223372036854775808/1", router, 400, []byte("Invalid size\n"), "text/plain; charset=utf-8"}, // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/5500/1", router, 400, []byte("Invalid size\n"), "text/plain; charset=utf-8"},                // Number larger then maxImageSize to fail int parsing
-		{"invalid blur amount", "/id/1/100/100?blur=11", router, 400, []byte("Invalid blur amount\n"), "text/plain; charset=utf-8"},
-		{"invalid blur amount", "/id/1/100/100?blur=0", router, 400, []byte("Invalid blur amount\n"), "text/plain; charset=utf-8"},
+		{"invalid image id", "/id/nonexistant/200", router, 404, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid image id", "/id/nonexistant/200/300", router, 404, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid size", "/id/1/0", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid size", "/id/1/0/0", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid size", "/id/1/1/9223372036854775808", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/id/1/9223372036854775808/1", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/id/1/5500/1", router, 400, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},                // Number larger then maxImageSize to fail int parsing
+		{"invalid blur amount", "/id/1/100/100?blur=11", router, 400, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"invalid blur amount", "/id/1/100/100?blur=0", router, 400, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// Storage errors
-		{"Get()", "/id/1/100", mockStorageRouter, 500, []byte("Something went wrong\n"), "text/plain; charset=utf-8"},
+		{"Get()", "/id/1/100", mockStorageRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// Database errors
-		{"List()", "/list", mockDatabaseRouter, 500, []byte("Something went wrong\n"), "text/plain; charset=utf-8"},
-		{"List()", "/v2/list", mockDatabaseRouter, 500, []byte("Something went wrong\n"), "text/plain; charset=utf-8"},
-		{"GetRandom()", "/200", mockDatabaseRouter, 500, []byte("Something went wrong\n"), "text/plain; charset=utf-8"},
-		{"Get()", "/id/1/100", mockDatabaseRouter, 500, []byte("Something went wrong\n"), "text/plain; charset=utf-8"},
+		{"List()", "/list", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"List()", "/v2/list", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"GetRandom()", "/200", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
+		{"Get()", "/id/1/100", mockDatabaseRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 		// Processor errors
-		{"processor error", "/id/1/100/100", mockProcessorRouter, 500, []byte("Something went wrong\n"), "text/plain; charset=utf-8"},
+		{"processor error", "/id/1/100/100", mockProcessorRouter, 500, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8"}},
 	}
 
 	for _, test := range tests {
@@ -183,8 +282,13 @@ func TestAPI(t *testing.T) {
 			continue
 		}
 
-		if w.Header()["Content-Type"][0] != test.ExpectedContentType {
-			t.Errorf("%s: wrong content type, %#v", test.Name, w.Header()["Content-Type"][0])
+		if test.ExpectedHeaders != nil {
+			for expectedHeader, expectedValue := range test.ExpectedHeaders {
+				headerValue := w.Header().Get(expectedHeader)
+				if headerValue != expectedValue {
+					t.Errorf("%s: wrong header value for %s, %#v", test.Name, expectedHeader, headerValue)
+				}
+			}
 		}
 
 		if !reflect.DeepEqual(w.Body.Bytes(), test.ExpectedResponse) {
@@ -283,4 +387,14 @@ func TestAPI(t *testing.T) {
 			t.Errorf("%s: wrong redirect %s", test.Name, w.Header()["Location"][0])
 		}
 	}
+}
+
+func marshalJson(v interface{}) []byte {
+	fixture, _ := json.Marshal(v)
+	return append(fixture[:], []byte("\n")...)
+}
+
+func readFixture(fixtureName string) []byte {
+	fixture, _ := ioutil.ReadFile(fmt.Sprintf("../test/fixtures/api/%s_%s.jpg", fixtureName, runtime.GOOS))
+	return fixture
 }

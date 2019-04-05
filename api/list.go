@@ -10,6 +10,13 @@ import (
 	"github.com/DMarby/picsum-photos/database"
 )
 
+const (
+	// Default number of items per page
+	defaultLimit = 30
+	// Max number of items per page
+	maxLimit = 100
+)
+
 // ListImage contains metadata and download information about an image
 type ListImage struct {
 	database.Image
@@ -58,13 +65,6 @@ func (a *API) listHandler(w http.ResponseWriter, r *http.Request) *handler.Error
 
 	return nil
 }
-
-const (
-	// Default number of items per page
-	defaultLimit = 30
-	// Max number of items per page
-	maxLimit = 100
-)
 
 func getLimit(r *http.Request) int {
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
