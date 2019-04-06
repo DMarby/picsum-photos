@@ -81,6 +81,7 @@ func (a *API) Router() http.Handler {
 	// Static files
 	router.HandleFunc("/", serveFile(path.Join(a.StaticPath, "index.html")))
 	router.HandleFunc("/images", serveFile(path.Join(a.StaticPath, "images.html")))
+	router.HandleFunc("/favicon.ico", serveFile(path.Join(a.StaticPath, "assets/images/favicon/favicon.ico")))
 	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))).ServeHTTP))
 
 	// Set up handlers for adding a request id, handling panics, request logging, setting CORS headers, and handler execution timeout
