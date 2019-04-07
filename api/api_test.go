@@ -67,7 +67,7 @@ func TestAPI(t *testing.T) {
 	}
 	mockChecker.Run()
 
-	staticPath := "../static"
+	staticPath := "../src"
 
 	router := (&api.API{imageProcessor, apiCache, db, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
 	paginationRouter := (&api.API{imageProcessor, apiCache, dbMultiple, checker, log, 200, rootURL, staticPath, time.Minute}).Router()

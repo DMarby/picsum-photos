@@ -1,0 +1,13 @@
+{
+  "name": "picsum-photos",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "gulp",
+    "watch": "gulp watch"
+  },
+  "devDependencies": {
+    "del": "^4.1.0",
+    "gulp": "^4.0.0",
+    "gulp-purgecss": "^1.1.1"
+  }
+}

@@ -16,12 +16,22 @@ WORKDIR /picsum-photos
 # Run tests and build
 RUN make
 
-# Second stage with only the things needed for the app to run
+# Second stage for the frontend
+FROM node:10.15.3-alpine as nodebuilder
+
+# Add the project
+ADD . /picsum-photos
+WORKDIR /picsum-photos
+
+# Install dependencies and run the build
+RUN npm install && npm run-script build
+
+# Third stage with only the things needed for the app to run
 FROM alpine:3.9
 
 RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips
 
 WORKDIR /app
 COPY --from=gobuilder /go/bin/picsum-photos .
-COPY --from=gobuilder /picsum-photos/static static
+COPY --from=nodebuilder /picsum-photos/static static
 CMD ["./picsum-photos"]

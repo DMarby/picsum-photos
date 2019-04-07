@@ -19,10 +19,15 @@
 !image
 !logger
 !queue
-!static
+!src
 !storage
 !test
 !vips
+
+# Include frontend build-pipeline stuff
+!gulpfile.js
+!package.json
+!package-lock.json
 
 # Exclude debug files
 **/debug
