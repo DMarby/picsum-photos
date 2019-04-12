@@ -29,7 +29,6 @@ var (
 )
 
 const (
-	minImageDimension = 1
 	defaultBlurAmount = 5
 	minBlurAmount     = 1
 	maxBlurAmount     = 10
@@ -37,10 +36,6 @@ const (
 
 // ValidateParams checks that the size is within the allowed limit
 func ValidateParams(maxImageSize int, image *database.Image, width int, height int, blur bool, blurAmount int) error {
-	if width < minImageDimension || height < minImageDimension {
-		return ErrInvalidSize
-	}
-
 	if width > maxImageSize && width != image.Width {
 		return ErrInvalidSize
 	}

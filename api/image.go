@@ -47,6 +47,15 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 		return handler.BadRequest(err.Error())
 	}
 
+	// Default to the image width/height if 0 is passed
+	if width == 0 {
+		width = databaseImage.Width
+	}
+
+	if height == 0 {
+		height = databaseImage.Height
+	}
+
 	imageBuffer, err := a.Cache.Get(imageID)
 	if err != nil {
 		a.logError(r, "error getting image from cache", err)
