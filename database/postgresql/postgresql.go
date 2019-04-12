@@ -5,8 +5,9 @@ import (
 
 	"github.com/DMarby/picsum-photos/database"
 
-	// Import the postgresql driver
-	_ "github.com/jackc/pgx/stdlib"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -17,7 +18,29 @@ type Provider struct {
 
 // New returns a new Provider instance
 func New(address string) (*Provider, error) {
-	db, err := sqlx.Connect("pgx", address)
+	// Needed to work with pgbouncer
+	d := &stdlib.DriverConfig{
+		ConnConfig: pgx.ConnConfig{
+			PreferSimpleProtocol: true,
+			RuntimeParams: map[string]string{
+				"client_encoding": "UTF8",
+			},
+			CustomConnInfo: func(c *pgx.Conn) (*pgtype.ConnInfo, error) {
+				info := c.ConnInfo.DeepCopy()
+				info.RegisterDataType(pgtype.DataType{
+					Value: &pgtype.OIDValue{},
+					Name:  "int8OID",
+					OID:   pgtype.Int8OID,
+				})
+
+				return info, nil
+			},
+		},
+	}
+
+	stdlib.RegisterDriverConfig(d)
+
+	db, err := sqlx.Connect("pgx", d.ConnectionString(address))
 	if err != nil {
 		return nil, err
 	}

@@ -3,13 +3,15 @@ module github.com/DMarby/picsum-photos
 require (
 	github.com/aws/aws-sdk-go v1.19.6
 	github.com/cockroachdb/apd v1.1.0 // indirect
+	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gorilla/mux v1.7.0
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
-	github.com/jackc/pgx v3.3.0+incompatible
+	github.com/jackc/pgx v3.3.1-0.20190402234641-5c9679850f3d+incompatible
 	github.com/jamiealquiza/envy v1.1.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kr/pretty v0.1.0 // indirect
+	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/mediocregopher/radix/v3 v3.2.3
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
