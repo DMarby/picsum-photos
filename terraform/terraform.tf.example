@@ -1,0 +1,15 @@
+terraform {
+  backend "s3" {
+    bucket                      = ""
+    key                         = "picsum/terraform.tfstate"
+    region                      = "us-east-1"
+    acl                         = "private"
+    endpoint                    = "https://ams3.digitaloceanspaces.com""
+    access_key                  = ""
+    secret_key                  = ""
+    skip_credentials_validation = true
+    skip_get_ec2_platforms      = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+  }
+}

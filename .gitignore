@@ -3,5 +3,10 @@
 picsum-photos
 .vscode/c_cpp_properties.json
 .vscode/settings.json
+
 static
 node_modules
+
+.terraform
+terraform.tfvars
+terraform.tf
