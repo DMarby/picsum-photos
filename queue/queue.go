@@ -15,8 +15,9 @@ type Queue struct {
 }
 
 type job struct {
-	data   interface{}
-	result chan jobResult
+	data    interface{}
+	result  chan jobResult
+	context context.Context
 }
 
 type jobResult struct {
@@ -58,11 +59,22 @@ func (q *Queue) worker() {
 				return
 			}
 
-			result, err := q.handler(job.data)
-			job.result <- jobResult{
-				result: result,
-				err:    err,
+			select {
+			// End early if the job context was cancelled
+			case <-job.context.Done():
+				job.result <- jobResult{
+					result: nil,
+					err:    job.context.Err(),
+				}
+			// Otherwise run the job
+			default:
+				result, err := q.handler(job.data)
+				job.result <- jobResult{
+					result: result,
+					err:    err,
+				}
 			}
+
 		case <-q.ctx.Done():
 			return
 		}
@@ -70,7 +82,7 @@ func (q *Queue) worker() {
 }
 
 // Process adds a job to the queue, waits for it to process, and returns the result
-func (q *Queue) Process(data interface{}) (interface{}, error) {
+func (q *Queue) Process(ctx context.Context, data interface{}) (interface{}, error) {
 	if q.ctx.Err() != nil {
 		return nil, fmt.Errorf("queue has been shutdown")
 	}
@@ -78,8 +90,9 @@ func (q *Queue) Process(data interface{}) (interface{}, error) {
 	resultChan := make(chan jobResult)
 
 	q.queue <- job{
-		data:   data,
-		result: resultChan,
+		data:    data,
+		result:  resultChan,
+		context: ctx,
 	}
 
 	result := <-resultChan

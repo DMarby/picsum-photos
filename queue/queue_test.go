@@ -23,7 +23,7 @@ func TestProcess(t *testing.T) {
 
 	defer cancel()
 
-	data, err := workerQueue.Process("test")
+	data, err := workerQueue.Process(context.Background(), "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func TestShutdown(t *testing.T) {
 
 	cancel()
 
-	_, err := workerQueue.Process("test")
+	_, err := workerQueue.Process(context.Background(), "test")
 	if err == nil || err.Error() != "queue has been shutdown" {
 		t.FailNow()
 	}
@@ -52,9 +52,26 @@ func TestTaskWithError(t *testing.T) {
 	})
 
 	defer cancel()
-	_, err := errorQueue.Process("test")
+	_, err := errorQueue.Process(context.Background(), "test")
 
 	if err == nil || err.Error() != "custom error" {
+		t.Fatal("Invalid error")
+	}
+}
+
+func TestTaskWithCancelledContext(t *testing.T) {
+	errorQueue, cancel := setupQueue(func(data interface{}) (interface{}, error) {
+		return nil, fmt.Errorf("custom error")
+	})
+
+	defer cancel()
+
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	ctxCancel()
+
+	_, err := errorQueue.Process(ctx, "test")
+
+	if err == nil || err.Error() != "context canceled" {
 		t.Fatal("Invalid error")
 	}
 }
