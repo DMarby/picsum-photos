@@ -3,6 +3,7 @@ package spaces
 import (
 	"bytes"
 	"fmt"
+	"io"
 
 	"github.com/DMarby/picsum-photos/database"
 
@@ -34,10 +35,11 @@ func New(space, region, accessKey, secretKey string) (*Provider, error) {
 		Key:    aws.String("/"),
 	}
 
-	_, err := spaces.GetObject(&object)
+	result, err := spaces.GetObject(&object)
 	if err != nil {
 		return nil, err
 	}
+	defer result.Body.Close()
 
 	return &Provider{
 		spaces: spaces,
@@ -60,9 +62,10 @@ func (p *Provider) Get(id string) ([]byte, error) {
 
 		return nil, err
 	}
+	defer output.Body.Close()
 
 	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
+	_, err = io.Copy(buf, output.Body)
 	if err != nil {
 		return nil, err
 	}
