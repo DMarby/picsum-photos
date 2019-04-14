@@ -84,15 +84,15 @@ func ResizeImage(buffer []byte, width int, height int) (Image, error) {
 		return nil, fmt.Errorf("empty buffer")
 	}
 
-	// Prevent buffer from being garbage collected
-	defer runtime.KeepAlive(buffer)
-
 	imageBuffer := unsafe.Pointer(&buffer[0])
 	imageBufferSize := C.size_t(len(buffer))
 
 	var image *C.VipsImage
 
 	errCode := C.resize_image(imageBuffer, imageBufferSize, &image, C.int(width), C.int(height), C.VIPS_INTERESTING_CENTRE)
+
+	// Prevent buffer from being garbage collected until after resize_image has been called
+	runtime.KeepAlive(buffer)
 
 	if errCode != 0 {
 		return nil, fmt.Errorf("error processing image from buffer %s", catchVipsError())
