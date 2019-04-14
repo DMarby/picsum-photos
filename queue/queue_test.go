@@ -8,7 +8,7 @@ import (
 	queue "github.com/DMarby/picsum-photos/queue"
 )
 
-func setupQueue(f func(data interface{}) (interface{}, error)) (*queue.Queue, context.CancelFunc) {
+func setupQueue(f func(ctx context.Context, data interface{}) (interface{}, error)) (*queue.Queue, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 	workerQueue := queue.New(ctx, 5, f)
 	go workerQueue.Run()
@@ -16,7 +16,7 @@ func setupQueue(f func(data interface{}) (interface{}, error)) (*queue.Queue, co
 }
 
 func TestProcess(t *testing.T) {
-	workerQueue, cancel := setupQueue(func(data interface{}) (interface{}, error) {
+	workerQueue, cancel := setupQueue(func(ctx context.Context, data interface{}) (interface{}, error) {
 		stringData, _ := data.(string)
 		return stringData, nil
 	})
@@ -34,7 +34,7 @@ func TestProcess(t *testing.T) {
 }
 
 func TestShutdown(t *testing.T) {
-	workerQueue, cancel := setupQueue(func(data interface{}) (interface{}, error) {
+	workerQueue, cancel := setupQueue(func(ctx context.Context, data interface{}) (interface{}, error) {
 		return "", nil
 	})
 
@@ -47,7 +47,7 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestTaskWithError(t *testing.T) {
-	errorQueue, cancel := setupQueue(func(data interface{}) (interface{}, error) {
+	errorQueue, cancel := setupQueue(func(ctx context.Context, data interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("custom error")
 	})
 
@@ -60,7 +60,7 @@ func TestTaskWithError(t *testing.T) {
 }
 
 func TestTaskWithCancelledContext(t *testing.T) {
-	errorQueue, cancel := setupQueue(func(data interface{}) (interface{}, error) {
+	errorQueue, cancel := setupQueue(func(ctx context.Context, data interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("custom error")
 	})
 

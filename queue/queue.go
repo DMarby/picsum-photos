@@ -10,7 +10,7 @@ import (
 type Queue struct {
 	workers int
 	queue   chan job
-	handler func(interface{}) (interface{}, error)
+	handler func(context.Context, interface{}) (interface{}, error)
 	ctx     context.Context
 }
 
@@ -26,7 +26,7 @@ type jobResult struct {
 }
 
 // New creates a new Queue with the specified amount of workers
-func New(ctx context.Context, workers int, handler func(interface{}) (interface{}, error)) *Queue {
+func New(ctx context.Context, workers int, handler func(context.Context, interface{}) (interface{}, error)) *Queue {
 	queue := &Queue{
 		workers: workers,
 		queue:   make(chan job),
@@ -68,7 +68,7 @@ func (q *Queue) worker() {
 				}
 			// Otherwise run the job
 			default:
-				result, err := q.handler(job.data)
+				result, err := q.handler(job.context, job.data)
 				job.result <- jobResult{
 					result: result,
 					err:    err,
