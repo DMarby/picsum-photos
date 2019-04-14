@@ -43,6 +43,7 @@ func Initialize(logger *logger.Logger) error {
 		}
 
 		// Catch vips logging/warnings
+		log = logger
 		C.setup_logging()
 
 		// Set concurrency to 1 so that each job only uses one thread
@@ -52,7 +53,6 @@ func Initialize(logger *logger.Logger) error {
 		C.vips_cache_set_max_mem(0)
 		C.vips_cache_set_max(0)
 
-		log = logger
 	})
 
 	return err
