@@ -4,6 +4,7 @@ package spaces_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -58,7 +59,7 @@ func TestSpaces(t *testing.T) {
 	}
 
 	t.Run("Get an image by id", func(t *testing.T) {
-		buf, err := provider.Get("1")
+		buf, err := provider.Get(context.Background(), "1")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -69,7 +70,7 @@ func TestSpaces(t *testing.T) {
 	})
 
 	t.Run("Returns error on a nonexistant image", func(t *testing.T) {
-		_, err := provider.Get("nonexistant")
+		_, err := provider.Get(context.Background(), "nonexistant")
 		if err != database.ErrNotFound {
 			t.FailNow()
 		}

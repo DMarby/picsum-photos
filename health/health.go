@@ -108,7 +108,7 @@ func (c *Checker) check(channel chan Status) {
 	}
 	status.Database = "healthy"
 
-	_, err = c.Storage.Get(id)
+	_, err = c.Storage.Get(context.Background(), id)
 	if err != nil {
 		status.Healthy = false
 		status.Storage = "unhealthy"

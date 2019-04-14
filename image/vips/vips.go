@@ -56,14 +56,14 @@ func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (process
 	return image, nil
 }
 
-func taskProcessor(cache *image.Cache) func(data interface{}) (interface{}, error) {
-	return func(data interface{}) (interface{}, error) {
+func taskProcessor(cache *image.Cache) func(ctx context.Context, data interface{}) (interface{}, error) {
+	return func(ctx context.Context, data interface{}) (interface{}, error) {
 		task, ok := data.(*image.Task)
 		if !ok {
 			return nil, fmt.Errorf("invalid data")
 		}
 
-		imageBuffer, err := cache.Get(task.ImageID)
+		imageBuffer, err := cache.Get(ctx, task.ImageID)
 		if err != nil {
 			return nil, fmt.Errorf("error getting image from cache: %s", err)
 		}

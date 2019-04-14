@@ -1,6 +1,7 @@
 package file_test
 
 import (
+	"context"
 	"io/ioutil"
 	"reflect"
 
@@ -16,7 +17,7 @@ func TestFile(t *testing.T) {
 	}
 
 	t.Run("Get an image by id", func(t *testing.T) {
-		buf, err := provider.Get("1")
+		buf, err := provider.Get(context.Background(), "1")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -35,7 +36,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("Returns error on a nonexistant image", func(t *testing.T) {
-		_, err := provider.Get("nonexistant")
+		_, err := provider.Get(context.Background(), "nonexistant")
 		if err == nil {
 			t.FailNow()
 		}

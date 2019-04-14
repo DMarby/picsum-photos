@@ -2,6 +2,7 @@ package spaces
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 
@@ -48,13 +49,13 @@ func New(space, region, accessKey, secretKey string) (*Provider, error) {
 }
 
 // Get returns the image data for an image id
-func (p *Provider) Get(id string) ([]byte, error) {
+func (p *Provider) Get(ctx context.Context, id string) ([]byte, error) {
 	object := s3.GetObjectInput{
 		Bucket: &p.space,
 		Key:    aws.String(fmt.Sprintf("%s.jpg", id)),
 	}
 
-	output, err := p.spaces.GetObject(&object)
+	output, err := p.spaces.GetObjectWithContext(ctx, &object)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == s3.ErrCodeNoSuchKey {
 			return nil, database.ErrNotFound

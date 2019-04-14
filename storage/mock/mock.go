@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -9,6 +10,6 @@ type Provider struct {
 }
 
 // Get returns the image data for an image id
-func (p *Provider) Get(id string) ([]byte, error) {
+func (p *Provider) Get(ctx context.Context, id string) ([]byte, error) {
 	return nil, fmt.Errorf("get error")
 }

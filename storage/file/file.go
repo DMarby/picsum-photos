@@ -1,6 +1,7 @@
 package file
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -24,7 +25,7 @@ func New(path string) (*Provider, error) {
 }
 
 // Get returns the image data for an image id
-func (p *Provider) Get(id string) ([]byte, error) {
+func (p *Provider) Get(ctx context.Context, id string) ([]byte, error) {
 	imageData, err := ioutil.ReadFile(filepath.Join(p.path, fmt.Sprintf("%s.jpg", id)))
 	if err != nil {
 		return nil, err

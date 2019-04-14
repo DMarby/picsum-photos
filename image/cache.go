@@ -1,6 +1,8 @@
 package image
 
 import (
+	"context"
+
 	"github.com/DMarby/picsum-photos/cache"
 	"github.com/DMarby/picsum-photos/storage"
 )
@@ -12,8 +14,8 @@ type Cache = cache.Auto
 func NewCache(cacheProvider cache.Provider, storageProvider storage.Provider) *Cache {
 	return &Cache{
 		Provider: cacheProvider,
-		Loader: func(key string) (data []byte, err error) {
-			return storageProvider.Get(key)
+		Loader: func(ctx context.Context, key string) (data []byte, err error) {
+			return storageProvider.Get(ctx, key)
 		},
 	}
 }

@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"errors"
 
 	"golang.org/x/sync/singleflight"
@@ -14,7 +15,7 @@ type Provider interface {
 }
 
 // LoaderFunc is a function for loading data into a cache
-type LoaderFunc func(key string) (data []byte, err error)
+type LoaderFunc func(ctx context.Context, key string) (data []byte, err error)
 
 // Auto is a cache that automatically attempts to load objects if they don't exist
 type Auto struct {
@@ -24,7 +25,7 @@ type Auto struct {
 }
 
 // Get returns an object from the cache if it exists, otherwise it loads it into the cache and returns it
-func (a *Auto) Get(key string) (data []byte, err error) {
+func (a *Auto) Get(ctx context.Context, key string) (data []byte, err error) {
 	// Attempt to get the data from the cache
 	data, err = a.Provider.Get(key)
 	// Exit early if the error is nil as we got data from the cache
@@ -37,7 +38,7 @@ func (a *Auto) Get(key string) (data []byte, err error) {
 	var v interface{}
 	v, err, _ = a.lookupGroup.Do(key, func() (interface{}, error) {
 		// Get the data
-		data, err := a.Loader(key)
+		data, err := a.Loader(ctx, key)
 		if err != nil {
 			return nil, err
 		}

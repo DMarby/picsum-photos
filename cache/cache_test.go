@@ -1,6 +1,7 @@
 package cache_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/DMarby/picsum-photos/cache/mock"
 )
 
-var mockLoaderFunc cache.LoaderFunc = func(key string) (data []byte, err error) {
+var mockLoaderFunc cache.LoaderFunc = func(ctx context.Context, key string) (data []byte, err error) {
 	if key == "notfounderr" {
 		return nil, fmt.Errorf("notfounderr")
 	}
@@ -33,7 +34,7 @@ func TestAuto(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		data, err := auto.Get(test.Key)
+		data, err := auto.Get(context.Background(), test.Key)
 		if err != nil {
 			if test.ExpectedError == nil {
 				t.Errorf("%s: %s", test.Key, err)
