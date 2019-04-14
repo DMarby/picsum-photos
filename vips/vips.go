@@ -49,6 +49,10 @@ func Initialize(logger *logger.Logger) error {
 
 		// Set concurrency to 1 so that each job only uses one thread
 		C.vips_concurrency_set(1)
+
+		// Disable the cache
+		C.vips_cache_set_max_mem(0)
+		C.vips_cache_set_max(0)
 	})
 
 	return err
