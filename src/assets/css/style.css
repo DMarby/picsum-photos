@@ -114,11 +114,7 @@ header img {
 }
 
 /* Wrapper for <pre> to make the <pre> field length the same as the content text */
-.pre- {
-  display: flex;
-}
-
-.pre- div {
+.pre-div {
   flex-grow: 1;
   width: 0;
 }
@@ -153,13 +149,15 @@ footer .overlay {
   background: hsla(0, 0%, 0%, 0.6);
 }
 
-.digitalocean {
+.sponsor {
   height: auto;
   width: 201px;
   margin-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
-.digitalocean:hover {
+.sponsor:hover {
   opacity: 0.6;
 }
 
