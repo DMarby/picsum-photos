@@ -17,7 +17,6 @@ import (
 // API is a http api
 type API struct {
 	ImageProcessor image.Processor
-	Cache          *ImageCache
 	Database       database.Provider
 	HealthChecker  *health.Checker
 	Log            *logger.Logger

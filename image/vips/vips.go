@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"sync"
 
 	"github.com/DMarby/picsum-photos/image"
 	"github.com/DMarby/picsum-photos/logger"
@@ -17,29 +16,21 @@ type Processor struct {
 	queue *queue.Queue
 }
 
-var instance *Processor
-var once sync.Once
+// New initializes a new processor instance
+func New(ctx context.Context, log *logger.Logger, cache *image.Cache) (*Processor, error) {
+	err := vips.Initialize(log)
+	if err != nil {
+		return nil, err
+	}
 
-// GetInstance returns the processor instance, and creates it if neccesary.
-func GetInstance(ctx context.Context, log *logger.Logger) (*Processor, error) {
-	var instance *Processor
-	var err error
+	workers := getWorkerCount()
+	workerQueue := queue.New(ctx, workers, taskProcessor(cache))
+	instance := &Processor{
+		queue: workerQueue,
+	}
 
-	once.Do(func() {
-		err = vips.Initialize(log)
-		if err != nil {
-			return
-		}
-
-		workers := getWorkerCount()
-		workerQueue := queue.New(ctx, workers, instance.processImage)
-		instance = &Processor{
-			queue: workerQueue,
-		}
-
-		go workerQueue.Run()
-		log.Infof("starting vips worker queue with %d workers", workers)
-	})
+	go workerQueue.Run()
+	log.Infof("starting vips worker queue with %d workers", workers)
 
 	return instance, err
 }
@@ -65,37 +56,44 @@ func (p *Processor) ProcessImage(task *image.Task) (processedImage []byte, err e
 	return image, nil
 }
 
-func (p *Processor) processImage(data interface{}) (interface{}, error) {
-	task, ok := data.(*image.Task)
-	if !ok {
-		return nil, fmt.Errorf("invalid data")
-	}
+func taskProcessor(cache *image.Cache) func(data interface{}) (interface{}, error) {
+	return func(data interface{}) (interface{}, error) {
+		task, ok := data.(*image.Task)
+		if !ok {
+			return nil, fmt.Errorf("invalid data")
+		}
 
-	image, err := p.ResizeImage(task.Buffer, task.Width, task.Height)
-	if err != nil {
-		return nil, err
-	}
+		imageBuffer, err := cache.Get(task.ImageID)
+		if err != nil {
+			return nil, fmt.Errorf("error getting image from cache: %s", err)
+		}
 
-	if task.ApplyBlur {
-		image, err = image.Blur(task.BlurAmount)
+		image, err := resizeImage(imageBuffer, task.Width, task.Height)
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	if task.ApplyGrayscale {
-		image, err = image.Grayscale()
+		if task.ApplyBlur {
+			image, err = image.blur(task.BlurAmount)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if task.ApplyGrayscale {
+			image, err = image.grayscale()
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		buffer, err := image.saveToBuffer()
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	buffer, err := image.SaveToBuffer()
-	if err != nil {
-		return nil, err
+		return buffer, nil
 	}
-
-	return buffer, nil
 }
 
 // Shutdown shuts down the image processor and deinitialises vips

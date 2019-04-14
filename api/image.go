@@ -56,13 +56,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 		height = databaseImage.Height
 	}
 
-	imageBuffer, err := a.Cache.Get(imageID)
-	if err != nil {
-		a.logError(r, "error getting image from cache", err)
-		return handler.InternalServerError()
-	}
-
-	task := image.NewTask(imageBuffer, width, height)
+	task := image.NewTask(imageID, width, height)
 
 	if grayscale {
 		task.Grayscale()

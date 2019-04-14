@@ -19,6 +19,7 @@ import (
 	fileDatabase "github.com/DMarby/picsum-photos/database/file"
 	"github.com/DMarby/picsum-photos/database/postgresql"
 	"github.com/DMarby/picsum-photos/health"
+	"github.com/DMarby/picsum-photos/image"
 	"github.com/DMarby/picsum-photos/image/vips"
 	"github.com/DMarby/picsum-photos/logger"
 	"github.com/DMarby/picsum-photos/storage"
@@ -103,15 +104,6 @@ func main() {
 	shutdownCtx, shutdown := context.WithCancel(context.Background())
 	defer shutdown()
 
-	// Get imageProcessor instance
-	imageProcessorCtx, imageProcessorCancel := context.WithCancel(context.Background())
-	defer imageProcessorCancel()
-
-	imageProcessor, err := vips.GetInstance(imageProcessorCtx, log)
-	if err != nil {
-		log.Fatalf("error initializing image processor %s", err.Error())
-	}
-
 	// Initialize the storage, cache and database
 	storage, cache, database, err := setupBackends()
 	if err != nil {
@@ -120,23 +112,30 @@ func main() {
 	defer cache.Shutdown()
 	defer database.Shutdown()
 
+	// Initialize the image processor
+	imageProcessorCtx, imageProcessorCancel := context.WithCancel(context.Background())
+	defer imageProcessorCancel()
+
+	imageProcessor, err := vips.New(imageProcessorCtx, log, image.NewCache(cache, storage))
+	if err != nil {
+		log.Fatalf("error initializing image processor %s", err.Error())
+	}
+
 	// Initialize and start the health checker
 	checkerCtx, checkerCancel := context.WithCancel(context.Background())
 	defer checkerCancel()
 
 	checker := &health.Checker{
-		Ctx:            checkerCtx,
-		ImageProcessor: imageProcessor,
-		Storage:        storage,
-		Database:       database,
-		Cache:          cache,
+		Ctx:      checkerCtx,
+		Storage:  storage,
+		Database: database,
+		Cache:    cache,
 	}
 	go checker.Run()
 
 	// Start and listen on http
 	api := &api.API{
 		ImageProcessor: imageProcessor,
-		Cache:          api.NewCache(cache, storage),
 		Database:       database,
 		HealthChecker:  checker,
 		Log:            log,

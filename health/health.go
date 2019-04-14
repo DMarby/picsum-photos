@@ -7,7 +7,6 @@ import (
 
 	"github.com/DMarby/picsum-photos/cache"
 	"github.com/DMarby/picsum-photos/database"
-	"github.com/DMarby/picsum-photos/image"
 	"github.com/DMarby/picsum-photos/storage"
 )
 
@@ -16,22 +15,20 @@ const checkTimeout = 20 * time.Second
 
 // Checker is a periodic health checker
 type Checker struct {
-	Ctx            context.Context
-	ImageProcessor image.Processor
-	Storage        storage.Provider
-	Database       database.Provider
-	Cache          cache.Provider
-	status         Status
-	mutex          sync.RWMutex
+	Ctx      context.Context
+	Storage  storage.Provider
+	Database database.Provider
+	Cache    cache.Provider
+	status   Status
+	mutex    sync.RWMutex
 }
 
 // Status contains the healtcheck status
 type Status struct {
-	Healthy   bool   `json:"healthy"`
-	Cache     string `json:"cache"`
-	Database  string `json:"database"`
-	Processor string `json:"processor"`
-	Storage   string `json:"storage"`
+	Healthy  bool   `json:"healthy"`
+	Cache    string `json:"cache"`
+	Database string `json:"database"`
+	Storage  string `json:"storage"`
 }
 
 // Run starts the health checker
@@ -75,11 +72,10 @@ func (c *Checker) runCheck() {
 	select {
 	case <-ctx.Done():
 		c.status = Status{
-			Healthy:   false,
-			Cache:     "unknown",
-			Database:  "unknown",
-			Processor: "unknown",
-			Storage:   "unknown",
+			Healthy:  false,
+			Cache:    "unknown",
+			Database: "unknown",
+			Storage:  "unknown",
 		}
 	case status := <-channel:
 		c.status = status
@@ -90,11 +86,10 @@ func (c *Checker) check(channel chan Status) {
 	defer close(channel)
 
 	status := Status{
-		Healthy:   true,
-		Cache:     "unknown",
-		Database:  "unknown",
-		Storage:   "unknown",
-		Processor: "unknown",
+		Healthy:  true,
+		Cache:    "unknown",
+		Database: "unknown",
+		Storage:  "unknown",
 	}
 
 	if _, err := c.Cache.Get("healthcheck"); err != cache.ErrNotFound {
@@ -113,7 +108,7 @@ func (c *Checker) check(channel chan Status) {
 	}
 	status.Database = "healthy"
 
-	buf, err := c.Storage.Get(id)
+	_, err = c.Storage.Get(id)
 	if err != nil {
 		status.Healthy = false
 		status.Storage = "unhealthy"
@@ -121,15 +116,6 @@ func (c *Checker) check(channel chan Status) {
 		return
 	}
 	status.Storage = "healthy"
-
-	task := image.NewTask(buf, 1, 1)
-	_, err = c.ImageProcessor.ProcessImage(task)
-	if err != nil {
-		status.Healthy = false
-		status.Processor = "unhealthy"
-	} else {
-		status.Processor = "healthy"
-	}
 
 	channel <- status
 }

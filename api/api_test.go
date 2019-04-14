@@ -14,6 +14,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/api"
 	"github.com/DMarby/picsum-photos/health"
+	"github.com/DMarby/picsum-photos/image"
 	"github.com/DMarby/picsum-photos/logger"
 	"go.uber.org/zap"
 
@@ -42,38 +43,37 @@ func TestAPI(t *testing.T) {
 	log := logger.New(zap.FatalLevel)
 	defer log.Sync()
 
-	imageProcessor, _ := vipsProcessor.GetInstance(ctx, log)
 	storage, _ := fileStorage.New("../test/fixtures/file")
 	db, _ := fileDatabase.New("../test/fixtures/file/metadata.json")
 	dbMultiple, _ := fileDatabase.New("../test/fixtures/file/metadata_multiple.json")
 	cache := memoryCache.New()
-	apiCache := api.NewCache(cache, storage)
+	imageCache := image.NewCache(cache, storage)
+	imageProcessor, _ := vipsProcessor.New(ctx, log, imageCache)
+	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, image.NewCache(memoryCache.New(), &mockStorage.Provider{}))
 
 	checker := &health.Checker{
-		Ctx:            ctx,
-		ImageProcessor: imageProcessor,
-		Storage:        storage,
-		Database:       db,
-		Cache:          cache,
+		Ctx:      ctx,
+		Storage:  storage,
+		Database: db,
+		Cache:    cache,
 	}
 	checker.Run()
 
 	mockChecker := &health.Checker{
-		Ctx:            ctx,
-		ImageProcessor: &mockProcessor.Processor{},
-		Storage:        &mockStorage.Provider{},
-		Database:       &mockDatabase.Provider{},
-		Cache:          &mockCache.Provider{},
+		Ctx:      ctx,
+		Storage:  &mockStorage.Provider{},
+		Database: &mockDatabase.Provider{},
+		Cache:    &mockCache.Provider{},
 	}
 	mockChecker.Run()
 
 	staticPath := "../src"
 
-	router := (&api.API{imageProcessor, apiCache, db, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
-	paginationRouter := (&api.API{imageProcessor, apiCache, dbMultiple, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
-	mockStorageRouter := (&api.API{imageProcessor, api.NewCache(memoryCache.New(), &mockStorage.Provider{}), db, mockChecker, log, 200, rootURL, staticPath, time.Minute}).Router()
-	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, apiCache, db, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
-	mockDatabaseRouter := (&api.API{imageProcessor, apiCache, &mockDatabase.Provider{}, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	router := (&api.API{imageProcessor, db, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	paginationRouter := (&api.API{imageProcessor, dbMultiple, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	mockStorageRouter := (&api.API{mockStorageImageProcessor, db, mockChecker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, db, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
+	mockDatabaseRouter := (&api.API{imageProcessor, &mockDatabase.Provider{}, checker, log, 200, rootURL, staticPath, time.Minute}).Router()
 
 	tests := []struct {
 		Name             string
@@ -235,11 +235,10 @@ func TestAPI(t *testing.T) {
 			Router:         router,
 			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson(health.Status{
-				Healthy:   true,
-				Cache:     "healthy",
-				Database:  "healthy",
-				Storage:   "healthy",
-				Processor: "healthy",
+				Healthy:  true,
+				Cache:    "healthy",
+				Database: "healthy",
+				Storage:  "healthy",
 			}),
 			ExpectedHeaders: map[string]string{
 				"Content-Type": "application/json",
@@ -251,11 +250,10 @@ func TestAPI(t *testing.T) {
 			Router:         mockStorageRouter,
 			ExpectedStatus: http.StatusInternalServerError,
 			ExpectedResponse: marshalJson(health.Status{
-				Healthy:   false,
-				Cache:     "unhealthy",
-				Database:  "unhealthy",
-				Storage:   "unknown",
-				Processor: "unknown",
+				Healthy:  false,
+				Cache:    "unhealthy",
+				Database: "unhealthy",
+				Storage:  "unknown",
 			}),
 			ExpectedHeaders: map[string]string{
 				"Content-Type": "application/json",

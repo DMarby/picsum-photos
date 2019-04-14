@@ -2,7 +2,7 @@ package image
 
 // Task is an image processing task
 type Task struct {
-	Buffer         []byte
+	ImageID        string
 	Width          int
 	Height         int
 	ApplyBlur      bool
@@ -11,11 +11,11 @@ type Task struct {
 }
 
 // NewTask creates a new image processing task
-func NewTask(buffer []byte, width int, height int) *Task {
+func NewTask(imageID string, width int, height int) *Task {
 	return &Task{
-		Buffer: buffer,
-		Width:  width,
-		Height: height,
+		ImageID: imageID,
+		Width:   width,
+		Height:  height,
 	}
 }
 

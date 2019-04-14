@@ -27,8 +27,6 @@ var (
 func Initialize(logger *logger.Logger) error {
 	var err error
 
-	log = logger
-
 	once.Do(func() {
 		// vips_init needs to run on the main thread
 		runtime.LockOSThread()
@@ -53,6 +51,8 @@ func Initialize(logger *logger.Logger) error {
 		// Disable the cache
 		C.vips_cache_set_max_mem(0)
 		C.vips_cache_set_max(0)
+
+		log = logger
 	})
 
 	return err
