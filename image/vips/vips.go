@@ -41,8 +41,8 @@ func getWorkerCount() int {
 }
 
 // ProcessImage loads an image from a byte buffer, processes it, and returns a buffer containing the processed image
-func (p *Processor) ProcessImage(task *image.Task) (processedImage []byte, err error) {
-	result, err := p.queue.Process(task)
+func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (processedImage []byte, err error) {
+	result, err := p.queue.Process(ctx, task)
 
 	if err != nil {
 		return nil, err

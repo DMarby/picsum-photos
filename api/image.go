@@ -66,7 +66,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 		task.Blur(blurAmount)
 	}
 
-	processedImage, err := a.ImageProcessor.ProcessImage(task)
+	processedImage, err := a.ImageProcessor.ProcessImage(r.Context(), task)
 	if err != nil {
 		a.logError(r, "error processing image", err)
 		return handler.InternalServerError()

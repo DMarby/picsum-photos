@@ -1,6 +1,8 @@
 package image
 
+import "context"
+
 // Processor is an image processor
 type Processor interface {
-	ProcessImage(task *Task) (processedImage []byte, err error)
+	ProcessImage(ctx context.Context, task *Task) (processedImage []byte, err error)
 }
