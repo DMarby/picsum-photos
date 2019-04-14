@@ -17,12 +17,3 @@ resource "digitalocean_kubernetes_node_pool" "redis_pool" {
   size       = "s-2vcpu-4gb"
   node_count = 1
 }
-
-resource "digitalocean_certificate" "picsum_k8s_cert" {
-  name              = "${var.picsum_domain}"
-  type              = "lets_encrypt"
-  domains = [
-    "${var.picsum_domain}",
-    "www.${var.picsum_domain}"
-  ]
-}

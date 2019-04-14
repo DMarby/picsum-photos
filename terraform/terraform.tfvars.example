@@ -11,11 +11,8 @@ do_spaces_secret_key = ""
 # Picsum settings
 
 # Domain for the service
-picsum_domain = "picsum.photos"
+picsum_domain = "example.com"
 
 # DigitalOcean Space for storing photos
 picsum_bucket = "picsum-photos"
 picsum_bucket_region = "ams3"
-
-# CAA record email
-caa_email = "foo@example.com"
