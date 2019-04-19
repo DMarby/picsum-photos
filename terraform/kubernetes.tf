@@ -5,15 +5,7 @@ resource "digitalocean_kubernetes_cluster" "picsum_k8s" {
 
   node_pool {
     name       = "picsum-pool"
-    size       = "s-3vcpu-1gb"
-    node_count = 4
+    size       = "s-4vcpu-8gb"
+    node_count = 2
   }
-}
-
-resource "digitalocean_kubernetes_node_pool" "redis_pool" {
-  cluster_id = "${digitalocean_kubernetes_cluster.picsum_k8s.id}"
-
-  name       = "redis-pool"
-  size       = "s-2vcpu-4gb"
-  node_count = 1
 }

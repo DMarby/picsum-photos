@@ -1,5 +1,5 @@
-resource "digitalocean_database_cluster" "picsum_cluster" {
-  name       = "picsum-cluster"
+resource "digitalocean_database_cluster" "picsum-db" {
+  name       = "picsum-db"
   engine     = "pg"
   version    = "11"
   size       = "db-s-1vcpu-1gb"
