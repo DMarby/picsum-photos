@@ -64,6 +64,9 @@ header {
   color: #f8f8f8;
   background: hsla(0, 0%, 0%, 1);
   background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url('/1920/500');
 }
 
 header .overlay {
@@ -132,7 +135,7 @@ header img {
 footer {
   text-align: center;
   background: hsl(0, 0%, 0%);
-  background-size: cover;
+  padding: 50px 0;
 }
 
 footer p {
@@ -142,11 +145,6 @@ footer p {
 
 footer a {
   color: hsla(0, 100%, 100%, 0.8);
-}
-
-footer .overlay {
-  padding: 50px 0;
-  background: hsla(0, 0%, 0%, 0.6);
 }
 
 .sponsor {
