@@ -58,9 +58,6 @@ func (c *Checker) Status() Status {
 }
 
 func (c *Checker) runCheck() {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
 	ctx, cancel := context.WithTimeout(context.Background(), checkTimeout)
 	defer cancel()
 
@@ -71,14 +68,18 @@ func (c *Checker) runCheck() {
 
 	select {
 	case <-ctx.Done():
+		c.mutex.Lock()
 		c.status = Status{
 			Healthy:  false,
 			Cache:    "unknown",
 			Database: "unknown",
 			Storage:  "unknown",
 		}
+		c.mutex.Unlock()
 	case status := <-channel:
+		c.mutex.Lock()
 		c.status = status
+		c.mutex.Unlock()
 	}
 }
 
