@@ -15,4 +15,6 @@ picsum_domain = "example.com"
 
 # DigitalOcean Space for storing photos
 picsum_bucket = "picsum-photos"
-picsum_bucket_region = "ams3"
+
+# Region to use on DigitalOcean
+picsum_digitalocean_region = "ams3"

@@ -4,7 +4,7 @@ terraform {
     key                         = "picsum/terraform.tfstate"
     region                      = "us-east-1"
     acl                         = "private"
-    endpoint                    = "https://ams3.digitaloceanspaces.com""
+    endpoint                    = "https://ams3.digitaloceanspaces.com"
     access_key                  = ""
     secret_key                  = ""
     skip_credentials_validation = true
