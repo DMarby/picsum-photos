@@ -73,7 +73,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	}
 
 	w.Header().Set("Content-Type", "image/jpeg")
-	w.Header().Set("Cache-Control", "public, max-age=604800") // Cache for a week
+	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
 	w.Write(processedImage)
 
 	return nil

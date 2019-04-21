@@ -342,7 +342,7 @@ func TestAPI(t *testing.T) {
 			t.Errorf("%s: wrong content type, %#v", test.Name, contentType)
 		}
 
-		if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "public, max-age=86400" {
+		if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "public, max-age=2592000" {
 			t.Errorf("%s: wrong cache header, %#v", test.Name, cacheControl)
 		}
 
