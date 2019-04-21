@@ -17,13 +17,6 @@ func TestCORS(t *testing.T) {
 		ExpectedHeaders map[string]string
 	}{
 		{
-			Name:            "ignores request without origin",
-			Method:          "GET",
-			ExpectedStatus:  http.StatusOK,
-			Headers:         map[string]string{},
-			ExpectedHeaders: map[string]string{},
-		},
-		{
 			Name:           "sets correct headers for non-option requests",
 			Method:         "GET",
 			ExpectedStatus: http.StatusOK,

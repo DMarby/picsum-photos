@@ -6,11 +6,6 @@ import "net/http"
 // Based on https://github.com/gorilla/handlers/blob/master/cors.go
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Origin") == "" {
-			next.ServeHTTP(w, r)
-			return
-		}
-
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if r.Method == "OPTIONS" {
