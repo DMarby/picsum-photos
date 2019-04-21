@@ -88,6 +88,11 @@ data:
       if (beresp.status >= 500 && bereq.is_bgfetch) {
         return (abandon);
       }
+
+      # Gzip responses
+      if (beresp.http.content-type ~ "(text|application)") {
+        set beresp.do_gzip = true;
+      }
     }
 
     sub vcl_deliver {
