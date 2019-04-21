@@ -1,0 +1,21 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: picsum-lb
+  annotations:
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
+    service.beta.kubernetes.io/do-loadbalancer-algorithm: "round_robin"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-check-interval-seconds: "10"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-response-timeout-seconds: "45"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-unhealthy-threshold: "3"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-healthy-threshold: "3"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-path: "/varnish_health"
+spec:
+  type: LoadBalancer
+  selector:
+    app: varnish
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
