@@ -1,0 +1,91 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: picsum
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: picsum
+    spec:
+      containers:
+      - name: picsum
+        image: 'dmarby/picsum-photos@sha256:25f41f632168edcbf952674604d58272309888cde54aed84c69202d95dc57867'
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: 0.5Gi
+            cpu: 3
+          limits:
+            memory: 1Gi
+            cpu: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+          - name: PICSUM_CACHE
+            value: "redis"
+          - name: PICSUM_CACHE_REDIS_ADDRESS
+            value: "redis://redis-svc.default.svc:6379"
+          - name: PICSUM_DATABASE
+            value: postgresql
+          - name: PICSUM_DATABASE_POSTGRESQL_ADDRESS
+            valueFrom:
+              secretKeyRef:
+                name: picsum-db
+                key: connection_string
+          - name: PICSUM_STORAGE
+            value: "spaces"
+          - name: PICSUM_STORAGE_SPACES_REGION
+            valueFrom:
+              secretKeyRef:
+                name: picsum-spaces
+                key: region
+          - name: PICSUM_STORAGE_SPACES_SPACE
+            valueFrom:
+              secretKeyRef:
+                name: picsum-spaces
+                key: space
+          - name: PICSUM_STORAGE_SPACES_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: picsum-spaces
+                key: access_key
+          - name: PICSUM_STORAGE_SPACES_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: picsum-spaces
+                key: secret_key
+      affinity: # Only one pod per node
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - picsum
+              topologyKey: "kubernetes.io/hostname"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: picsum-svc
+spec:
+  clusterIP: None
+  selector:
+    app: picsum
+  ports:
+  - port: 8080
+    name: picsum

@@ -1,0 +1,66 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      volumes:
+        - name: host-sys
+          hostPath:
+            path: /sys
+      initContainers:
+        - name: disable-thp
+          image: redis:5.0-alpine
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: host-sys
+              mountPath: /host-sys
+          command: ["sh", "-c", "echo never > /host-sys/kernel/mm/transparent_hugepage/enabled"]
+      containers:
+      - name: redis
+        image: redis:5.0-alpine
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: 3Gi # Image database is ~2.8gb
+          limits:
+            memory: 4Gi
+            cpu: 0.5
+        ports:
+        - containerPort: 6379
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 15
+          periodSeconds: 5
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      affinity: # Don't run on the same node as varnish
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - varnish
+              topologyKey: "kubernetes.io/hostname"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-svc
+spec:
+  ports:
+  - port: 6379
+    name: redis
+  selector:
+    app: redis
