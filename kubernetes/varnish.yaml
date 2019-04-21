@@ -1,0 +1,61 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: varnish
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: varnish
+    spec:
+      volumes:
+      - name: config
+        configMap:
+          name: varnish-config
+      - name: cache
+        emptyDir: {}
+      containers:
+      - name: varnish
+        image: 'dmarby/picsum-photos-varnish@sha256:b587fe7beb4ae742a0d32f022b824371c73a51c6243c21c0868a4bf96eb506a0'
+        args:
+        - -F
+        - -f/usr/local/etc/varnish/default.vcl
+        - -sfile,/cache/varnish-cache,120G # Nodes has 160GB disk, allow for 120 for the cache
+        - -sTransient=malloc,3G # Limit the transient ram to avoid getting the container killed from OOM
+        volumeMounts:
+        - name: config
+          mountPath: /usr/local/etc/varnish
+        - name: cache
+          mountPath: /cache
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /varnish_health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /varnish_health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 0.25
+          limits:
+            memory: 3.5Gi
+            cpu: 0.5
+      affinity: # Don't run on the same node as redis
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - redis
+              topologyKey: "kubernetes.io/hostname"

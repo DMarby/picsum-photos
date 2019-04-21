@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: varnish-config
+data:
+  default.vcl: |
+    vcl 4.1;
+
+    import std;
+    import querystring;
+    import dynamic;
+
+    # Default backend definition
+    backend default {
+     .host = "127.0.0.1";
+     .port = "80";
+    }
+
+    probe backend_probe {
+      .request =
+      "GET /health HTTP/1.1"
+      "Host: localhost"
+      "User-Agent: Varnish Health Probe"
+      "Connection: close";
+
+      .interval = 5s;
+      .timeout = 45s;
+      .window = 5;
+      .threshold = 3;
+    }
+
+    sub vcl_init {
+        new vdir = dynamic.director(
+          port = "8080",
+          probe = backend_probe,
+          ttl = 10s, # How often to refresh the DNS
+          first_byte_timeout = 60s, # How long to wait before we receive a first byte from our backend
+          connect_timeout = 5s, # How long to wait for a backend connection
+          between_bytes_timeout = 2s); # How long to wait between bytes received from our backend
+
+        # Initialize the queryfilter
+        new queryfilter = querystring.filter(sort = true, uniq = true);
+        # Add whitelisted query parameters
+        # Effects
+        queryfilter.add_string("blur");
+        queryfilter.add_string("grayscale");
+        # Deprecated
+        queryfilter.add_string("image");
+        # Pagination
+        queryfilter.add_string("page");
+        queryfilter.add_string("limit");
+    }
+
+    sub vcl_recv {
+      # Healthcheck for k8s
+      if (req.url ~ "^/varnish_health") {
+        return (synth(200, "healthcheck"));
+      }
+
+      # Send all traffic to the vdir director
+      set req.backend_hint = vdir.backend("picsum-svc.default.svc");
+
+      # Sort the query parameters, only keep ones in our whitelist
+      set req.url = queryfilter.apply(mode = keep);
+
+      # Unset unwanted headers
+      unset req.http.Cookie;
+
+      if (std.healthy(req.backend_hint)) {
+        # Change the behavior for healthy backends: Cap grace to 10s
+        set req.grace = 10s;
+      }
+    }
+
+    sub vcl_hash {
+      # Only hash based on the url
+      hash_data(req.url);
+
+      # Don't go to default vcl_hash
+      return (lookup);
+    }
+
+    sub vcl_backend_response {
+      # Allow stale content, in case the backend goes down.
+      # Make Varnish keep all objects for 6 hours beyond their TTL
+      set beresp.keep = 6h;
+
+      if (beresp.status >= 500 && bereq.is_bgfetch) {
+        return (abandon);
+      }
+    }
+
+    sub vcl_deliver {
+      # Set HSTS header
+      set resp.http.Strict-Transport-Security = "max-age=31536000";
+    }
+
+    sub vcl_synth {
+      # Healthcheck for k8s
+      if (resp.reason == "healthcheck") {
+          set resp.http.Content-Type = "text/plain; charset=utf-8";
+          synthetic("OK");
+          return (deliver);
+      }
+    }
