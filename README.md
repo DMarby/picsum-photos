@@ -37,7 +37,7 @@ To deploy your own instance of Picsum on DigitalOcean, start by cloning this rep
 ### 1. Terraform
 This project uses terraform to set up the infrastructure.
 
-To get started, you'll need to create a few things:
+To get started, you'll need to create a few things in the DigitalOcean control panel:
 - A private DigitalOcean Space for Terraform remote state
   - Go to Create -> Spaces, choose "Restrict File Listing", and select a name.
 - A Spaces access key for Terraform to access the space
@@ -59,14 +59,14 @@ You can now set up the infrastructure by running `terraform apply`.
 To start using the database that Terraform created, you need to do some additional setup.
 
 In the DigitalOcean control panel, go to:
-Databases -> picsum-db -> Settings:
+- Databases -> picsum-db -> Settings:
   - Add `picsum-k8s-worker` to "Allow inbound sources"
   - Add "Your computers current IP" to "Allow inbound sources"
     - You should remove this once you are one adding images/running migrations against the database.
-Databases -> picsum-db -> Users & Databases:
- - Create a new user named `picsum`
- - Create a new database named `picsum`
-Databases -> picsum-db -> Connection Pools:
+- Databases -> picsum-db -> Users & Databases:
+  - Create a new user named `picsum`
+  - Create a new database named `picsum`
+- Databases -> picsum-db -> Connection Pools:
   - Create a new connection pool named `picsum`
     - Database: `picsum`
     - User: `picsum`
