@@ -126,7 +126,7 @@ kubectl create secret generic external-dns --from-literal=do_token='API_TOKEN_HE
 ```
 
 #### Deployment
-Then, run the following command to create the kubernetes deployment:
+Then, go to the `kubernetes` directory and run the following command to create the kubernetes deployment:
 ```
 kubectl apply -f .
 ```
