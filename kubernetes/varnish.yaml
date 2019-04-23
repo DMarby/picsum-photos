@@ -21,8 +21,8 @@ spec:
         args:
         - -F
         - -f/usr/local/etc/varnish/default.vcl
-        - -sfile,/cache/varnish-cache,40G # Nodes has 160GB disk, allow for 40 for the cache
-        - -sTransient=malloc,250M # Limit the transient ram to avoid getting the container killed from OOM
+        - -sfile,/cache/varnish-cache,20G # 20GB on disk will take about 2.5GB of ram
+        - -sTransient=malloc,100M # Limit the transient ram to avoid getting the container killed from OOM
         volumeMounts:
         - name: config
           mountPath: /usr/local/etc/varnish
@@ -45,6 +45,8 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 10
         resources:
+          requests:
+            cpu: 0.1
           limits:
-            memory: 1.5Gi
+            memory: 2.5Gi
             cpu: 0.25

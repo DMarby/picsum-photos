@@ -27,9 +27,9 @@ spec:
         imagePullPolicy: Always
         resources:
           requests:
-            memory: 3Gi # Image database is ~2.8gb
+            cpu: 0.1
           limits:
-            memory: 4Gi
+            memory: 3Gi # Image database is ~2.8gb
             cpu: 0.5
         ports:
         - containerPort: 6379
