@@ -43,16 +43,6 @@ spec:
             port: 6379
           initialDelaySeconds: 15
           periodSeconds: 5
-      affinity: # Don't run on the same node as varnish
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "app"
-                    operator: In
-                    values:
-                    - varnish
-              topologyKey: "kubernetes.io/hostname"
 ---
 apiVersion: v1
 kind: Service

@@ -15,9 +15,6 @@ spec:
         ports:
         - containerPort: 8080
         resources:
-          requests:
-            memory: 0.5Gi
-            cpu: 3
           limits:
             memory: 1Gi
             cpu: 3
@@ -25,14 +22,16 @@ spec:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+          periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+          periodSeconds: 10
         env:
           - name: PICSUM_CACHE
             value: "redis"

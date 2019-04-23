@@ -23,8 +23,8 @@ data:
       "User-Agent: Varnish Health Probe"
       "Connection: close";
 
-      .interval = 5s;
-      .timeout = 45s;
+      .interval = 10s;
+      .timeout = 10s;
       .window = 5;
       .threshold = 3;
     }

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: varnish
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
@@ -21,8 +21,8 @@ spec:
         args:
         - -F
         - -f/usr/local/etc/varnish/default.vcl
-        - -sfile,/cache/varnish-cache,120G # Nodes has 160GB disk, allow for 120 for the cache
-        - -sTransient=malloc,3G # Limit the transient ram to avoid getting the container killed from OOM
+        - -sfile,/cache/varnish-cache,40G # Nodes has 160GB disk, allow for 40 for the cache
+        - -sTransient=malloc,250M # Limit the transient ram to avoid getting the container killed from OOM
         volumeMounts:
         - name: config
           mountPath: /usr/local/etc/varnish
@@ -35,27 +35,16 @@ spec:
             path: /varnish_health
             port: 80
           initialDelaySeconds: 30
-          periodSeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 10
         readinessProbe:
           httpGet:
             path: /varnish_health
             port: 80
           initialDelaySeconds: 30
-          periodSeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 10
         resources:
-          requests:
-            memory: 1Gi
-            cpu: 0.25
           limits:
-            memory: 3.5Gi
-            cpu: 0.5
-      affinity: # Don't run on the same node as redis
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "app"
-                    operator: In
-                    values:
-                    - redis
-              topologyKey: "kubernetes.io/hostname"
+            memory: 1.5Gi
+            cpu: 0.25
