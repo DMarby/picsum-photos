@@ -18,20 +18,21 @@ spec:
           requests:
             cpu: 2
           limits:
-            memory: 500Mi
+            memory: 1Gi
             cpu: 3
         livenessProbe:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 10
+          initialDelaySeconds: 30
           timeoutSeconds: 10
           periodSeconds: 10
+          failureThreshold: 6
         readinessProbe:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 10
+          initialDelaySeconds: 30
           timeoutSeconds: 10
           periodSeconds: 10
         env:
