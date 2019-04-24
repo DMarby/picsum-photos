@@ -56,6 +56,7 @@ func TestAPI(t *testing.T) {
 		Storage:  storage,
 		Database: db,
 		Cache:    cache,
+		Log:      log,
 	}
 	checker.Run()
 
@@ -64,6 +65,7 @@ func TestAPI(t *testing.T) {
 		Storage:  &mockStorage.Provider{},
 		Database: &mockDatabase.Provider{},
 		Cache:    &mockCache.Provider{},
+		Log:      log,
 	}
 	mockChecker.Run()
 

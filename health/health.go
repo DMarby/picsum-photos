@@ -7,6 +7,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/cache"
 	"github.com/DMarby/picsum-photos/database"
+	"github.com/DMarby/picsum-photos/logger"
 	"github.com/DMarby/picsum-photos/storage"
 )
 
@@ -21,6 +22,7 @@ type Checker struct {
 	Cache    cache.Provider
 	status   Status
 	mutex    sync.RWMutex
+	Log      *logger.Logger
 }
 
 // Status contains the healtcheck status
@@ -76,10 +78,16 @@ func (c *Checker) runCheck() {
 			Storage:  "unknown",
 		}
 		c.mutex.Unlock()
+		c.Log.Errorw("healthcheck timed out")
 	case status := <-channel:
 		c.mutex.Lock()
 		c.status = status
 		c.mutex.Unlock()
+		if !status.Healthy {
+			c.Log.Errorw("healthcheck error",
+				"status", status,
+			)
+		}
 	}
 }
 

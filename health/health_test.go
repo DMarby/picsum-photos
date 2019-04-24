@@ -30,10 +30,10 @@ func TestHealth(t *testing.T) {
 	db, _ := fileDatabase.New("../test/fixtures/file/metadata.json")
 	cache := memoryCache.New()
 
-	checker := &health.Checker{Ctx: ctx, Storage: storage, Database: db, Cache: cache}
-	mockStorageChecker := &health.Checker{Ctx: ctx, Storage: &mockStorage.Provider{}, Database: db, Cache: cache}
-	mockDatabaseChecker := &health.Checker{Ctx: ctx, Storage: storage, Database: &mockDatabase.Provider{}, Cache: cache}
-	mockCacheChecker := &health.Checker{Ctx: ctx, Storage: storage, Database: db, Cache: &mockCache.Provider{}}
+	checker := &health.Checker{Ctx: ctx, Storage: storage, Database: db, Cache: cache, Log: log}
+	mockStorageChecker := &health.Checker{Ctx: ctx, Storage: &mockStorage.Provider{}, Database: db, Cache: cache, Log: log}
+	mockDatabaseChecker := &health.Checker{Ctx: ctx, Storage: storage, Database: &mockDatabase.Provider{}, Cache: cache, Log: log}
+	mockCacheChecker := &health.Checker{Ctx: ctx, Storage: storage, Database: db, Cache: &mockCache.Provider{}, Log: log}
 
 	tests := []struct {
 		Name           string

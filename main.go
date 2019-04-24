@@ -130,6 +130,7 @@ func main() {
 		Storage:  storage,
 		Database: database,
 		Cache:    cache,
+		Log:      log,
 	}
 	go checker.Run()
 
