@@ -12,16 +12,14 @@ func DeprecatedParams(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Look for the deprecated ?image query parameter
 		if id := r.URL.Query().Get("image"); id != "" {
-			width, height, err := params.GetSize(r)
+			p, err := params.GetParams(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
 
-			grayscale, blur, blurAmount := params.GetQueryParams(r)
-
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-			http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s", id, width, height, params.BuildQuery(grayscale, blur, blurAmount)), http.StatusFound)
+			http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s%s", id, p.Width, p.Height, p.Extension, params.BuildQuery(p.Grayscale, p.Blur, p.BlurAmount)), http.StatusFound)
 			return
 		}
 

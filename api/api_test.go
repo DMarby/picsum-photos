@@ -268,22 +268,22 @@ func TestAPI(t *testing.T) {
 		{"favicon", "/assets/images/digitalocean.svg", router, http.StatusOK, readFile(path.Join(staticPath, "assets/images/digitalocean.svg")), map[string]string{"Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=3600"}},
 
 		// Errors
-		{"invalid image id", "/id/nonexistant/200", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		{"invalid image id", "/id/nonexistant/200/300", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		{"invalid size", "/id/1/1/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
 		{"invalid size", "/id/1/9223372036854775808/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
 		{"invalid size", "/id/1/5500/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},                // Number larger then maxImageSize to fail int parsing
 		{"invalid blur amount", "/id/1/100/100?blur=11", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		{"invalid blur amount", "/id/1/100/100?blur=0", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"invalid file extension", "/id/1/100/100.png", router, http.StatusBadRequest, []byte("Invalid file extension\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// Deprecated handler errors
 		{"invalid size", "/g/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
 		// Storage errors
-		{"Get()", "/id/1/100", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"Get() storage", "/id/1/100/100", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// Database errors
 		{"List()", "/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		{"List()", "/v2/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		{"GetRandom()", "/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"Get()", "/id/1/100", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"Get() database", "/id/1/100/100", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// Processor errors
 		{"processor error", "/id/1/100/100", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// 404
@@ -319,13 +319,10 @@ func TestAPI(t *testing.T) {
 		ExpectedResponse []byte
 	}{
 		// Images
-		{"/id/:id/:size", "/id/1/200", readFixture("size")},
 		{"/id/:id/:width/:height", "/id/1/200/120", readFixture("width_height")},
-		{"/id/:id/:size?blur", "/id/1/200?blur", readFixture("blur")},
+		{"/id/:id/:width/:height.jpg", "/id/1/200/120.jpg", readFixture("width_height")},
 		{"/id/:id/:width/:height?blur", "/id/1/200/200?blur", readFixture("blur")},
-		{"/id/:id/:size?grayscale", "/id/1/200?grayscale", readFixture("grayscale")},
 		{"/id/:id/:width/:height?grayscale", "/id/1/200/200?grayscale", readFixture("grayscale")},
-		{"/id/:id/:size?blur&grayscale", "/id/1/200?blur&grayscale", readFixture("all")},
 		{"/id/:id/:width/:height?blur&grayscale", "/id/1/200/200?blur&grayscale", readFixture("all")},
 		{"width/height larger then max allowed but same size as image", "/id/1/300/400", readFixture("max_allowed")},
 		{"width/height of 0 returns original image width", "/id/1/0/0", readFixture("max_allowed")},
@@ -359,27 +356,40 @@ func TestAPI(t *testing.T) {
 		ExpectedURL     string
 		TestCacheHeader bool
 	}{
+		// /id/:id/:size to /id/:id/:width/:height
+		{"/id/:id/:size", "/id/1/200", "/id/1/200/200", true},
+		{"/id/:id/:size.jpg", "/id/1/200.jpg", "/id/1/200/200.jpg", true},
+		{"/id/:id/:size?blur", "/id/1/200?blur", "/id/1/200/200?blur=5", true},
+		{"/id/:id/:size?grayscale", "/id/1/200?grayscale", "/id/1/200/200?grayscale", true},
+		{"/id/:id/:size?blur&grayscale", "/id/1/200?blur&grayscale", "/id/1/200/200?blur=5&grayscale", true},
+		// General
 		{"/:size", "/200", "/id/1/200/200", true},
 		{"/:width/:height", "/200/300", "/id/1/200/300", true},
+		{"/:size.jpg", "/200.jpg", "/id/1/200/200.jpg", true},
+		{"/:width/:height.jpg", "/200/300.jpg", "/id/1/200/300.jpg", true},
 		{"/:size?grayscale", "/200?grayscale", "/id/1/200/200?grayscale", true},
 		{"/:width/:height?grayscale", "/200/300?grayscale", "/id/1/200/300?grayscale", true},
 		// Default blur amount
 		{"/:size?blur", "/200?blur", "/id/1/200/200?blur=5", true},
 		{"/:width/:height?blur", "/200/300?blur", "/id/1/200/300?blur=5", true},
-		{"/:size?grayscale&blur", "/200?grayscale&blur", "/id/1/200/200?grayscale&blur=5", true},
-		{"/:width/:height?grayscale&blur", "/200/300?grayscale&blur", "/id/1/200/300?grayscale&blur=5", true},
+		{"/:size?grayscale&blur", "/200?grayscale&blur", "/id/1/200/200?blur=5&grayscale", true},
+		{"/:width/:height?grayscale&blur", "/200/300?grayscale&blur", "/id/1/200/300?blur=5&grayscale", true},
 		// Custom blur amount
 		{"/:size?blur=10", "/200?blur=10", "/id/1/200/200?blur=10", true},
 		{"/:width/:height?blur=10", "/200/300?blur=10", "/id/1/200/300?blur=10", true},
-		{"/:size?grayscale&blur=10", "/200?grayscale&blur=10", "/id/1/200/200?grayscale&blur=10", true},
-		{"/:width/:height?grayscale&blur=10", "/200/300?grayscale&blur=10", "/id/1/200/300?grayscale&blur=10", true},
+		{"/:size?grayscale&blur=10", "/200?grayscale&blur=10", "/id/1/200/200?blur=10&grayscale", true},
+		{"/:width/:height?grayscale&blur=10", "/200/300?grayscale&blur=10", "/id/1/200/300?blur=10&grayscale", true},
 		// Deprecated routes
 		{"/g/:size", "/g/200", "/200/200?grayscale", true},
 		{"/g/:width/:height", "/g/200/300", "/200/300?grayscale", true},
-		{"/g/:size?blur", "/g/200?blur", "/200/200?grayscale&blur=5", true},
-		{"/g/:width/:height?blur", "/g/200/300?blur", "/200/300?grayscale&blur=5", true},
+		{"/g/:size.jpg", "/g/200.jpg", "/200/200.jpg?grayscale", true},
+		{"/g/:width/:height.jpg", "/g/200/300.jpg", "/200/300.jpg?grayscale", true},
+		{"/g/:size?blur", "/g/200?blur", "/200/200?blur=5&grayscale", true},
+		{"/g/:width/:height?blur", "/g/200/300?blur", "/200/300?blur=5&grayscale", true},
 		{"/g/:size?image=:id", "/g/200?image=1", "/id/1/200/200?grayscale", true},
 		{"/g/:width/:height?image=:id", "/g/200/300?image=1", "/id/1/200/300?grayscale", true},
+		{"/g/:size.jpg?image=:id", "/g/200.jpg?image=1", "/id/1/200/200.jpg?grayscale", true},
+		{"/g/:width/:height.jpg?image=:id", "/g/200/300.jpg?image=1", "/id/1/200/300.jpg?grayscale", true},
 		// Deprecated query params
 		{"/:size?image=:id", "/200?image=1", "/id/1/200/200", true},
 		{"/:width/:height?image=:id", "/200/300?image=1", "/id/1/200/300", true},
@@ -387,8 +397,8 @@ func TestAPI(t *testing.T) {
 		{"/:width/:height?image=:id&grayscale", "/200/300?image=1&grayscale", "/id/1/200/300?grayscale", true},
 		{"/:size?image=:id&blur", "/200?image=1&blur", "/id/1/200/200?blur=5", true},
 		{"/:width/:height?image=:id&blur", "/200/300?image=1&blur", "/id/1/200/300?blur=5", true},
-		{"/:size?image=:id&grayscale&blur", "/200?image=1&grayscale&blur", "/id/1/200/200?grayscale&blur=5", true},
-		{"/:width/:height?image=:id&grayscale&blur", "/200/300?image=1&grayscale&blur", "/id/1/200/300?grayscale&blur=5", true},
+		{"/:size?image=:id&grayscale&blur", "/200?image=1&grayscale&blur", "/id/1/200/200?blur=5&grayscale", true},
+		{"/:width/:height?image=:id&grayscale&blur", "/200/300?image=1&grayscale&blur", "/id/1/200/300?blur=5&grayscale", true},
 		// Trailing slashes
 		{"/:size/", "/200/", "/200", false},
 		{"/:width/:height/", "/200/300/", "/200/300", false},

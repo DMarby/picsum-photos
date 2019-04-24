@@ -60,21 +60,19 @@ func (a *API) deprecatedListHandler(w http.ResponseWriter, r *http.Request) *han
 
 // Handles deprecated image routes
 func (a *API) deprecatedImageHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
-	width, height, err := params.GetSize(r)
+	p, err := params.GetParams(r)
 	if err != nil {
 		return handler.BadRequest(err.Error())
 	}
-
-	_, blur, blurAmount := params.GetQueryParams(r)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
 	// Look for the deprecated ?image query parameter
 	if id := r.URL.Query().Get("image"); id != "" {
-		http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s", id, width, height, params.BuildQuery(true, blur, blurAmount)), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s%s", id, p.Width, p.Height, p.Extension, params.BuildQuery(true, p.Blur, p.BlurAmount)), http.StatusFound)
 		return nil
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/%d/%d%s", width, height, params.BuildQuery(true, blur, blurAmount)), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/%d/%d%s%s", p.Width, p.Height, p.Extension, params.BuildQuery(true, p.Blur, p.BlurAmount)), http.StatusFound)
 	return nil
 }

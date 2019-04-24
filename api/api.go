@@ -53,16 +53,20 @@ func (a *API) Router() http.Handler {
 	// Image list
 	router.Handle("/v2/list", handler.Handler(a.listHandler)).Methods("GET")
 
+	// Query parameters:
+	// ?page={page} - What page to display
+	// ?limit={limit} - How many entries to display per page
+
 	// Image routes
 	imageRouter := router.PathPrefix("").Subrouter()
 	imageRouter.Use(handler.DeprecatedParams)
 
-	imageRouter.Handle("/{size:[0-9]+}", handler.Handler(a.imageHandler)).Methods("GET")
-	imageRouter.Handle("/{width:[0-9]+}/{height:[0-9]+}", handler.Handler(a.imageHandler)).Methods("GET")
+	imageRouter.Handle("/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET")
+	imageRouter.Handle("/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET")
 
 	// Image by ID routes
-	imageRouter.Handle("/id/{id}/{size:[0-9]+}", handler.Handler(a.imageHandler)).Methods("GET")
-	imageRouter.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}", handler.Handler(a.imageHandler)).Methods("GET")
+	imageRouter.Handle("/id/{id}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET")
+	imageRouter.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageHandler)).Methods("GET")
 
 	// Query parameters:
 	// ?grayscale - Grayscale the image
@@ -74,8 +78,8 @@ func (a *API) Router() http.Handler {
 
 	// Deprecated routes
 	router.Handle("/list", handler.Handler(a.deprecatedListHandler)).Methods("GET")
-	router.Handle("/g/{size:[0-9]+}", handler.Handler(a.deprecatedImageHandler)).Methods("GET")
-	router.Handle("/g/{width:[0-9]+}/{height:[0-9]+}", handler.Handler(a.deprecatedImageHandler)).Methods("GET")
+	router.Handle("/g/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.deprecatedImageHandler)).Methods("GET")
+	router.Handle("/g/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.deprecatedImageHandler)).Methods("GET")
 
 	// Static files
 	router.HandleFunc("/", serveFile(path.Join(a.StaticPath, "index.html")))

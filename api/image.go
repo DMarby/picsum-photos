@@ -12,27 +12,15 @@ import (
 )
 
 func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
-	width, height, err := params.GetSize(r)
+	// Get the path and query parameters
+	p, err := params.GetParams(r)
 	if err != nil {
 		return handler.BadRequest(err.Error())
 	}
 
-	grayscale, blur, blurAmount := params.GetQueryParams(r)
+	// Get the image from the database
 	vars := mux.Vars(r)
-	imageID, ok := vars["id"]
-
-	if !ok || imageID == "" { // Redirect to a random image when no image is specified
-		randomImage, err := a.Database.GetRandom()
-		if err != nil {
-			a.logError(r, "error getting random image from database", err)
-			return handler.InternalServerError()
-		}
-
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s", randomImage, width, height, params.BuildQuery(grayscale, blur, blurAmount)), http.StatusFound)
-		return nil
-	}
-
+	imageID := vars["id"]
 	databaseImage, err := a.Database.Get(imageID)
 	if err != nil {
 		if err == database.ErrNotFound {
@@ -43,11 +31,15 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 		return handler.InternalServerError()
 	}
 
-	if err := params.ValidateParams(a.MaxImageSize, databaseImage, width, height, blur, blurAmount); err != nil {
+	// Validate the parameters
+	if err := params.ValidateParams(a.MaxImageSize, databaseImage, p); err != nil {
 		return handler.BadRequest(err.Error())
 	}
 
 	// Default to the image width/height if 0 is passed
+	width := p.Width
+	height := p.Height
+
 	if width == 0 {
 		width = databaseImage.Width
 	}
@@ -56,25 +48,63 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 		height = databaseImage.Height
 	}
 
-	task := image.NewTask(imageID, width, height)
-
-	if grayscale {
+	// Build the image task
+	task := image.NewTask(databaseImage.ID, width, height)
+	if p.Grayscale {
 		task.Grayscale()
 	}
-
-	if blur {
-		task.Blur(blurAmount)
+	if p.Blur {
+		task.Blur(p.BlurAmount)
 	}
 
+	// Process the image
 	processedImage, err := a.ImageProcessor.ProcessImage(r.Context(), task)
 	if err != nil {
 		a.logError(r, "error processing image", err)
 		return handler.InternalServerError()
 	}
 
+	// Return the image
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
 	w.Write(processedImage)
 
+	return nil
+}
+
+func (a *API) imageRedirectHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
+	// Get the path and query parameters
+	p, err := params.GetParams(r)
+	if err != nil {
+		return handler.BadRequest(err.Error())
+	}
+
+	// Get the image ID
+	vars := mux.Vars(r)
+	imageID := vars["id"]
+
+	// Redirect
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s%s", imageID, p.Width, p.Height, p.Extension, params.BuildQuery(p.Grayscale, p.Blur, p.BlurAmount)), http.StatusFound)
+	return nil
+}
+
+func (a *API) randomImageRedirectHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
+	// Get the path and query parameters
+	p, err := params.GetParams(r)
+	if err != nil {
+		return handler.BadRequest(err.Error())
+	}
+
+	// Get a random image
+	randomImage, err := a.Database.GetRandom()
+	if err != nil {
+		a.logError(r, "error getting random image from database", err)
+		return handler.InternalServerError()
+	}
+
+	// Redirect
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s%s", randomImage, p.Width, p.Height, p.Extension, params.BuildQuery(p.Grayscale, p.Blur, p.BlurAmount)), http.StatusFound)
 	return nil
 }
