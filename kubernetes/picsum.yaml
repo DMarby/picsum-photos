@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: picsum
-        image: 'dmarby/picsum-photos@sha256:d5a67607b52884c238fe46ce19d2bd0d6a252fb3a3a1014c133aff315829bc7c'
+        image: 'dmarby/picsum-photos@sha256:098f3e5a4edaf08e614deac59316ccf264f7e768a9a598a2a0ba6cc916d9f3ec'
         ports:
         - containerPort: 8080
         resources:
