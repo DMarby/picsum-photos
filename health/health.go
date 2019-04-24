@@ -11,8 +11,8 @@ import (
 	"github.com/DMarby/picsum-photos/storage"
 )
 
-const checkInterval = 30 * time.Second
-const checkTimeout = 20 * time.Second
+const checkInterval = 10 * time.Second
+const checkTimeout = 8 * time.Second
 
 // Checker is a periodic health checker
 type Checker struct {
