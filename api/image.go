@@ -50,11 +50,12 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 
 	// Build the image task
 	task := image.NewTask(databaseImage.ID, width, height)
-	if p.Grayscale {
-		task.Grayscale()
-	}
 	if p.Blur {
 		task.Blur(p.BlurAmount)
+	}
+
+	if p.Grayscale {
+		task.Grayscale()
 	}
 
 	// Process the image
@@ -64,12 +65,35 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 		return handler.InternalServerError()
 	}
 
-	// Return the image
+	// Set the headers
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", buildFilename(imageID, p, width, height)))
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
+
+	// Return the image
 	w.Write(processedImage)
 
 	return nil
+}
+
+func buildFilename(imageID string, p *params.Params, width int, height int) string {
+	filename := fmt.Sprintf("%s-%dx%d", imageID, width, height)
+
+	if p.Blur {
+		filename += fmt.Sprintf("-blur_%d", p.BlurAmount)
+	}
+
+	if p.Grayscale {
+		filename += "-grayscale"
+	}
+
+	if p.Extension == "" {
+		filename += ".jpg"
+	} else {
+		filename += p.Extension
+	}
+
+	return filename
 }
 
 func (a *API) imageRedirectHandler(w http.ResponseWriter, r *http.Request) *handler.Error {

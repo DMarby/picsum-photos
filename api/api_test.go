@@ -314,18 +314,19 @@ func TestAPI(t *testing.T) {
 	}
 
 	imageTests := []struct {
-		Name             string
-		URL              string
-		ExpectedResponse []byte
+		Name                       string
+		URL                        string
+		ExpectedResponse           []byte
+		ExpectedContentDisposition string
 	}{
 		// Images
-		{"/id/:id/:width/:height", "/id/1/200/120", readFixture("width_height")},
-		{"/id/:id/:width/:height.jpg", "/id/1/200/120.jpg", readFixture("width_height")},
-		{"/id/:id/:width/:height?blur", "/id/1/200/200?blur", readFixture("blur")},
-		{"/id/:id/:width/:height?grayscale", "/id/1/200/200?grayscale", readFixture("grayscale")},
-		{"/id/:id/:width/:height?blur&grayscale", "/id/1/200/200?blur&grayscale", readFixture("all")},
-		{"width/height larger then max allowed but same size as image", "/id/1/300/400", readFixture("max_allowed")},
-		{"width/height of 0 returns original image width", "/id/1/0/0", readFixture("max_allowed")},
+		{"/id/:id/:width/:height", "/id/1/200/120", readFixture("width_height"), "inline; filename=\"1-200x120.jpg\""},
+		{"/id/:id/:width/:height.jpg", "/id/1/200/120.jpg", readFixture("width_height"), "inline; filename=\"1-200x120.jpg\""},
+		{"/id/:id/:width/:height?blur", "/id/1/200/200?blur", readFixture("blur"), "inline; filename=\"1-200x200-blur_5.jpg\""},
+		{"/id/:id/:width/:height?grayscale", "/id/1/200/200?grayscale", readFixture("grayscale"), "inline; filename=\"1-200x200-grayscale.jpg\""},
+		{"/id/:id/:width/:height?blur&grayscale", "/id/1/200/200?blur&grayscale", readFixture("all"), "inline; filename=\"1-200x200-blur_5-grayscale.jpg\""},
+		{"width/height larger then max allowed but same size as image", "/id/1/300/400", readFixture("max_allowed"), "inline; filename=\"1-300x400.jpg\""},
+		{"width/height of 0 returns original image width", "/id/1/0/0", readFixture("max_allowed"), "inline; filename=\"1-300x400.jpg\""},
 	}
 
 	for _, test := range imageTests {
@@ -343,6 +344,10 @@ func TestAPI(t *testing.T) {
 
 		if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "public, max-age=2592000" {
 			t.Errorf("%s: wrong cache header, %#v", test.Name, cacheControl)
+		}
+
+		if contentDisposition := w.Header().Get("Content-Disposition"); contentDisposition != test.ExpectedContentDisposition {
+			t.Errorf("%s: wrong content disposition header, %#v", test.Name, contentDisposition)
 		}
 
 		if !reflect.DeepEqual(w.Body.Bytes(), test.ExpectedResponse) {
