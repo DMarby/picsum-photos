@@ -139,4 +139,4 @@ kubectl annotate service picsum-lb "external-dns.alpha.kubernetes.io/hostname=ex
 Now everything should be running, and you should be able to access your instance of Picsum by going to the domain you defined in `terraform.tfvars` in your browser.
 
 ## License
-See [LICENSE](./LICENSE)
+MIT. See [LICENSE](./LICENSE.md)
