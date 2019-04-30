@@ -6,8 +6,18 @@ Lorem Picsum is a service providing easy to use, stylish placeholders.
 It's written in Go, and uses Redis, PostgreSQL and DigitalOcean Spaces.
 
 ## Running locally for development
-First, make sure you have Go installed, and this git repo cloned.
-To start a local instance using an in-memory cache, and the test fixtures for images, run:
+First, make sure you have Go installed, and this git repo cloned.  
+You will also need to [install libvips](https://jcupitt.github.io/libvips/install.html).
+
+To build the frontend, you need to have NodeJS installed.
+Run the following commands to install the dependencies and build it:
+```
+npm install
+npm run-script build
+```
+If you want to automatically rebuild when you make changes while developing, you can use `npm run-script watch`. 
+
+Then, to start the app, with an in-memory cache, and the test fixtures for images, run:
 ```
 go run . -log-level debug
 ```
