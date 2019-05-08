@@ -11,7 +11,6 @@ p {
 h2 {
   font-family: 'Roboto', sans-serif;
   font-weight: 600;
-  font-size: 30px;
   margin-bottom: 0.5em;
 }
 
@@ -110,8 +109,8 @@ header a:hover {
   padding-top: 150px;
 }
 
-.content-section-light a:hover, 
-.content-section-dark a:hover, 
+.content-section-light a:hover,
+.content-section-dark a:hover,
 .content-section-images a:hover {
   color: hsla(0, 0%, 60%, 1);
 }
@@ -128,16 +127,6 @@ img.resize {
   box-shadow: 0 13px 27px -5px hsla(240, 30.1%, 28%, 0.25),0 8px 16px -8px hsla(0, 0%, 0%, 0.3),0 -6px 16px -6px hsla(0, 0%, 0%, 0.03);
 }
 
-/* Wrapper for <pre> to make the <pre> field length the same as the content text */
-.pre-div {
-  flex-grow: 1;
-  width: 0;
-}
-
-.pre-wrapper {
-  display: inline-block;
-}
-
 /* Custom Pre Code Box */
 
 pre.code-box {
@@ -149,6 +138,10 @@ pre.code-box {
 /* Image gallery */
 .content-section-images {
   padding: 50px 0;
+}
+
+.content-section-images a {
+  color: hsla(0, 0%, 0%, 1);
 }
 
 /* Footer */
@@ -187,7 +180,7 @@ footer a {
   border-radius: 4px;
   font-size: 14px;
   padding: 20px;
-  max-width: 400px;
+  max-width: 350px;
   background: HSL(217.5, 57.1%, 97.3%);
   max-height: 140px;
 }
