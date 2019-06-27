@@ -77,7 +77,7 @@ func (p *Provider) GetRandom() (id string, err error) {
 // ListAll returns a list of all the images
 func (p *Provider) ListAll() ([]database.Image, error) {
 	i := []database.Image{}
-	err := p.db.Select(&i, "select * from image order by id")
+	err := p.db.Select(&i, "select * from image order by cast(id as integer)")
 
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (p *Provider) ListAll() ([]database.Image, error) {
 // List returns a list of all the images with an offset/limit
 func (p *Provider) List(offset, limit int) ([]database.Image, error) {
 	i := []database.Image{}
-	err := p.db.Select(&i, "select * from image order by id OFFSET $1 LIMIT $2", offset, limit)
+	err := p.db.Select(&i, "select * from image order by cast(id as integer) OFFSET $1 LIMIT $2", offset, limit)
 
 	if err != nil {
 		return nil, err
