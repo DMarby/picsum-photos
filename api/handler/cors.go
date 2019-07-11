@@ -26,6 +26,9 @@ func CORS(next http.Handler) http.Handler {
 
 			w.Header().Set("Access-Control-Allow-Methods", "GET")
 		} else {
+			// Expose the Link header used for pagination
+			w.Header().Set("Access-Control-Expose-Headers", "Link")
+
 			next.ServeHTTP(w, r)
 		}
 	})
