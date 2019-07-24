@@ -70,6 +70,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", buildFilename(imageID, p, width, height)))
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
+	w.Header().Set("Content-Source-Url", databaseImage.URL)
 
 	// Return the image
 	w.Write(processedImage)
