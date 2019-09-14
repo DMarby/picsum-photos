@@ -20,6 +20,11 @@ func (p *Provider) GetRandom() (id string, err error) {
 	return "", fmt.Errorf("random error")
 }
 
+// GetRandomWithSeed returns a random image based on the given seed
+func (p *Provider) GetRandomWithSeed(seed int64) (id string, err error) {
+	return "", fmt.Errorf("random error")
+}
+
 // ListAll returns a list of all the images
 func (p *Provider) ListAll() ([]database.Image, error) {
 	return nil, fmt.Errorf("list error")

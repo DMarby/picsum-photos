@@ -76,6 +76,17 @@ func TestPostgresql(t *testing.T) {
 		}
 	})
 
+	t.Run("Returns a random based on the seed", func(t *testing.T) {
+		image, err := provider.GetRandomWithSeed(0)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if image != "1" {
+			t.Error("wrong image")
+		}
+	})
+
 	t.Run("Returns a list of all the images", func(t *testing.T) {
 		images, err := provider.ListAll()
 		if err != nil {

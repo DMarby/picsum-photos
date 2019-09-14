@@ -9,6 +9,7 @@ import (
 	"github.com/DMarby/picsum-photos/database"
 	"github.com/DMarby/picsum-photos/image"
 	"github.com/gorilla/mux"
+	"github.com/twmb/murmur3"
 )
 
 func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
@@ -122,6 +123,33 @@ func (a *API) randomImageRedirectHandler(w http.ResponseWriter, r *http.Request)
 
 	// Get a random image
 	randomImage, err := a.Database.GetRandom()
+	if err != nil {
+		a.logError(r, "error getting random image from database", err)
+		return handler.InternalServerError()
+	}
+
+	// Redirect
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s%s", randomImage, p.Width, p.Height, p.Extension, params.BuildQuery(p.Grayscale, p.Blur, p.BlurAmount)), http.StatusFound)
+	return nil
+}
+
+func (a *API) seedImageRedirectHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
+	// Get the path and query parameters
+	p, err := params.GetParams(r)
+	if err != nil {
+		return handler.BadRequest(err.Error())
+	}
+
+	// Get the image seed
+	vars := mux.Vars(r)
+	imageSeed := vars["seed"]
+
+	// Hash the input using murmur3
+	murmurHash := murmur3.Sum64([]byte(imageSeed))
+
+	// Get a random image by the hash
+	randomImage, err := a.Database.GetRandomWithSeed(int64(murmurHash))
 	if err != nil {
 		a.logError(r, "error getting random image from database", err)
 		return handler.InternalServerError()

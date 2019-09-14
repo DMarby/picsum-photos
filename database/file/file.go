@@ -64,6 +64,14 @@ func (p *Provider) GetRandom() (id string, err error) {
 	return p.images[p.random.Intn(len(p.images))].ID, nil
 }
 
+// GetRandomWithSeed returns a random image ID based on the given seed
+func (p *Provider) GetRandomWithSeed(seed int64) (id string, err error) {
+	source := rand.NewSource(seed)
+	random := rand.New(source)
+
+	return p.images[random.Intn(len(p.images))].ID, nil
+}
+
 // ListAll returns a list of all the images
 func (p *Provider) ListAll() ([]database.Image, error) {
 	return p.images, nil

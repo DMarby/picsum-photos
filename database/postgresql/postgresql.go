@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"database/sql"
+	"math/rand"
 
 	"github.com/DMarby/picsum-photos/database"
 
@@ -72,6 +73,19 @@ func (p *Provider) GetRandom() (id string, err error) {
 	// This will be slow on large tables
 	err = p.db.Get(&id, "select id from image order by random() limit 1")
 	return
+}
+
+// GetRandomWithSeed returns a random image ID based on the given seed
+func (p *Provider) GetRandomWithSeed(seed int64) (id string, err error) {
+	images, err := p.ListAll()
+	if err != nil {
+		return
+	}
+
+	source := rand.NewSource(seed)
+	random := rand.New(source)
+
+	return images[random.Intn(len(images))].ID, nil
 }
 
 // ListAll returns a list of all the images

@@ -283,6 +283,7 @@ func TestAPI(t *testing.T) {
 		{"List()", "/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		{"List()", "/v2/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		{"GetRandom()", "/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"GetRandomWithSeed()", "/seed/1/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		{"Get() database", "/id/1/100/100", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
 		// Processor errors
 		{"processor error", "/id/1/100/100", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
@@ -404,11 +405,28 @@ func TestAPI(t *testing.T) {
 		{"/:width/:height?image=:id&blur", "/200/300?image=1&blur", "/id/1/200/300?blur=5", true},
 		{"/:size?image=:id&grayscale&blur", "/200?image=1&grayscale&blur", "/id/1/200/200?blur=5&grayscale", true},
 		{"/:width/:height?image=:id&grayscale&blur", "/200/300?image=1&grayscale&blur", "/id/1/200/300?blur=5&grayscale", true},
+		// By seed
+		{"/seed/:seed/:size", "/seed/1/200", "/id/1/200/200", true},
+		{"/seed/:seed/:size.jpg", "/seed/1/200.jpg", "/id/1/200/200.jpg", true},
+		{"/seed/:seed/:size?blur", "/seed/1/200?blur", "/id/1/200/200?blur=5", true},
+		{"/seed/:seed/:size?blur=10", "/seed/1/200?blur=10", "/id/1/200/200?blur=10", true},
+		{"/seed/:seed/:size?grayscale", "/seed/1/200?grayscale", "/id/1/200/200?grayscale", true},
+		{"/seed/:seed/:size?blur&grayscale", "/seed/1/200?blur&grayscale", "/id/1/200/200?blur=5&grayscale", true},
+		{"/seed/:seed/:size?blur=10&grayscale", "/seed/1/200?blur=10&grayscale", "/id/1/200/200?blur=10&grayscale", true},
+		{"/seed/:seed/:width/:height", "/seed/1/200/300", "/id/1/200/300", true},
+		{"/seed/:seed/:width/:height.jpg", "/seed/1/200/300.jpg", "/id/1/200/300.jpg", true},
+		{"/seed/:seed/:width/:height?blur", "/seed/1/200/300?blur", "/id/1/200/300?blur=5", true},
+		{"/seed/:seed/:width/:height?blur=10", "/seed/1/200/300?blur=10", "/id/1/200/300?blur=10", true},
+		{"/seed/:seed/:width/:height?grayscale", "/seed/1/200/300?grayscale", "/id/1/200/300?grayscale", true},
+		{"/seed/:seed/:width/:height?blur&grayscale", "/seed/1/200/300?blur&grayscale", "/id/1/200/300?blur=5&grayscale", true},
+		{"/seed/:seed/:width/:height?blur=10&grayscale", "/seed/1/200/300?blur=10&grayscale", "/id/1/200/300?blur=10&grayscale", true},
 		// Trailing slashes
 		{"/:size/", "/200/", "/200", false},
 		{"/:width/:height/", "/200/300/", "/200/300", false},
 		{"/id/:id/:size/", "/id/1/200/", "/id/1/200", false},
 		{"/id/:id/:width/:height/", "/id/1/200/120/", "/id/1/200/120", false},
+		{"/seed/:seed/:size/", "/seed/1/200/", "/seed/1/200", false},
+		{"/seed/:seed/:width/:height/", "/seed/1/200/120/", "/seed/1/200/120", false},
 	}
 
 	for _, test := range redirectTests {
