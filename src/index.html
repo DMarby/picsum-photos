@@ -75,7 +75,7 @@
         <pre><code class="break-words"><a class="no-underline" href="/id/237/200/300">https://picsum.photos/id/237/200/300</a></code></pre>
         <p>You can find a list of all the images <a class="no-underline" href="/images">here.</a></p>
       </div>
-      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0 ">
+      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
         <img class="resize" src="/id/237/536/354">
       </div>
     </div>
@@ -84,12 +84,13 @@
   <div class="content-section-light">
     <div class="container mx-auto flex flex-wrap md:flex-row-reverse">
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
-        <h2>Grayscale</h2>
-        <p>Get a grayscale image by appending <code>?grayscale</code> to the end of the url.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300?grayscale">https://picsum.photos/200/300?grayscale</a></code></pre>
+        <h2>Static Random Image</h2>
+        <p>Get the same random image every time based on a seed, by adding <code>/seed/{seed}</code> to the start of the url.</p>
+        <pre><code class="break-words"><a class="no-underline" href="/seed/example/200/300">https://picsum.photos/seed/example/200/300</a></code></pre>
+        <p>You can find a list of all the images <a class="no-underline" href="/images">here.</a></p>
       </div>
-      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0 ">
-        <img class="resize" src="/id/1084/536/354?grayscale">
+      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
+        <img class="resize" src="/seed/example/536/354">
       </div>
     </div>
   </div>
@@ -97,20 +98,33 @@
   <div class="content-section-light">
     <div class="container mx-auto flex flex-wrap">
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
-        <h2>Blur</h2>
-        <p>Get a blurred image by appending <code>?blur</code> to the end of the url.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300/?blur">https://picsum.photos/200/300/?blur</a></code></pre>
-        <p>You can adjust the amount of blur by providing a number between <code>1</code> and <code>10</code>. </p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300/?blur=2">https://picsum.photos/200/300/?blur=2</a></code></pre>
+        <h2>Grayscale</h2>
+        <p>Get a grayscale image by appending <code>?grayscale</code> to the end of the url.</p>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300?grayscale">https://picsum.photos/200/300?grayscale</a></code></pre>
       </div>
-      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0 ">
-        <img class="resize" src="/id/1060/536/354?blur=2">
+      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
+        <img class="resize" src="/id/1084/536/354?grayscale">
       </div>
     </div>
   </div>
 
   <div class="content-section-light">
     <div class="container mx-auto flex flex-wrap md:flex-row-reverse">
+      <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
+        <h2>Blur</h2>
+        <p>Get a blurred image by appending <code>?blur</code> to the end of the url.</p>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300/?blur">https://picsum.photos/200/300/?blur</a></code></pre>
+        <p>You can adjust the amount of blur by providing a number between <code>1</code> and <code>10</code>. </p>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300/?blur=2">https://picsum.photos/200/300/?blur=2</a></code></pre>
+      </div>
+      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
+        <img class="resize" src="/id/1060/536/354?blur=2">
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section-light">
+    <div class="container mx-auto flex flex-wrap">
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
         <h2>Advanced Usage</h2>
         <p>You may combine any of the options above.</p>
@@ -122,14 +136,14 @@
         <p>If you need a file ending, you can add <code>.jpg</code> to the end of the url.</p>
         <pre><code class="break-words"><a class="no-underline" href="/200/300.jpg">https://picsum.photos/200/300.jpg</a></code></pre>
       </div>
-      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0 ">
+      <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
         <img class="resize" src="/id/870/536/354?grayscale&blur=2">
       </div>
     </div>
   </div>
 
   <div class="content-section-light">
-    <div class="container mx-auto flex flex-wrap">
+    <div class="container mx-auto flex flex-wrap md:flex-row-reverse">
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
         <h2>List Images</h2>
         <p>Get a list of images by using the <code>/v2/list</code> endpoint.</p>
