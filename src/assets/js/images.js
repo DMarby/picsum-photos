@@ -1,15 +1,21 @@
 window.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('prev').addEventListener('click', handleNavigationButton)
+  document.getElementById('next').addEventListener('click', handleNavigationButton)
+
+  loadPageFromhHash()
+})
+
+window.addEventListener('hashchange', loadPageFromhHash)
+
+function loadPageFromhHash() {
   var page = 1
 
   if (window.location.hash) {
     page = window.location.hash.substring(1)
   }
 
-  document.getElementById('prev').addEventListener('click', handleNavigationButton)
-  document.getElementById('next').addEventListener('click', handleNavigationButton)
-
   loadPage(page)
-})
+}
 
 function handleNavigationButton (event) {
   event.preventDefault()
@@ -19,7 +25,7 @@ function handleNavigationButton (event) {
     return
   }
 
-  loadPage(page)
+  // Set the hash, this will change the page by triggering the 'hashchange' event
   window.location.hash = page
   window.scrollTo({ top: 0 })
 }
