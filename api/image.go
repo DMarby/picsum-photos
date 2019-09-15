@@ -50,7 +50,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	}
 
 	// Build the image task
-	task := image.NewTask(databaseImage.ID, width, height, fmt.Sprintf("Picsum ID: %s", databaseImage.ID), image.JPEG)
+	task := image.NewTask(databaseImage.ID, width, height, fmt.Sprintf("Picsum ID: %s", databaseImage.ID), getOutputFormat(p.Extension))
 	if p.Blur {
 		task.Blur(p.BlurAmount)
 	}
@@ -68,7 +68,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 
 	// Set the headers
 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", buildFilename(imageID, p, width, height)))
-	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Content-Type", getContentType(p.Extension))
 	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
 	w.Header().Set("Picsum-ID", databaseImage.ID)
 
@@ -76,6 +76,24 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	w.Write(processedImage)
 
 	return nil
+}
+
+func getOutputFormat(extension string) image.OutputFormat {
+	switch extension {
+	case ".webp":
+		return image.WebP
+	default:
+		return image.JPEG
+	}
+}
+
+func getContentType(extension string) string {
+	switch extension {
+	case ".webp":
+		return "image/webp"
+	default:
+		return "image/jpeg"
+	}
 }
 
 func buildFilename(imageID string, p *params.Params, width int, height int) string {

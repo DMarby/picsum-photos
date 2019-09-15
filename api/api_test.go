@@ -343,15 +343,31 @@ func TestAPI(t *testing.T) {
 		URL                        string
 		ExpectedResponse           []byte
 		ExpectedContentDisposition string
+		ExpectedContentType        string
 	}{
 		// Images
-		{"/id/:id/:width/:height", "/id/1/200/120", readFixture("width_height"), "inline; filename=\"1-200x120.jpg\""},
-		{"/id/:id/:width/:height.jpg", "/id/1/200/120.jpg", readFixture("width_height"), "inline; filename=\"1-200x120.jpg\""},
-		{"/id/:id/:width/:height?blur", "/id/1/200/200?blur", readFixture("blur"), "inline; filename=\"1-200x200-blur_5.jpg\""},
-		{"/id/:id/:width/:height?grayscale", "/id/1/200/200?grayscale", readFixture("grayscale"), "inline; filename=\"1-200x200-grayscale.jpg\""},
-		{"/id/:id/:width/:height?blur&grayscale", "/id/1/200/200?blur&grayscale", readFixture("all"), "inline; filename=\"1-200x200-blur_5-grayscale.jpg\""},
-		{"width/height larger then max allowed but same size as image", "/id/1/300/400", readFixture("max_allowed"), "inline; filename=\"1-300x400.jpg\""},
-		{"width/height of 0 returns original image width", "/id/1/0/0", readFixture("max_allowed"), "inline; filename=\"1-300x400.jpg\""},
+
+		// JPEG
+		{"/id/:id/:width/:height", "/id/1/200/120", readFixture("width_height", "jpg"), "inline; filename=\"1-200x120.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height.jpg", "/id/1/200/120.jpg", readFixture("width_height", "jpg"), "inline; filename=\"1-200x120.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height?blur", "/id/1/200/200?blur", readFixture("blur", "jpg"), "inline; filename=\"1-200x200-blur_5.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height.jpg?blur", "/id/1/200/200.jpg?blur", readFixture("blur", "jpg"), "inline; filename=\"1-200x200-blur_5.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height?grayscale", "/id/1/200/200?grayscale", readFixture("grayscale", "jpg"), "inline; filename=\"1-200x200-grayscale.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height.jpg?grayscale", "/id/1/200/200.jpg?grayscale", readFixture("grayscale", "jpg"), "inline; filename=\"1-200x200-grayscale.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height?blur&grayscale", "/id/1/200/200?blur&grayscale", readFixture("all", "jpg"), "inline; filename=\"1-200x200-blur_5-grayscale.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height.jpg?blur&grayscale", "/id/1/200/200.jpg?blur&grayscale", readFixture("all", "jpg"), "inline; filename=\"1-200x200-blur_5-grayscale.jpg\"", "image/jpeg"},
+		{"width/height larger then max allowed but same size as image", "/id/1/300/400", readFixture("max_allowed", "jpg"), "inline; filename=\"1-300x400.jpg\"", "image/jpeg"},
+		{"width/height larger then max allowed but same size as image", "/id/1/300/400.jpg", readFixture("max_allowed", "jpg"), "inline; filename=\"1-300x400.jpg\"", "image/jpeg"},
+		{"width/height of 0 returns original image width", "/id/1/0/0", readFixture("max_allowed", "jpg"), "inline; filename=\"1-300x400.jpg\"", "image/jpeg"},
+		{"width/height of 0 returns original image width", "/id/1/0/0.jpg", readFixture("max_allowed", "jpg"), "inline; filename=\"1-300x400.jpg\"", "image/jpeg"},
+
+		// WebP
+		{"/id/:id/:width/:height.webp", "/id/1/200/120.webp", readFixture("width_height", "webp"), "inline; filename=\"1-200x120.webp\"", "image/webp"},
+		{"/id/:id/:width/:height.webp?blur", "/id/1/200/200.webp?blur", readFixture("blur", "webp"), "inline; filename=\"1-200x200-blur_5.webp\"", "image/webp"},
+		{"/id/:id/:width/:height.webp?grayscale", "/id/1/200/200.webp?grayscale", readFixture("grayscale", "webp"), "inline; filename=\"1-200x200-grayscale.webp\"", "image/webp"},
+		{"/id/:id/:width/:height.webp?blur&grayscale", "/id/1/200/200.webp?blur&grayscale", readFixture("all", "webp"), "inline; filename=\"1-200x200-blur_5-grayscale.webp\"", "image/webp"},
+		{"width/height larger then max allowed but same size as image", "/id/1/300/400.webp", readFixture("max_allowed", "webp"), "inline; filename=\"1-300x400.webp\"", "image/webp"},
+		{"width/height of 0 returns original image width", "/id/1/0/0.webp", readFixture("max_allowed", "webp"), "inline; filename=\"1-300x400.webp\"", "image/webp"},
 	}
 
 	for _, test := range imageTests {
@@ -363,7 +379,7 @@ func TestAPI(t *testing.T) {
 			continue
 		}
 
-		if contentType := w.Header().Get("Content-Type"); contentType != "image/jpeg" {
+		if contentType := w.Header().Get("Content-Type"); contentType != test.ExpectedContentType {
 			t.Errorf("%s: wrong content type, %#v", test.Name, contentType)
 		}
 
@@ -393,6 +409,7 @@ func TestAPI(t *testing.T) {
 		// /id/:id/:size to /id/:id/:width/:height
 		{"/id/:id/:size", "/id/1/200", "/id/1/200/200", true},
 		{"/id/:id/:size.jpg", "/id/1/200.jpg", "/id/1/200/200.jpg", true},
+		{"/id/:id/:size.webp", "/id/1/200.webp", "/id/1/200/200.webp", true},
 		{"/id/:id/:size?blur", "/id/1/200?blur", "/id/1/200/200?blur=5", true},
 		{"/id/:id/:size?grayscale", "/id/1/200?grayscale", "/id/1/200/200?grayscale", true},
 		{"/id/:id/:size?blur&grayscale", "/id/1/200?blur&grayscale", "/id/1/200/200?blur=5&grayscale", true},
@@ -401,6 +418,8 @@ func TestAPI(t *testing.T) {
 		{"/:width/:height", "/200/300", "/id/1/200/300", true},
 		{"/:size.jpg", "/200.jpg", "/id/1/200/200.jpg", true},
 		{"/:width/:height.jpg", "/200/300.jpg", "/id/1/200/300.jpg", true},
+		{"/:size.webp", "/200.webp", "/id/1/200/200.webp", true},
+		{"/:width/:height.webp", "/200/300.webp", "/id/1/200/300.webp", true},
 		{"/:size?grayscale", "/200?grayscale", "/id/1/200/200?grayscale", true},
 		{"/:width/:height?grayscale", "/200/300?grayscale", "/id/1/200/300?grayscale", true},
 		// Default blur amount
@@ -418,12 +437,16 @@ func TestAPI(t *testing.T) {
 		{"/g/:width/:height", "/g/200/300", "/200/300?grayscale", true},
 		{"/g/:size.jpg", "/g/200.jpg", "/200/200.jpg?grayscale", true},
 		{"/g/:width/:height.jpg", "/g/200/300.jpg", "/200/300.jpg?grayscale", true},
+		{"/g/:size.webp", "/g/200.webp", "/200/200.webp?grayscale", true},
+		{"/g/:width/:height.webp", "/g/200/300.webp", "/200/300.webp?grayscale", true},
 		{"/g/:size?blur", "/g/200?blur", "/200/200?blur=5&grayscale", true},
 		{"/g/:width/:height?blur", "/g/200/300?blur", "/200/300?blur=5&grayscale", true},
 		{"/g/:size?image=:id", "/g/200?image=1", "/id/1/200/200?grayscale", true},
 		{"/g/:width/:height?image=:id", "/g/200/300?image=1", "/id/1/200/300?grayscale", true},
 		{"/g/:size.jpg?image=:id", "/g/200.jpg?image=1", "/id/1/200/200.jpg?grayscale", true},
 		{"/g/:width/:height.jpg?image=:id", "/g/200/300.jpg?image=1", "/id/1/200/300.jpg?grayscale", true},
+		{"/g/:size.webp?image=:id", "/g/200.webp?image=1", "/id/1/200/200.webp?grayscale", true},
+		{"/g/:width/:height.webp?image=:id", "/g/200/300.webp?image=1", "/id/1/200/300.webp?grayscale", true},
 		// Deprecated query params
 		{"/:size?image=:id", "/200?image=1", "/id/1/200/200", true},
 		{"/:width/:height?image=:id", "/200/300?image=1", "/id/1/200/300", true},
@@ -436,6 +459,7 @@ func TestAPI(t *testing.T) {
 		// By seed
 		{"/seed/:seed/:size", "/seed/1/200", "/id/1/200/200", true},
 		{"/seed/:seed/:size.jpg", "/seed/1/200.jpg", "/id/1/200/200.jpg", true},
+		{"/seed/:seed/:size.webp", "/seed/1/200.webp", "/id/1/200/200.webp", true},
 		{"/seed/:seed/:size?blur", "/seed/1/200?blur", "/id/1/200/200?blur=5", true},
 		{"/seed/:seed/:size?blur=10", "/seed/1/200?blur=10", "/id/1/200/200?blur=10", true},
 		{"/seed/:seed/:size?grayscale", "/seed/1/200?grayscale", "/id/1/200/200?grayscale", true},
@@ -443,6 +467,7 @@ func TestAPI(t *testing.T) {
 		{"/seed/:seed/:size?blur=10&grayscale", "/seed/1/200?blur=10&grayscale", "/id/1/200/200?blur=10&grayscale", true},
 		{"/seed/:seed/:width/:height", "/seed/1/200/300", "/id/1/200/300", true},
 		{"/seed/:seed/:width/:height.jpg", "/seed/1/200/300.jpg", "/id/1/200/300.jpg", true},
+		{"/seed/:seed/:width/:height.webp", "/seed/1/200/300.webp", "/id/1/200/300.webp", true},
 		{"/seed/:seed/:width/:height?blur", "/seed/1/200/300?blur", "/id/1/200/300?blur=5", true},
 		{"/seed/:seed/:width/:height?blur=10", "/seed/1/200/300?blur=10", "/id/1/200/300?blur=10", true},
 		{"/seed/:seed/:width/:height?grayscale", "/seed/1/200/300?grayscale", "/id/1/200/300?grayscale", true},
@@ -484,8 +509,8 @@ func marshalJson(v interface{}) []byte {
 	return append(fixture[:], []byte("\n")...)
 }
 
-func readFixture(fixtureName string) []byte {
-	return readFile(fmt.Sprintf("../test/fixtures/api/%s_%s.jpg", fixtureName, runtime.GOOS))
+func readFixture(fixtureName string, extension string) []byte {
+	return readFile(fmt.Sprintf("../test/fixtures/api/%s_%s.%s", fixtureName, runtime.GOOS, extension))
 }
 func readFile(path string) []byte {
 	fixture, _ := ioutil.ReadFile(path)

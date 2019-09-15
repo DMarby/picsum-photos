@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/DMarby/picsum-photos/database"
 	"github.com/gorilla/mux"
@@ -98,10 +99,10 @@ func intParam(r *http.Request, name string) (int, bool) {
 func getFileExtension(r *http.Request) (extension string, err error) {
 	vars := mux.Vars(r)
 
-	// We only allow the .jpg extension, as we only serve jpg images
+	// We only allow the .jpg and .webp extensions, as we only serve jpg and webp images
 	// We also allow no extension since it's an optional path param
-	val := vars["extension"]
-	if val != "" && val != ".jpg" {
+	val := strings.ToLower(vars["extension"])
+	if val != "" && val != ".jpg" && val != ".webp" {
 		return "", ErrInvalidFileExtension
 	}
 
