@@ -8,14 +8,16 @@ type Task struct {
 	ApplyBlur      bool
 	BlurAmount     int
 	ApplyGrayscale bool
+	UserComment    string
 }
 
 // NewTask creates a new image processing task
-func NewTask(imageID string, width int, height int) *Task {
+func NewTask(imageID string, width int, height int, userComment string) *Task {
 	return &Task{
-		ImageID: imageID,
-		Width:   width,
-		Height:  height,
+		ImageID:     imageID,
+		Width:       width,
+		Height:      height,
+		UserComment: userComment,
 	}
 }
 

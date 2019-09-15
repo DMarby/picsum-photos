@@ -20,6 +20,8 @@ func resizeImage(t *testing.T, imageBuffer []byte) vips.Image {
 		t.Fatal(err)
 	}
 
+	vips.SetUserComment(resizedImage, "Test")
+
 	return resizedImage
 }
 

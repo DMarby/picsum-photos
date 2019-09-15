@@ -155,6 +155,11 @@ func Blur(image Image, blur int) (Image, error) {
 	return result, nil
 }
 
+// SetUserComment sets the UserComment field in the exif metadata for an image
+func SetUserComment(image Image, comment string) {
+	C.set_user_comment(image, C.CString(comment))
+}
+
 // UnrefImage unrefs an image object
 func UnrefImage(image Image) {
 	C.g_object_unref(C.gpointer(image))

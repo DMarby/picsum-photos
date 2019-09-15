@@ -45,6 +45,11 @@ func (i *resizedImage) blur(blur int) (*resizedImage, error) {
 	}, nil
 }
 
+// setUserComment sets the exif usercomment
+func (i *resizedImage) setUserComment(comment string) {
+	vips.SetUserComment(i.vipsImage, comment)
+}
+
 // saveToBuffer returns the image as a JPEG byte buffer
 func (i *resizedImage) saveToBuffer() ([]byte, error) {
 	imageBuffer, err := vips.SaveToBuffer(i.vipsImage)

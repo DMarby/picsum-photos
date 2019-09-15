@@ -46,7 +46,7 @@ func setup() (context.CancelFunc, *vips.Processor, []byte, error) {
 }
 
 func fullTest(processor *vips.Processor, buf []byte) []byte {
-	task := image.NewTask("1", 500, 500).Grayscale().Blur(5)
+	task := image.NewTask("1", 500, 500, "testing").Grayscale().Blur(5)
 	imageBuffer, _ := processor.ProcessImage(context.Background(), task)
 	return imageBuffer
 }
@@ -61,14 +61,14 @@ func TestVips(t *testing.T) {
 
 	t.Run("Processor", func(t *testing.T) {
 		t.Run("process image", func(t *testing.T) {
-			_, err := processor.ProcessImage(context.Background(), image.NewTask("1", 500, 500))
+			_, err := processor.ProcessImage(context.Background(), image.NewTask("1", 500, 500, "testing"))
 			if err != nil {
 				t.Error(err)
 			}
 		})
 
 		t.Run("process image handles errors", func(t *testing.T) {
-			_, err := processor.ProcessImage(context.Background(), image.NewTask("foo", 500, 500))
+			_, err := processor.ProcessImage(context.Background(), image.NewTask("foo", 500, 500, "testing"))
 			if err == nil || err.Error() != "error getting image from cache: open ../../test/fixtures/file/foo.jpg: no such file or directory" {
 				t.Error()
 			}

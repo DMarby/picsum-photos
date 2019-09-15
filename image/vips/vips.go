@@ -87,6 +87,8 @@ func taskProcessor(cache *image.Cache) func(ctx context.Context, data interface{
 			}
 		}
 
+		image.setUserComment(task.UserComment)
+
 		buffer, err := image.saveToBuffer()
 		if err != nil {
 			return nil, err
