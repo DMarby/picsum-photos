@@ -9,15 +9,27 @@ type Task struct {
 	BlurAmount     int
 	ApplyGrayscale bool
 	UserComment    string
+	OutputFormat   OutputFormat
 }
 
+// OutputFormat is the image format to output to
+type OutputFormat int
+
+const (
+	// JPEG represents the JPEG format
+	JPEG OutputFormat = iota
+	// WebP represents the WebP format
+	WebP
+)
+
 // NewTask creates a new image processing task
-func NewTask(imageID string, width int, height int, userComment string) *Task {
+func NewTask(imageID string, width int, height int, userComment string, format OutputFormat) *Task {
 	return &Task{
-		ImageID:     imageID,
-		Width:       width,
-		Height:      height,
-		UserComment: userComment,
+		ImageID:      imageID,
+		Width:        width,
+		Height:       height,
+		UserComment:  userComment,
+		OutputFormat: format,
 	}
 }
 

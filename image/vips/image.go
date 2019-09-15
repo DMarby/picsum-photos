@@ -50,9 +50,20 @@ func (i *resizedImage) setUserComment(comment string) {
 	vips.SetUserComment(i.vipsImage, comment)
 }
 
-// saveToBuffer returns the image as a JPEG byte buffer
-func (i *resizedImage) saveToBuffer() ([]byte, error) {
+// saveToJpegBuffer returns the image as a JPEG byte buffer
+func (i *resizedImage) saveToJpegBuffer() ([]byte, error) {
 	imageBuffer, err := vips.SaveToJpegBuffer(i.vipsImage)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return imageBuffer, nil
+}
+
+// saveToWebPBuffer returns the image as a WebP byte buffer
+func (i *resizedImage) saveToWebPBuffer() ([]byte, error) {
+	imageBuffer, err := vips.SaveToWebPBuffer(i.vipsImage)
 
 	if err != nil {
 		return nil, err

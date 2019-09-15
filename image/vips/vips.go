@@ -68,28 +68,35 @@ func taskProcessor(cache *image.Cache) func(ctx context.Context, data interface{
 			return nil, fmt.Errorf("error getting image from cache: %s", err)
 		}
 
-		image, err := resizeImage(imageBuffer, task.Width, task.Height)
+		processedImage, err := resizeImage(imageBuffer, task.Width, task.Height)
 		if err != nil {
 			return nil, err
 		}
 
 		if task.ApplyBlur {
-			image, err = image.blur(task.BlurAmount)
+			processedImage, err = processedImage.blur(task.BlurAmount)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		if task.ApplyGrayscale {
-			image, err = image.grayscale()
+			processedImage, err = processedImage.grayscale()
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		image.setUserComment(task.UserComment)
+		processedImage.setUserComment(task.UserComment)
 
-		buffer, err := image.saveToBuffer()
+		var buffer []byte
+		switch task.OutputFormat {
+		case image.JPEG:
+			buffer, err = processedImage.saveToJpegBuffer()
+		case image.WebP:
+			buffer, err = processedImage.saveToWebPBuffer()
+		}
+
 		if err != nil {
 			return nil, err
 		}

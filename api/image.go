@@ -50,7 +50,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	}
 
 	// Build the image task
-	task := image.NewTask(databaseImage.ID, width, height, fmt.Sprintf("Picsum ID: %s", databaseImage.ID))
+	task := image.NewTask(databaseImage.ID, width, height, fmt.Sprintf("Picsum ID: %s", databaseImage.ID), image.JPEG)
 	if p.Blur {
 		task.Blur(p.BlurAmount)
 	}
