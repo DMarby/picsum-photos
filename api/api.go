@@ -72,6 +72,9 @@ func (a *API) Router() http.Handler {
 	router.Handle("/seed/{seed}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.seedImageRedirectHandler)).Methods("GET")
 	router.Handle("/seed/{seed}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.seedImageRedirectHandler)).Methods("GET")
 
+	// Describe image routes
+	router.Handle("/describe/{id}", handler.Handler(a.describeHandler)).Methods("GET")
+
 	// Query parameters:
 	// ?grayscale - Grayscale the image
 	// ?blur - Blur the image

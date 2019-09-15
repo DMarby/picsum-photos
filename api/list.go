@@ -8,6 +8,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/api/handler"
 	"github.com/DMarby/picsum-photos/database"
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -21,6 +22,44 @@ const (
 type ListImage struct {
 	database.Image
 	DownloadURL string `json:"download_url"`
+}
+
+// Get metadata and download information about an image
+func (a *API) describeHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
+
+	// Get the image from the database
+	vars := mux.Vars(r)
+	imageID := vars["id"]
+	image, err := a.Database.Get(imageID)
+	if err != nil {
+		if err == database.ErrNotFound {
+			return &handler.Error{Message: err.Error(), Code: http.StatusNotFound}
+		}
+
+		a.logError(r, "error getting image description from database", err)
+		return handler.InternalServerError()
+	}
+
+	res := ListImage{
+		Image: database.Image{
+			ID:     image.ID,
+			Author: image.Author,
+			Width:  image.Width,
+			Height: image.Height,
+			URL:    image.URL,
+		},
+		DownloadURL: fmt.Sprintf("%s/id/%s/%d/%d", a.RootURL, image.ID, image.Width, image.Height),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
+
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		a.logError(r, "error encoding image list", err)
+		return handler.InternalServerError()
+	}
+
+	return nil
 }
 
 // Paginated list, with `page` and `limit` query parameters
