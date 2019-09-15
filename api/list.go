@@ -24,10 +24,8 @@ type ListImage struct {
 	DownloadURL string `json:"download_url"`
 }
 
-// Get metadata and download information about an image
-func (a *API) describeHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
-
-	// Get the image from the database
+// Returns info about an image
+func (a *API) infoHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
 	vars := mux.Vars(r)
 	imageID := vars["id"]
 	image, err := a.Database.Get(imageID)
@@ -36,26 +34,17 @@ func (a *API) describeHandler(w http.ResponseWriter, r *http.Request) *handler.E
 			return &handler.Error{Message: err.Error(), Code: http.StatusNotFound}
 		}
 
-		a.logError(r, "error getting image description from database", err)
+		a.logError(r, "error getting image from database", err)
 		return handler.InternalServerError()
 	}
 
-	res := ListImage{
-		Image: database.Image{
-			ID:     image.ID,
-			Author: image.Author,
-			Width:  image.Width,
-			Height: image.Height,
-			URL:    image.URL,
-		},
-		DownloadURL: fmt.Sprintf("%s/id/%s/%d/%d", a.RootURL, image.ID, image.Width, image.Height),
-	}
+	listImage := a.getListImage(*image)
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		a.logError(r, "error encoding image list", err)
+	if err := json.NewEncoder(w).Encode(listImage); err != nil {
+		a.logError(r, "error encoding image info", err)
 		return handler.InternalServerError()
 	}
 
@@ -78,16 +67,7 @@ func (a *API) listHandler(w http.ResponseWriter, r *http.Request) *handler.Error
 	list := []ListImage{}
 
 	for _, image := range databaseList {
-		list = append(list, ListImage{
-			Image: database.Image{
-				ID:     image.ID,
-				Author: image.Author,
-				Width:  image.Width,
-				Height: image.Height,
-				URL:    image.URL,
-			},
-			DownloadURL: fmt.Sprintf("%s/id/%s/%d/%d", a.RootURL, image.ID, image.Width, image.Height),
-		})
+		list = append(list, a.getListImage(image))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -140,4 +120,17 @@ func (a *API) getLinkHeader(page, limit int, end bool) string {
 	return fmt.Sprintf("<%s/v2/list?page=%d&limit=%d>; rel=\"prev\", <%s/v2/list?page=%d&limit=%d>; rel=\"next\"",
 		a.RootURL, page-1, limit, a.RootURL, page+1, limit,
 	)
+}
+
+func (a *API) getListImage(image database.Image) ListImage {
+	return ListImage{
+		Image: database.Image{
+			ID:     image.ID,
+			Author: image.Author,
+			Width:  image.Width,
+			Height: image.Height,
+			URL:    image.URL,
+		},
+		DownloadURL: fmt.Sprintf("%s/id/%s/%d/%d", a.RootURL, image.ID, image.Width, image.Height),
+	}
 }
