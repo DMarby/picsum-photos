@@ -52,7 +52,7 @@ func (i *resizedImage) setUserComment(comment string) {
 
 // saveToBuffer returns the image as a JPEG byte buffer
 func (i *resizedImage) saveToBuffer() ([]byte, error) {
-	imageBuffer, err := vips.SaveToBuffer(i.vipsImage)
+	imageBuffer, err := vips.SaveToJpegBuffer(i.vipsImage)
 
 	if err != nil {
 		return nil, err

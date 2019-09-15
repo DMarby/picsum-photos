@@ -105,8 +105,8 @@ func ResizeImage(buffer []byte, width int, height int) (Image, error) {
 	return image, nil
 }
 
-// SaveToBuffer saves an image to a buffer
-func SaveToBuffer(image Image) ([]byte, error) {
+// SaveToJpegBuffer saves an image as JPEG to a buffer
+func SaveToJpegBuffer(image Image) ([]byte, error) {
 	defer UnrefImage(image)
 
 	var bufferPointer unsafe.Pointer
@@ -115,7 +115,27 @@ func SaveToBuffer(image Image) ([]byte, error) {
 	err := C.save_image_to_jpeg_buffer(image, &bufferPointer, &bufferLength)
 
 	if err != 0 {
-		return nil, fmt.Errorf("error saving to buffer %s", catchVipsError())
+		return nil, fmt.Errorf("error saving to jpeg buffer %s", catchVipsError())
+	}
+
+	buffer := C.GoBytes(bufferPointer, C.int(bufferLength))
+
+	C.g_free(C.gpointer(bufferPointer))
+
+	return buffer, nil
+}
+
+// SaveToWebPBuffer saves an image as WebP to a buffer
+func SaveToWebPBuffer(image Image) ([]byte, error) {
+	defer UnrefImage(image)
+
+	var bufferPointer unsafe.Pointer
+	bufferLength := C.size_t(0)
+
+	err := C.save_image_to_webp_buffer(image, &bufferPointer, &bufferLength)
+
+	if err != 0 {
+		return nil, fmt.Errorf("error saving to webp buffer %s", catchVipsError())
 	}
 
 	buffer := C.GoBytes(bufferPointer, C.int(bufferLength))

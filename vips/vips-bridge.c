@@ -12,6 +12,10 @@ int save_image_to_jpeg_buffer(VipsImage *image, void **buf, size_t *len) {
   return vips_jpegsave_buffer(image, buf, len, "interlace", TRUE, "optimize_coding", TRUE, NULL);
 }
 
+int save_image_to_webp_buffer(VipsImage *image, void **buf, size_t *len) {
+  return vips_webpsave_buffer(image, buf, len, NULL);
+}
+
 int resize_image(void *buf, size_t len, VipsImage **out, int width, int height, VipsInteresting interesting) {
   return vips_thumbnail_buffer(buf, len, out, width, "height", height, "crop", interesting, NULL);
 }
