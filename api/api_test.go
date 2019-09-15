@@ -375,6 +375,10 @@ func TestAPI(t *testing.T) {
 			t.Errorf("%s: wrong content disposition header, %#v", test.Name, contentDisposition)
 		}
 
+		if imageID := w.Header().Get("Picsum-ID"); imageID != "1" {
+			t.Errorf("%s: wrong image id header, %#v", test.Name, imageID)
+		}
+
 		if !reflect.DeepEqual(w.Body.Bytes(), test.ExpectedResponse) {
 			t.Errorf("%s: wrong response/image data", test.Name)
 		}
