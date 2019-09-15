@@ -168,6 +168,27 @@
     </div>
   </div>
 
+  <div class="content-section-light">
+    <div class="container mx-auto flex flex-wrap">
+      <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
+        <h2>Image Details</h2>
+        <p>Get information about a specific image by using the the <code>/id/{id}/info</code> endpoint.</p>
+        <pre><code class="break-words"><a class="no-underline" href="/id/0/info">https://picsum.photos/id/0/info</a></code></pre>
+        <p>You can find out the ID of an image by looking at the <code>Picsum-ID</code> header, or the <code>User Comment</code> field in the EXIF metadata.</p>
+      </div>
+      <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
+<pre class="code-box"><code class="break-words">{
+        "id": "0",
+        "author": "Alejandro Escamilla",
+        "width": 5616,
+        "height": 3744,
+        "url": "https://unsplash.com/...",
+        "download_url": "https://picsum.photos/..."
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <div class="flex justify-center">
       <div>
