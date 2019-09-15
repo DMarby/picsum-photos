@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 
 	"github.com/DMarby/picsum-photos/logger"
 	"github.com/DMarby/picsum-photos/vips"
@@ -51,7 +52,7 @@ func TestVips(t *testing.T) {
 
 		t.Run("errors on an invalid image", func(t *testing.T) {
 			_, err := vips.SaveToBuffer(vips.NewEmptyImage())
-			if err == nil || err.Error() != "error saving to buffer vips_image_pio_input: no image data\n" {
+			if err == nil || !strings.Contains(err.Error(), "error saving to buffer") || !strings.Contains(err.Error(), "vips_image_pio_input: no image data") {
 				t.Error(err)
 			}
 		})
@@ -66,7 +67,7 @@ func TestVips(t *testing.T) {
 
 			buf, _ := vips.SaveToBuffer(image)
 			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../test/fixtures/vips/resize_result_%s.jpg", runtime.GOOS))
-			if runtime.GOOS == "linux" && !reflect.DeepEqual(buf, resultFixture) {
+			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
 		})
@@ -96,7 +97,7 @@ func TestVips(t *testing.T) {
 
 			buf, _ := vips.SaveToBuffer(image)
 			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../test/fixtures/vips/grayscale_result_%s.jpg", runtime.GOOS))
-			if runtime.GOOS == "linux" && !reflect.DeepEqual(buf, resultFixture) {
+			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
 		})
@@ -118,7 +119,7 @@ func TestVips(t *testing.T) {
 
 			buf, _ := vips.SaveToBuffer(image)
 			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../test/fixtures/vips/blur_result_%s.jpg", runtime.GOOS))
-			if runtime.GOOS == "linux" && !reflect.DeepEqual(buf, resultFixture) {
+			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
 		})
