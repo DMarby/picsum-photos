@@ -81,7 +81,10 @@ data:
         req.http.referer ~ "tube8\.es" ||
         req.http.referer ~ "tube8\.fr" ||
         req.http.referer ~ "eltiempo\.es" ||
-        req.http.referer ~ "clima\.com"
+        req.http.referer ~ "clima\.com" ||
+        req.http.referer ~ "ohman\.vn" ||
+        req.http.referer ~ "crowd1\.com" ||
+        req.http.referer ~ "autoline\.com\.br"
       ) {
         return (synth(403, "blocked"));
       }
