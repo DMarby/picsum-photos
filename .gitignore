@@ -1,10 +1,12 @@
 **/debug
 **/debug.test
 picsum-photos
+!cmd/picsum-photos/
+
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 
-static
+dist
 node_modules
 
 .terraform

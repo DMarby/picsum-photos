@@ -5,13 +5,13 @@ const purgecss = require('gulp-purgecss')
 var watch = false
 
 gulp.task('clean', () => {
-  return del(['static'])
+  return del(['dist'])
 })
 
 gulp.task('assets', () => {
   return gulp
-          .src(['src/**/*', '!src/**/*.min.css'])
-          .pipe(gulp.dest('static'))
+          .src(['web/**/*', '!web/**/*.min.css'])
+          .pipe(gulp.dest('dist'))
 })
 
 // Extractor from https://tailwindcss.com/docs/controlling-file-size/#removing-unused-css-with-purgecss
@@ -22,12 +22,12 @@ class TailwindExtractor {
 }
 
 gulp.task('purgecss', function() {
-  var pipe = gulp.src('src/**/*.min.css')
+  var pipe = gulp.src('web/**/*.min.css')
 
   if (!watch) {
     pipe = pipe.pipe(
       purgecss({
-        content: ['src/*.html'],
+        content: ['web/*.html'],
         extractors: [
           {
             extractor: TailwindExtractor,
@@ -38,12 +38,12 @@ gulp.task('purgecss', function() {
     )
   }
 
-  return pipe.pipe(gulp.dest('static/'))
+  return pipe.pipe(gulp.dest('dist/'))
 })
 
 gulp.task('watch', () => {
   watch = true
-  gulp.watch(['src/**/*'], gulp.parallel('assets', 'purgecss'))
+  gulp.watch(['web/**/*'], gulp.parallel('assets', 'purgecss'))
 })
 
 gulp.task('default', gulp.series('clean', gulp.parallel('assets', 'purgecss')))

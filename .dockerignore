@@ -8,21 +8,11 @@
 !go.mod
 !go.sum
 
-# Include main file
-!main.go
-
 # Include packages
-!api
-!cache
-!database
-!health
-!image
-!logger
-!queue
-!src
-!storage
+!cmd
+!internal
 !test
-!vips
+!web
 
 # Include frontend build-pipeline stuff
 !gulpfile.js
