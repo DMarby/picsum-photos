@@ -1,5 +1,6 @@
 {
-  "name": "picsum-photos",
+  "name": "@dmarby/picsum-photos",
+  "private": true,
   "version": "1.0.0",
   "scripts": {
     "build": "gulp",
