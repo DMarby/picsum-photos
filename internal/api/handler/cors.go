@@ -27,7 +27,8 @@ func CORS(next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Methods", "GET")
 		} else {
 			// Expose the Link header used for pagination
-			w.Header().Set("Access-Control-Expose-Headers", "Link")
+			// And the Picsum-ID used to get the ID for an image
+			w.Header().Set("Access-Control-Expose-Headers", "Link, Picsum-ID")
 
 			next.ServeHTTP(w, r)
 		}

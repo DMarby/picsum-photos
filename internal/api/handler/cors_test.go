@@ -25,7 +25,7 @@ func TestCORS(t *testing.T) {
 			},
 			ExpectedHeaders: map[string]string{
 				"Access-Control-Allow-Origin":   "*",
-				"Access-Control-Expose-Headers": "Link",
+				"Access-Control-Expose-Headers": "Link, Picsum-ID",
 			},
 		},
 		{
