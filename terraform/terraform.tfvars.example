@@ -10,9 +10,6 @@ do_spaces_secret_key = ""
 
 # Picsum settings
 
-# Domain for the service
-picsum_domain = "example.com"
-
 # DigitalOcean Space for storing photos
 picsum_bucket = "picsum-photos"
 
