@@ -76,7 +76,7 @@ func TestCORS(t *testing.T) {
 		rr := httptest.NewRecorder()
 		testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-		handler.CORS(testHandler).ServeHTTP(rr, r)
+		handler.CORS([]string{"Link", "Picsum-ID"}, testHandler).ServeHTTP(rr, r)
 
 		if rr.Code != test.ExpectedStatus {
 			t.Errorf("%s: wrong response code, %#v", test.Name, rr.Code)

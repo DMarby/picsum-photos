@@ -86,7 +86,7 @@ func (a *API) Router() http.Handler {
 	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))).ServeHTTP))
 
 	// Set up handlers for adding a request id, handling panics, request logging, setting CORS headers, and handler execution timeout
-	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS(http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")))))
+	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS([]string{"Link"}, http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")))))
 }
 
 // Handle not found errors

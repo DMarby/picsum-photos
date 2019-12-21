@@ -48,7 +48,7 @@ func (a *API) Router() http.Handler {
 	// ?blur={amount} - Blur the image by {amount}
 
 	// Set up handlers for adding a request id, handling panics, request logging, setting CORS headers, and handler execution timeout
-	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS(http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")))))
+	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS([]string{"Picsum-ID"}, http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")))))
 }
 
 // Handle not found errors
