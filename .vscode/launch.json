@@ -22,14 +22,24 @@
       "program": "${workspaceRoot}/cmd/image-service",
       "showLog": true,
       "cwd": "${workspaceRoot}"
-    }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "gulp",
+      "program": "${workspaceFolder}/node_modules/.bin/gulp",
+      "args": [
+        "watch"
+      ]
+    },
   ],
   "compounds": [
     {
       "name": "All",
       "configurations": [
         "picsum-photos",
-        "image-service"
+        "image-service",
+        "gulp"
       ]
     }
   ]
