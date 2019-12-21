@@ -11,15 +11,9 @@ spec:
     spec:
       containers:
       - name: picsum
-        image: 'dmarby/picsum-photos@sha256:136d2900d934db2de957b7302b12375f94a88f69d75288a9738e9ecc63ce4cf4'
+        image: 'dmarby/picsum-photos@sha256:fb1d39712929dce4ee98176b0f88c1f90cdd69021cf13758af92ebd223f1baf7'
         ports:
         - containerPort: 8080
-        resources:
-          requests:
-            cpu: 2
-          limits:
-            memory: 1Gi
-            cpu: 3
         livenessProbe:
           httpGet:
             path: /health
@@ -47,28 +41,6 @@ spec:
               secretKeyRef:
                 name: picsum-db
                 key: connection_string
-          - name: PICSUM_STORAGE
-            value: "spaces"
-          - name: PICSUM_STORAGE_SPACES_REGION
-            valueFrom:
-              secretKeyRef:
-                name: picsum-spaces
-                key: region
-          - name: PICSUM_STORAGE_SPACES_SPACE
-            valueFrom:
-              secretKeyRef:
-                name: picsum-spaces
-                key: space
-          - name: PICSUM_STORAGE_SPACES_ACCESS_KEY
-            valueFrom:
-              secretKeyRef:
-                name: picsum-spaces
-                key: access_key
-          - name: PICSUM_STORAGE_SPACES_SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: picsum-spaces
-                key: secret_key
       affinity: # Only one pod per node
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

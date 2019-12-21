@@ -52,10 +52,10 @@ spec:
         image: registry.opensource.zalan.do/teapot/external-dns:latest
         args:
         - --source=service
-        - --provider=digitalocean
+        - --provider=cloudflare
         env:
-        - name: DO_TOKEN
+        - name: CF_API_TOKEN
           valueFrom:
             secretKeyRef:
               name: external-dns
-              key: do_token
+              key: cf_api_token

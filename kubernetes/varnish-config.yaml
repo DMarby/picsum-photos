@@ -9,6 +9,7 @@ data:
     import std;
     import querystring;
     import dynamic;
+    import directors;
 
     # Default backend definition
     backend default {
@@ -16,6 +17,7 @@ data:
      .port = "80";
     }
 
+    # Upstream backend probe
     probe backend_probe {
       .request =
       "GET /health HTTP/1.1"
@@ -29,42 +31,77 @@ data:
       .threshold = 3;
     }
 
-    sub vcl_init {
-        new vdir = dynamic.director(
-          port = "8080",
-          probe = backend_probe,
-          ttl = 10s, # How often to refresh the DNS
-          first_byte_timeout = 60s, # How long to wait before we receive a first byte from our backend
-          connect_timeout = 5s, # How long to wait for a backend connection
-          between_bytes_timeout = 2s); # How long to wait between bytes received from our backend
+    # Varnish shard probe
+    probe varnish_probe {
+      .request =
+      "GET /varnish_health HTTP/1.1"
+      "Host: localhost"
+      "User-Agent: Varnish Health Probe"
+      "Connection: close";
 
-        # Initialize the queryfilter
-        new queryfilter = querystring.filter(sort = true, uniq = true);
-        # Add whitelisted query parameters
-        # Effects
-        queryfilter.add_string("blur");
-        queryfilter.add_string("grayscale");
-        # Deprecated
-        queryfilter.add_string("image");
-        # Pagination
-        queryfilter.add_string("page");
-        queryfilter.add_string("limit");
+      .interval = 10s;
+      .timeout = 10s;
+      .window = 5;
+      .threshold = 3;
+    }
+
+    # Varnish shard backends, should match your replica count
+    backend varnish-0 {
+      .host = "varnish-0.varnish.default.svc";
+      .port = "80";
+      .probe = varnish_probe;
+    }
+
+    backend varnish-1 {
+      .host = "varnish-1.varnish.default.svc";
+      .port = "80";
+      .probe = varnish_probe;
+    }
+
+    sub vcl_init {
+      # Set up the shard director
+      new shard_director = directors.shard();
+      shard_director.add_backend(varnish-0);
+      shard_director.add_backend(varnish-1);
+      shard_director.reconfigure();
+
+      # Set up the upstream backend
+      new upstream = dynamic.director(
+        port = "8081",
+        probe = backend_probe,
+        ttl = 10s, # How often to refresh the DNS
+        first_byte_timeout = 60s, # How long to wait before we receive a first byte from our backend
+        connect_timeout = 5s, # How long to wait for a backend connection
+        between_bytes_timeout = 2s); # How long to wait between bytes received from our backend
+
+      # Initialize the queryfilter
+      new queryfilter = querystring.filter(sort = true, uniq = true);
+      # Add whitelisted query parameters
+      # Effects
+      queryfilter.add_string("blur");
+      queryfilter.add_string("grayscale");
     }
 
     sub vcl_recv {
-      # Block sites abusing the service with extremely large amounts of traffic
-      call blocked_sites;
-
       # Healthcheck for k8s
       if (req.url ~ "^/varnish_health") {
         return (synth(200, "healthcheck"));
       }
 
-      # Send all traffic to the vdir director
-      set req.backend_hint = vdir.backend("picsum-svc.default.svc");
-
       # Sort the query parameters, only keep ones in our whitelist
       set req.url = queryfilter.apply(mode = keep);
+
+      # Get the backend from the shard director
+      set req.backend_hint = shard_director.backend(resolve=NOW);
+      set req.http.X-Shard = req.backend_hint;
+
+      # Pass the request to the other varnish node
+      if (req.http.X-Shard != server.identity) {
+        return(pass);
+      }
+
+      # Pass the request to the backend
+      set req.backend_hint = upstream.backend("image-service.default.svc");
 
       # Unset unwanted headers
       unset req.http.Cookie;
@@ -72,21 +109,6 @@ data:
       if (std.healthy(req.backend_hint)) {
         # Change the behavior for healthy backends: Cap grace to 10s
         set req.grace = 10s;
-      }
-    }
-
-    sub blocked_sites {
-      if (
-        req.http.referer ~ "tube8\.com" ||
-        req.http.referer ~ "tube8\.es" ||
-        req.http.referer ~ "tube8\.fr" ||
-        req.http.referer ~ "eltiempo\.es" ||
-        req.http.referer ~ "clima\.com" ||
-        req.http.referer ~ "ohman\.vn" ||
-        req.http.referer ~ "crowd1\.com" ||
-        req.http.referer ~ "autoline\.com\.br"
-      ) {
-        return (synth(403, "blocked"));
       }
     }
 
@@ -111,11 +133,6 @@ data:
       if (beresp.http.content-type ~ "(text|application)") {
         set beresp.do_gzip = true;
       }
-    }
-
-    sub vcl_deliver {
-      # Set HSTS header
-      set resp.http.Strict-Transport-Security = "max-age=31536000";
     }
 
     sub vcl_synth {

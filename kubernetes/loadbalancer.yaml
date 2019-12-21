@@ -2,20 +2,21 @@ kind: Service
 apiVersion: v1
 metadata:
   name: picsum-lb
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
   annotations:
-    service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "http2"
+    service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
     service.beta.kubernetes.io/do-loadbalancer-algorithm: "round_robin"
-    service.beta.kubernetes.io/do-loadbalancer-healthcheck-check-interval-seconds: "10"
-    service.beta.kubernetes.io/do-loadbalancer-healthcheck-response-timeout-seconds: "10"
-    service.beta.kubernetes.io/do-loadbalancer-healthcheck-unhealthy-threshold: "3"
-    service.beta.kubernetes.io/do-loadbalancer-healthcheck-healthy-threshold: "3"
-    service.beta.kubernetes.io/do-loadbalancer-healthcheck-path: "/varnish_health"
 spec:
   type: LoadBalancer
   selector:
-    app: varnish
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
   ports:
-    - name: http
+    - name: http2
       protocol: TCP
-      port: 80
-      targetPort: 80
+      port: 443
+      targetPort: 443

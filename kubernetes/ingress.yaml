@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: picsum-ingress
+spec:
+  tls:
+    - hosts:
+      - picsum.photos
+      - i.picsum.photos
+      secretName: picsum-cert
+  rules:
+  - host: picsum.photos
+    http:
+      paths:
+      - backend:
+          serviceName: picsum-svc
+          servicePort: 8080
+  - host: i.picsum.photos
+    http:
+      paths:
+      - backend:
+          serviceName: varnish
+          servicePort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configuration
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+data:
+  use-forwarded-headers: "true"
+  hsts: "false"
