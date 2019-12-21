@@ -128,12 +128,44 @@ Then, we'll add it to kubernetes, along with the name of the space, and the regi
 kubectl create secret generic picsum-spaces --from-literal=space='SPACE_HERE' --from-literal=region='REGION_HERE' --from-literal=access_key='ACCESS_KEY_HERE' --from-literal=secret_key='SECRET_KEY_HERE'
 ```
 
-Then, we need another API key for `external-dns`, so that it can update the A record of the domain to point towards the load balancer.
-Go to API -> Tokens/Keys in the DigitalOcean control panel, and click "Generate New Token". Choose both read and write access.
-Run the command below to add it to kubernetes:
+#### HTTPS
+You'll need to upload an SSL certificate that the cluster will use for https. For picsum.photos, we use a Cloudflare origin certificate.
+
+First, edit `kubernetes/ingress.yaml` and replace the picsum domains with your own domains.  
+Then, upload your certificate and private key to the cluster:
 ```
-kubectl create secret generic external-dns --from-literal=do_token='API_TOKEN_HERE'
+kubectl create secret tls picsum-cert --key ${KEY_FILE} --cert ${CERT_FILE}
 ```
+
+You'll also need to configure Picsum so that it knows what domains to use. 
+Edit `kubernetes/picsum.yaml` and add the following to the `env` section:
+```
+- name: PICSUM_ROOT_URL
+  value: "https://example.com"
+- name: PICSUM_IMAGE_SERVICE_URL
+  value: "https://i.example.com"
+```
+
+#### DNS
+We use Cloudflare to manage our DNS, and as our CDN.  
+If you want to have the cluster automatically update your domain to point towards your loadbalancer, you need to configure `external-dns`.  
+You may also skip this step if you prefer to manage the DNS manually, simply add an A record for your domain that points towards the loadbalancer IP.
+
+First, create a new API token in Cloudflare, with the following settings:  
+
+Permissions:
+- Zone, Zone, Read
+- Zone, DNS, Edit
+
+Zone Resources:
+- Include, All Zones
+
+Then, run the command below to add the API token to kubernetes:
+```
+kubectl create secret generic external-dns --from-literal=cf_api_token='API_TOKEN_HERE'
+```
+
+Note that you will need to manually set up a CNAME for the domain you specified for the image-service (`i.example.com`) that points towards your main domain (`example.com`).
 
 #### Deployment
 Then, go to the `kubernetes` directory and run the following command to create the kubernetes deployment:
@@ -141,12 +173,14 @@ Then, go to the `kubernetes` directory and run the following command to create t
 kubectl apply -f .
 ```
 
-Finally, we need to annotate the load balancer with the domain to update the A record for, the same one that we defined in `terraform.tfvars`:
+Finally, if you want to automatically configure the DNS, you need to annotate the load balancer with the domain to update the A record for, set it to the same one you defined previously in `kubernetes/ingress.yaml` and `kubernetes/picsum.yaml`.
 ```
-kubectl annotate service picsum-lb "external-dns.alpha.kubernetes.io/hostname=example.com"
+kubectl annotate service --namespace=ingress-nginx picsum-lb "external-dns.alpha.kubernetes.io/hostname=example.com"
+kubectl annotate service --namespace=ingress-nginx picsum-lb "external-dns.alpha.kubernetes.io/cloudflare-proxied=true"
 ```
 
-Now everything should be running, and you should be able to access your instance of Picsum by going to the domain you defined in `terraform.tfvars` in your browser.
+Now everything should be running, and you should be able to access your instance of Picsum by going to `https://your-domain-pointing-to-the-loadbalancer`.  
+Note that the loadbalancer/cluster *only* serves https.
 
 ## License
 MIT. See [LICENSE](./LICENSE.md)
