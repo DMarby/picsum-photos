@@ -5,37 +5,28 @@ import (
 	"path"
 	"time"
 
-	"github.com/DMarby/picsum-photos/internal/api/handler"
+	"github.com/DMarby/picsum-photos/internal/handler"
 
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/health"
-	"github.com/DMarby/picsum-photos/internal/image"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/gorilla/mux"
 )
 
 // API is a http api
 type API struct {
-	ImageProcessor image.Processor
-	Database       database.Provider
-	HealthChecker  *health.Checker
-	Log            *logger.Logger
-	MaxImageSize   int
-	RootURL        string
-	StaticPath     string
-	HandlerTimeout time.Duration
+	Database        database.Provider
+	HealthChecker   *health.Checker
+	Log             *logger.Logger
+	RootURL         string
+	ImageServiceURL string
+	StaticPath      string
+	HandlerTimeout  time.Duration
 }
 
 // Utility methods for logging
 func (a *API) logError(r *http.Request, message string, err error) {
-	a.Log.Errorw(message, logFields(r, "error", err)...)
-}
-
-func logFields(r *http.Request, keysAndValues ...interface{}) []interface{} {
-	ctx := r.Context()
-	id := handler.GetReqID(ctx)
-
-	return append([]interface{}{"request-id", id}, keysAndValues...)
+	a.Log.Errorw(message, handler.LogFields(r, "error", err)...)
 }
 
 // Router returns a http router
@@ -48,7 +39,7 @@ func (a *API) Router() http.Handler {
 	router.StrictSlash(true)
 
 	// Healthcheck
-	router.Handle("/health", handler.Handler(a.healthHandler)).Methods("GET")
+	router.Handle("/health", handler.Health(a.HealthChecker)).Methods("GET")
 
 	// Image list
 	router.Handle("/v2/list", handler.Handler(a.listHandler)).Methods("GET")
@@ -66,7 +57,7 @@ func (a *API) Router() http.Handler {
 
 	// Image by ID routes
 	imageRouter.Handle("/id/{id}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET")
-	imageRouter.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageHandler)).Methods("GET")
+	imageRouter.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET")
 
 	// Image info routes
 	router.Handle("/id/{id}/info", handler.Handler(a.infoHandler)).Methods("GET")

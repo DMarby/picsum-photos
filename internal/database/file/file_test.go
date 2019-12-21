@@ -56,7 +56,7 @@ func TestFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if image != "1" && image != "2" {
+		if image.ID != "1" && image.ID != "2" {
 			t.Error("wrong image")
 		}
 	})
@@ -67,7 +67,7 @@ func TestFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if image != "1" {
+		if image.ID != "1" {
 			t.Error("wrong image")
 		}
 	})

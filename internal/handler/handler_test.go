@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/DMarby/picsum-photos/internal/api/handler"
+	"github.com/DMarby/picsum-photos/internal/handler"
 )
 
 func TestHandler(t *testing.T) {

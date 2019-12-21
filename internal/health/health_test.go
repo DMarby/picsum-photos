@@ -35,6 +35,9 @@ func TestHealth(t *testing.T) {
 	mockDatabaseChecker := &health.Checker{Ctx: ctx, Storage: storage, Database: &mockDatabase.Provider{}, Cache: cache, Log: log}
 	mockCacheChecker := &health.Checker{Ctx: ctx, Storage: storage, Database: db, Cache: &mockCache.Provider{}, Log: log}
 
+	dbOnlyChecker := &health.Checker{Ctx: ctx, Database: db, Log: log}
+	mockDbOnlyChecker := &health.Checker{Ctx: ctx, Database: &mockDatabase.Provider{}, Log: log}
+
 	tests := []struct {
 		Name           string
 		ExpectedStatus health.Status
@@ -79,6 +82,22 @@ func TestHealth(t *testing.T) {
 				Storage:  "healthy",
 			},
 			Checker: mockCacheChecker,
+		},
+		{
+			Name: "runs checks and returns correct status with only a database",
+			ExpectedStatus: health.Status{
+				Healthy:  true,
+				Database: "healthy",
+			},
+			Checker: dbOnlyChecker,
+		},
+		{
+			Name: "runs checks and returns correct status with only a broken database",
+			ExpectedStatus: health.Status{
+				Healthy:  false,
+				Database: "unhealthy",
+			},
+			Checker: mockDbOnlyChecker,
 		},
 	}
 

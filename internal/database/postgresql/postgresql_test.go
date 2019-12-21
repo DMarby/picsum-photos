@@ -71,7 +71,7 @@ func TestPostgresql(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if image != "1" && image != "2" && image != "3" {
+		if image.ID != "1" && image.ID != "2" && image.ID != "3" {
 			t.Error("wrong image")
 		}
 	})
@@ -82,7 +82,7 @@ func TestPostgresql(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if image != "1" {
+		if image.ID != "1" {
 			t.Error("wrong image")
 		}
 	})

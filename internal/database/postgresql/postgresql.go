@@ -53,30 +53,27 @@ func New(address string) (*Provider, error) {
 }
 
 // Get returns the image data for an image id
-func (p *Provider) Get(id string) (*database.Image, error) {
-	i := &database.Image{}
-	err := p.db.Get(i, "select * from image where id = $1", id)
+func (p *Provider) Get(id string) (i *database.Image, err error) {
+	i = &database.Image{}
+	err = p.db.Get(i, "select * from image where id = $1", id)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, database.ErrNotFound
-		}
-
-		return nil, err
+	if err != nil && err == sql.ErrNoRows {
+		return nil, database.ErrNotFound
 	}
 
-	return i, nil
+	return
 }
 
 // GetRandom returns a random image ID
-func (p *Provider) GetRandom() (id string, err error) {
+func (p *Provider) GetRandom() (i *database.Image, err error) {
+	i = &database.Image{}
 	// This will be slow on large tables
-	err = p.db.Get(&id, "select id from image order by random() limit 1")
+	err = p.db.Get(i, "select * from image order by random() limit 1")
 	return
 }
 
 // GetRandomWithSeed returns a random image ID based on the given seed
-func (p *Provider) GetRandomWithSeed(seed int64) (id string, err error) {
+func (p *Provider) GetRandomWithSeed(seed int64) (i *database.Image, err error) {
 	images, err := p.ListAll()
 	if err != nil {
 		return
@@ -85,7 +82,7 @@ func (p *Provider) GetRandomWithSeed(seed int64) (id string, err error) {
 	source := rand.NewSource(seed)
 	random := rand.New(source)
 
-	return images[random.Intn(len(images))].ID, nil
+	return &images[random.Intn(len(images))], nil
 }
 
 // ListAll returns a list of all the images

@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DMarby/picsum-photos/internal/cache"
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/DMarby/picsum-photos/internal/storage"
-	"github.com/DMarby/picsum-photos/internal/cache"
 )
 
 const checkInterval = 10 * time.Second
@@ -28,9 +28,9 @@ type Checker struct {
 // Status contains the healtcheck status
 type Status struct {
 	Healthy  bool   `json:"healthy"`
-	Cache    string `json:"cache"`
+	Cache    string `json:"cache,omitempty"`
 	Database string `json:"database"`
-	Storage  string `json:"storage"`
+	Storage  string `json:"storage,omitempty"`
 }
 
 // Run starts the health checker
@@ -71,12 +71,18 @@ func (c *Checker) runCheck() {
 	select {
 	case <-ctx.Done():
 		c.mutex.Lock()
+
 		c.status = Status{
 			Healthy:  false,
-			Cache:    "unknown",
 			Database: "unknown",
-			Storage:  "unknown",
 		}
+		if c.Cache != nil {
+			c.status.Cache = "unknown"
+		}
+		if c.Storage != nil {
+			c.status.Storage = "unknown"
+		}
+
 		c.mutex.Unlock()
 		c.Log.Errorw("healthcheck timed out")
 	case status := <-channel:
@@ -96,19 +102,25 @@ func (c *Checker) check(channel chan Status) {
 
 	status := Status{
 		Healthy:  true,
-		Cache:    "unknown",
 		Database: "unknown",
-		Storage:  "unknown",
+	}
+	if c.Cache != nil {
+		status.Cache = "unknown"
+	}
+	if c.Storage != nil {
+		status.Storage = "unknown"
 	}
 
-	if _, err := c.Cache.Get("healthcheck"); err != cache.ErrNotFound {
-		status.Healthy = false
-		status.Cache = "unhealthy"
-	} else {
-		status.Cache = "healthy"
+	if c.Cache != nil {
+		if _, err := c.Cache.Get("healthcheck"); err != cache.ErrNotFound {
+			status.Healthy = false
+			status.Cache = "unhealthy"
+		} else {
+			status.Cache = "healthy"
+		}
 	}
 
-	id, err := c.Database.GetRandom()
+	image, err := c.Database.GetRandom()
 	if err != nil {
 		status.Healthy = false
 		status.Database = "unhealthy"
@@ -117,14 +129,16 @@ func (c *Checker) check(channel chan Status) {
 	}
 	status.Database = "healthy"
 
-	_, err = c.Storage.Get(context.Background(), id)
-	if err != nil {
-		status.Healthy = false
-		status.Storage = "unhealthy"
-		channel <- status
-		return
+	if c.Storage != nil {
+		_, err = c.Storage.Get(context.Background(), image.ID)
+		if err != nil {
+			status.Healthy = false
+			status.Storage = "unhealthy"
+			channel <- status
+			return
+		}
+		status.Storage = "healthy"
 	}
-	status.Storage = "healthy"
 
 	channel <- status
 }

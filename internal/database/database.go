@@ -15,9 +15,9 @@ type Image struct {
 
 // Provider is an interface for listing and retrieving images
 type Provider interface {
-	Get(id string) (*Image, error)
-	GetRandom() (id string, err error)
-	GetRandomWithSeed(seed int64) (id string, err error)
+	Get(id string) (i *Image, err error)
+	GetRandom() (i *Image, err error)
+	GetRandomWithSeed(seed int64) (i *Image, err error)
 	ListAll() ([]Image, error)
 	List(offset, limit int) ([]Image, error)
 	Shutdown()

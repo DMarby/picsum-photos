@@ -1,7 +1,11 @@
 **/debug
 **/debug.test
+
 picsum-photos
 !cmd/picsum-photos/
+
+image-service
+!cmd/image-service/
 
 .vscode/c_cpp_properties.json
 .vscode/settings.json

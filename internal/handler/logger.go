@@ -40,3 +40,11 @@ func (l *loggingResponseWriter) WriteHeader(code int) {
 	l.statusCode = code
 	l.ResponseWriter.WriteHeader(code)
 }
+
+// LogFields logs the given keys and values for a request
+func LogFields(r *http.Request, keysAndValues ...interface{}) []interface{} {
+	ctx := r.Context()
+	id := GetReqID(ctx)
+
+	return append([]interface{}{"request-id", id}, keysAndValues...)
+}

@@ -21,6 +21,7 @@ const (
 	defaultBlurAmount = 5
 	minBlurAmount     = 1
 	maxBlurAmount     = 10
+	maxImageSize      = 5000 // The max allowed image width/height that can be requested
 )
 
 // Params contains all the parameters for a request
@@ -100,9 +101,14 @@ func getFileExtension(r *http.Request) (extension string, err error) {
 	vars := mux.Vars(r)
 
 	// We only allow the .jpg and .webp extensions, as we only serve jpg and webp images
-	// We also allow no extension since it's an optional path param
+	// We normalize having no extension since it's an optional path param
 	val := strings.ToLower(vars["extension"])
-	if val != "" && val != ".jpg" && val != ".webp" {
+
+	if val == "" {
+		val = ".jpg"
+	}
+
+	if val != ".jpg" && val != ".webp" {
 		return "", ErrInvalidFileExtension
 	}
 
@@ -128,8 +134,8 @@ func getQueryParams(r *http.Request) (grayscale bool, blur bool, blurAmount int)
 	return
 }
 
-// ValidateParams checks that the size is within the allowed limit
-func ValidateParams(maxImageSize int, image *database.Image, p *Params) error {
+// Validate checks that the size and blur amounts are within the allowed limits
+func (p *Params) Validate(image *database.Image) error {
 	if p.Width > maxImageSize && p.Width != image.Width {
 		return ErrInvalidSize
 	}
@@ -147,4 +153,21 @@ func ValidateParams(maxImageSize int, image *database.Image, p *Params) error {
 	}
 
 	return nil
+}
+
+// Dimensions returns the image dimensions based on the given params
+func (p *Params) Dimensions(databaseImage *database.Image) (width, height int) {
+	// Default to the image width/height if 0 is passed
+	width = p.Width
+	height = p.Height
+
+	if width == 0 {
+		width = databaseImage.Width
+	}
+
+	if height == 0 {
+		height = databaseImage.Height
+	}
+
+	return
 }

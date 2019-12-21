@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/DMarby/picsum-photos/internal/api/handler"
 	"github.com/DMarby/picsum-photos/internal/database"
+	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/gorilla/mux"
 )
 
