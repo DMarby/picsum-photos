@@ -1,9 +1,12 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: picsum
 spec:
   replicas: 2
+  selector:
+    matchLabels:
+      app: picsum
   template:
     metadata:
       labels:
@@ -41,16 +44,7 @@ spec:
               secretKeyRef:
                 name: picsum-db
                 key: connection_string
-      affinity: # Only one pod per node
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "app"
-                    operator: In
-                    values:
-                    - picsum
-              topologyKey: "kubernetes.io/hostname"
+
 ---
 apiVersion: v1
 kind: Service

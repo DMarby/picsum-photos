@@ -67,6 +67,8 @@ metadata:
   labels:
     app: varnish
 spec:
+  # Needed for the DNS to resolve before liveness/readiness has occured
+  publishNotReadyAddresses: true
   clusterIP: None
   selector:
     app: varnish
