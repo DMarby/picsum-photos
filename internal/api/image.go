@@ -95,6 +95,7 @@ func (a *API) validateAndRedirect(w http.ResponseWriter, r *http.Request, p *par
 	width, height := p.Dimensions(image)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header()["Content-Type"] = nil
 	http.Redirect(w, r, fmt.Sprintf("%s/id/%s/%d/%d%s%s", a.ImageServiceURL, image.ID, width, height, p.Extension, params.BuildQuery(p.Grayscale, p.Blur, p.BlurAmount)), http.StatusFound)
 
 	return nil

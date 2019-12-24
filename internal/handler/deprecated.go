@@ -19,6 +19,7 @@ func DeprecatedParams(next http.Handler) http.Handler {
 			}
 
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			w.Header()["Content-Type"] = nil
 			http.Redirect(w, r, fmt.Sprintf("/id/%s/%d/%d%s%s", id, p.Width, p.Height, p.Extension, params.BuildQuery(p.Grayscale, p.Blur, p.BlurAmount)), http.StatusFound)
 			return
 		}
