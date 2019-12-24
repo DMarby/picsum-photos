@@ -92,9 +92,10 @@ func TestAPI(t *testing.T) {
 				},
 			}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type":  "application/json",
-				"Link":          fmt.Sprintf("<%s/v2/list?page=2&limit=30>; rel=\"next\"", rootURL),
-				"Cache-Control": "no-cache, no-store, must-revalidate",
+				"Content-Type":                  "application/json",
+				"Link":                          fmt.Sprintf("<%s/v2/list?page=2&limit=30>; rel=\"next\"", rootURL),
+				"Cache-Control":                 "no-cache, no-store, must-revalidate",
+				"Access-Control-Expose-Headers": "Link",
 			},
 		},
 		{
@@ -148,9 +149,10 @@ func TestAPI(t *testing.T) {
 				},
 			}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type":  "application/json",
-				"Link":          fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"next\"", rootURL),
-				"Cache-Control": "no-cache, no-store, must-revalidate",
+				"Content-Type":                  "application/json",
+				"Link":                          fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"next\"", rootURL),
+				"Cache-Control":                 "no-cache, no-store, must-revalidate",
+				"Access-Control-Expose-Headers": "Link",
 			},
 		},
 		{
@@ -171,9 +173,10 @@ func TestAPI(t *testing.T) {
 				},
 			}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type":  "application/json",
-				"Link":          fmt.Sprintf("<%s/v2/list?page=1&limit=1>; rel=\"prev\", <%s/v2/list?page=3&limit=1>; rel=\"next\"", rootURL, rootURL),
-				"Cache-Control": "no-cache, no-store, must-revalidate",
+				"Content-Type":                  "application/json",
+				"Link":                          fmt.Sprintf("<%s/v2/list?page=1&limit=1>; rel=\"prev\", <%s/v2/list?page=3&limit=1>; rel=\"next\"", rootURL, rootURL),
+				"Cache-Control":                 "no-cache, no-store, must-revalidate",
+				"Access-Control-Expose-Headers": "Link",
 			},
 		},
 		{
@@ -183,9 +186,10 @@ func TestAPI(t *testing.T) {
 			ExpectedStatus:   http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{}),
 			ExpectedHeaders: map[string]string{
-				"Content-Type":  "application/json",
-				"Link":          fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"prev\"", rootURL),
-				"Cache-Control": "no-cache, no-store, must-revalidate",
+				"Content-Type":                  "application/json",
+				"Link":                          fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"prev\"", rootURL),
+				"Cache-Control":                 "no-cache, no-store, must-revalidate",
+				"Access-Control-Expose-Headers": "Link",
 			},
 		},
 		{

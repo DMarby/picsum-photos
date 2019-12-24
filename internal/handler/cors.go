@@ -30,7 +30,9 @@ func CORS(exposedHeaders []string, next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Methods", "GET")
 		} else {
 			// Expose headers
-			w.Header().Set("Access-Control-Expose-Headers", strings.Join(exposedHeaders, ", "))
+			if exposedHeaders != nil {
+				w.Header().Set("Access-Control-Expose-Headers", strings.Join(exposedHeaders, ", "))
+			}
 
 			next.ServeHTTP(w, r)
 		}

@@ -75,6 +75,7 @@ func (a *API) listHandler(w http.ResponseWriter, r *http.Request) *handler.Error
 
 	// If we've ran out of items, don't include the next page in the Link header
 	end := len(list) < limit
+	w.Header().Set("Access-Control-Expose-Headers", "Link")
 	w.Header().Set("Link", a.getLinkHeader(page, limit, end))
 
 	if err := json.NewEncoder(w).Encode(list); err != nil {
