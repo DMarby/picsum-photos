@@ -392,14 +392,14 @@ func TestAPI(t *testing.T) {
 		{"/g/:width/:height.webp?image=:id", "/g/200/300.webp?image=1", "/id/1/200/300.webp?grayscale", true, false},
 
 		// Deprecated query params
-		{"/:size?image=:id", "/200?image=1", "/id/1/200/200.jpg", true, true},
-		{"/:width/:height?image=:id", "/200/300?image=1", "/id/1/200/300.jpg", true, true},
-		{"/:size?image=:id&grayscale", "/200?image=1&grayscale", "/id/1/200/200.jpg?grayscale", true, true},
-		{"/:width/:height?image=:id&grayscale", "/200/300?image=1&grayscale", "/id/1/200/300.jpg?grayscale", true, true},
-		{"/:size?image=:id&blur", "/200?image=1&blur", "/id/1/200/200.jpg?blur=5", true, true},
-		{"/:width/:height?image=:id&blur", "/200/300?image=1&blur", "/id/1/200/300.jpg?blur=5", true, true},
-		{"/:size?image=:id&grayscale&blur", "/200?image=1&grayscale&blur", "/id/1/200/200.jpg?blur=5&grayscale", true, true},
-		{"/:width/:height?image=:id&grayscale&blur", "/200/300?image=1&grayscale&blur", "/id/1/200/300.jpg?blur=5&grayscale", true, true},
+		{"/:size?image=:id", "/200?image=1", "/id/1/200/200.jpg", true, false},
+		{"/:width/:height?image=:id", "/200/300?image=1", "/id/1/200/300.jpg", true, false},
+		{"/:size?image=:id&grayscale", "/200?image=1&grayscale", "/id/1/200/200.jpg?grayscale", true, false},
+		{"/:width/:height?image=:id&grayscale", "/200/300?image=1&grayscale", "/id/1/200/300.jpg?grayscale", true, false},
+		{"/:size?image=:id&blur", "/200?image=1&blur", "/id/1/200/200.jpg?blur=5", true, false},
+		{"/:width/:height?image=:id&blur", "/200/300?image=1&blur", "/id/1/200/300.jpg?blur=5", true, false},
+		{"/:size?image=:id&grayscale&blur", "/200?image=1&grayscale&blur", "/id/1/200/200.jpg?blur=5&grayscale", true, false},
+		{"/:width/:height?image=:id&grayscale&blur", "/200/300?image=1&grayscale&blur", "/id/1/200/300.jpg?blur=5&grayscale", true, false},
 
 		// By seed
 		{"/seed/:seed/:size", "/seed/1/200", "/id/1/200/200.jpg", true, false},

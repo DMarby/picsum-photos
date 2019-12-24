@@ -49,15 +49,15 @@ func (a *API) Router() http.Handler {
 	// ?limit={limit} - How many entries to display per page
 
 	// Image routes
-	imageRouter := router.PathPrefix("").Subrouter()
-	imageRouter.Use(handler.DeprecatedParams)
+	oldRouter := router.PathPrefix("").Subrouter()
+	oldRouter.Use(a.deprecatedParams)
 
-	imageRouter.Handle("/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET")
-	imageRouter.Handle("/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET")
+	oldRouter.Handle("/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET")
+	oldRouter.Handle("/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET")
 
 	// Image by ID routes
-	imageRouter.Handle("/id/{id}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET")
-	imageRouter.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET")
+	router.Handle("/id/{id}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET")
+	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET")
 
 	// Image info routes
 	router.Handle("/id/{id}/info", handler.Handler(a.infoHandler)).Methods("GET")

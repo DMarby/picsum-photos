@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: image-service
-        image: 'dmarby/picsum-photos@sha256:b5002f1e2e854585a5fcc7ef2c976177ced3611e6ff21a0d7578ab4d7a860129'
+        image: 'dmarby/picsum-photos@sha256:93f8278c372c68bf2b57ae802e501c20f035183fa23b4e46f235ee6c0079a9d3'
         command: ['./image-service']
         ports:
         - containerPort: 8081

@@ -68,8 +68,6 @@ func (a *API) deprecatedImageHandler(w http.ResponseWriter, r *http.Request) *ha
 		return handler.BadRequest(err.Error())
 	}
 
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-
 	var image *database.Image
 
 	// Look for the deprecated ?image query parameter
@@ -91,4 +89,35 @@ func (a *API) deprecatedImageHandler(w http.ResponseWriter, r *http.Request) *ha
 	p.Grayscale = true
 
 	return a.validateAndRedirect(w, r, p, image)
+}
+
+// deprecatedParams is a handler to handle deprecated query params for regular routes
+func (a *API) deprecatedParams(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Look for the deprecated ?image query parameter
+		if id := r.URL.Query().Get("image"); id != "" {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+
+			p, err := params.GetParams(r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			image, handlerErr := a.getImage(r, id)
+			if handlerErr != nil {
+				http.Error(w, handlerErr.Message, handlerErr.Code)
+				return
+			}
+
+			handlerErr = a.validateAndRedirect(w, r, p, image)
+			if handlerErr != nil {
+				http.Error(w, handlerErr.Message, handlerErr.Code)
+			}
+
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
