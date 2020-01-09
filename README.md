@@ -182,5 +182,16 @@ kubectl annotate service --namespace=ingress-nginx picsum-lb "external-dns.alpha
 Now everything should be running, and you should be able to access your instance of Picsum by going to `https://your-domain-pointing-to-the-loadbalancer`.  
 Note that the loadbalancer/cluster *only* serves https.
 
+If you want to enable Authenticated Origin Pulls in Cloudflare, download their CA and add it as a secret:
+```
+kubectl create secret generic cloudflare-ca --from-file=ca.crt=origin-pull-ca.pem
+```
+
+Then, enable client cert authentication on the ingress:
+```
+kubectl annotate ingress picsum-ingress "nginx.ingress.kubernetes.io/auth-tls-verify-client=on"
+kubectl annotate ingress picsum-ingress "nginx.ingress.kubernetes.io/auth-tls-secret=default/cloudflare-ca"
+```
+
 ## License
 MIT. See [LICENSE](./LICENSE.md)
