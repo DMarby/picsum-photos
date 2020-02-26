@@ -60,7 +60,7 @@ func (a *API) seedImageRedirectHandler(w http.ResponseWriter, r *http.Request) *
 	imageSeed := vars["seed"]
 
 	// Hash the input using murmur3
-	murmurHash := murmur3.Sum64([]byte(imageSeed))
+	murmurHash := murmur3.StringSum64(imageSeed)
 
 	// Get a random image by the hash
 	image, err := a.Database.GetRandomWithSeed(int64(murmurHash))
