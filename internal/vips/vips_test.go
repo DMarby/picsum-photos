@@ -2,6 +2,7 @@ package vips_test
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"runtime"
 	"strings"
@@ -15,32 +16,9 @@ import (
 	"io/ioutil"
 )
 
-func resizeImage(t *testing.T, imageBuffer []byte) vips.Image {
-	resizedImage, err := vips.ResizeImage(imageBuffer, 500, 500)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	vips.SetUserComment(resizedImage, "Test")
-
-	return resizedImage
-}
-
 func TestVips(t *testing.T) {
-	log := logger.New(zap.FatalLevel)
-	defer log.Sync()
-
-	err := vips.Initialize(log)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	imageBuffer := setup(t)
 	defer vips.Shutdown()
-
-	imageBuffer, err := ioutil.ReadFile("../../test/fixtures/fixture.jpg")
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	t.Run("SaveToJpegBuffer", func(t *testing.T) {
 		t.Run("saves an image to buffer", func(t *testing.T) {
@@ -82,7 +60,7 @@ func TestVips(t *testing.T) {
 			}
 
 			buf, _ := vips.SaveToJpegBuffer(image)
-			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../../test/fixtures/vips/resize_result_%s.jpg", runtime.GOOS))
+			resultFixture := readFixture("resize", "jpg")
 			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
@@ -95,7 +73,7 @@ func TestVips(t *testing.T) {
 			}
 
 			buf, _ := vips.SaveToWebPBuffer(image)
-			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../../test/fixtures/vips/resize_result_%s.webp", runtime.GOOS))
+			resultFixture := readFixture("resize", "webp")
 			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
@@ -125,7 +103,7 @@ func TestVips(t *testing.T) {
 			}
 
 			buf, _ := vips.SaveToJpegBuffer(image)
-			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../../test/fixtures/vips/grayscale_result_%s.jpg", runtime.GOOS))
+			resultFixture := readFixture("grayscale", "jpg")
 			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
@@ -138,7 +116,7 @@ func TestVips(t *testing.T) {
 			}
 
 			buf, _ := vips.SaveToWebPBuffer(image)
-			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../../test/fixtures/vips/grayscale_result_%s.webp", runtime.GOOS))
+			resultFixture := readFixture("grayscale", "webp")
 			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
@@ -160,7 +138,7 @@ func TestVips(t *testing.T) {
 			}
 
 			buf, _ := vips.SaveToJpegBuffer(image)
-			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../../test/fixtures/vips/blur_result_%s.jpg", runtime.GOOS))
+			resultFixture := readFixture("blur", "jpg")
 			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
@@ -173,7 +151,7 @@ func TestVips(t *testing.T) {
 			}
 
 			buf, _ := vips.SaveToWebPBuffer(image)
-			resultFixture, _ := ioutil.ReadFile(fmt.Sprintf("../../test/fixtures/vips/blur_result_%s.webp", runtime.GOOS))
+			resultFixture := readFixture("blur", "webp")
 			if !reflect.DeepEqual(buf, resultFixture) {
 				t.Error("image data doesn't match")
 			}
@@ -186,4 +164,77 @@ func TestVips(t *testing.T) {
 			}
 		})
 	})
+}
+
+// Utility function for regenerating the fixtures
+func TestFixtures(t *testing.T) {
+	if os.Getenv("GENERATE_FIXTURES") != "1" {
+		t.SkipNow()
+	}
+
+	imageBuffer := setup(t)
+	defer vips.Shutdown()
+
+	// Resize
+	image, _ := vips.ResizeImage(imageBuffer, 500, 500)
+	resizeJpeg, _ := vips.SaveToJpegBuffer(image)
+	ioutil.WriteFile(fixturePath("resize", "jpg"), resizeJpeg, 644)
+
+	image, _ = vips.ResizeImage(imageBuffer, 500, 500)
+	resizeWebP, _ := vips.SaveToWebPBuffer(image)
+	ioutil.WriteFile(fixturePath("resize", "webp"), resizeWebP, 644)
+
+	// Grayscale
+	image, _ = vips.Grayscale(resizeImage(t, imageBuffer))
+	grayscaleJpeg, _ := vips.SaveToJpegBuffer(image)
+	ioutil.WriteFile(fixturePath("grayscale", "jpg"), grayscaleJpeg, 644)
+
+	image, _ = vips.Grayscale(resizeImage(t, imageBuffer))
+	grayscaleWebP, _ := vips.SaveToWebPBuffer(image)
+	ioutil.WriteFile(fixturePath("grayscale", "webp"), grayscaleWebP, 644)
+
+	// Blur
+	image, _ = vips.Blur(resizeImage(t, imageBuffer), 5)
+	blurJpeg, _ := vips.SaveToJpegBuffer(image)
+	ioutil.WriteFile(fixturePath("blur", "jpg"), blurJpeg, 644)
+
+	image, _ = vips.Blur(resizeImage(t, imageBuffer), 5)
+	blurWebP, _ := vips.SaveToWebPBuffer(image)
+	ioutil.WriteFile(fixturePath("blur", "webp"), blurWebP, 644)
+}
+
+func setup(t *testing.T) []byte {
+	log := logger.New(zap.FatalLevel)
+	defer log.Sync()
+
+	err := vips.Initialize(log)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	imageBuffer, err := ioutil.ReadFile("../../test/fixtures/fixture.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return imageBuffer
+}
+
+func resizeImage(t *testing.T, imageBuffer []byte) vips.Image {
+	resizedImage, err := vips.ResizeImage(imageBuffer, 500, 500)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	vips.SetUserComment(resizedImage, "Test")
+
+	return resizedImage
+}
+
+func readFixture(fixtureName string, extension string) []byte {
+	fixture, _ := ioutil.ReadFile(fixturePath(fixtureName, extension))
+	return fixture
+}
+func fixturePath(fixtureName string, extension string) string {
+	return fmt.Sprintf("../../test/fixtures/vips/%s_result_%s.%s", fixtureName, runtime.GOOS, extension)
 }

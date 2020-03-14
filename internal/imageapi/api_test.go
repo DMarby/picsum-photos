@@ -7,10 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"runtime"
 	"time"
 
+	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/image"
 	api "github.com/DMarby/picsum-photos/internal/imageapi"
@@ -38,24 +40,10 @@ func TestAPI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log := logger.New(zap.FatalLevel)
+	log, db, imageProcessor, checker := setup(t, ctx)
 	defer log.Sync()
 
-	storage, _ := fileStorage.New("../../test/fixtures/file")
-	db, _ := fileDatabase.New("../../test/fixtures/file/metadata.json")
-	cache := memoryCache.New()
-	imageCache := image.NewCache(cache, storage)
-	imageProcessor, _ := vipsProcessor.New(ctx, log, imageCache)
 	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, image.NewCache(memoryCache.New(), &mockStorage.Provider{}))
-
-	checker := &health.Checker{
-		Ctx:      ctx,
-		Storage:  storage,
-		Database: db,
-		Cache:    cache,
-		Log:      log,
-	}
-	checker.Run()
 
 	mockChecker := &health.Checker{
 		Ctx:      ctx,
@@ -238,7 +226,70 @@ func marshalJson(v interface{}) []byte {
 }
 
 func readFixture(fixtureName string, extension string) []byte {
-	return readFile(fmt.Sprintf("../../test/fixtures/api/%s_%s.%s", fixtureName, runtime.GOOS, extension))
+	return readFile(fixturePath(fixtureName, extension))
+}
+
+// Utility function for regenerating the fixtures
+func TestFixtures(t *testing.T) {
+	if os.Getenv("GENERATE_FIXTURES") != "1" {
+		t.SkipNow()
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	log, db, imageProcessor, checker := setup(t, ctx)
+	defer log.Sync()
+
+	router := (&api.API{imageProcessor, db, checker, log, time.Minute}).Router()
+
+	// JPEG
+	createFixture(router, "/id/1/200/120.jpg", "width_height", "jpg")
+	createFixture(router, "/id/1/200/200.jpg?blur", "blur", "jpg")
+	createFixture(router, "/id/1/200/200.jpg?grayscale", "grayscale", "jpg")
+	createFixture(router, "/id/1/200/200.jpg?blur&grayscale", "all", "jpg")
+	createFixture(router, "/id/1/300/400.jpg", "max_allowed", "jpg")
+
+	// WebP
+	createFixture(router, "/id/1/200/120.webp", "width_height", "webp")
+	createFixture(router, "/id/1/200/200.webp?blur", "blur", "webp")
+	createFixture(router, "/id/1/200/200.webp?grayscale", "grayscale", "webp")
+	createFixture(router, "/id/1/200/200.webp?blur&grayscale", "all", "webp")
+	createFixture(router, "/id/1/300/400.webp", "max_allowed", "webp")
+}
+
+func setup(t *testing.T, ctx context.Context) (*logger.Logger, database.Provider, image.Processor, *health.Checker) {
+	t.Helper()
+
+	log := logger.New(zap.FatalLevel)
+
+	storage, _ := fileStorage.New("../../test/fixtures/file")
+	db, _ := fileDatabase.New("../../test/fixtures/file/metadata.json")
+	cache := memoryCache.New()
+	imageCache := image.NewCache(cache, storage)
+	imageProcessor, _ := vipsProcessor.New(ctx, log, imageCache)
+
+	checker := &health.Checker{
+		Ctx:      ctx,
+		Storage:  storage,
+		Database: db,
+		Cache:    cache,
+		Log:      log,
+	}
+	checker.Run()
+
+	return log, db, imageProcessor, checker
+}
+
+func createFixture(router http.Handler, URL string, fixtureName string, extension string) {
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", URL, nil)
+	router.ServeHTTP(w, req)
+	ioutil.WriteFile(fixturePath(fixtureName, extension), w.Body.Bytes(), 644)
+}
+
+func fixturePath(fixtureName string, extension string) string {
+	return fmt.Sprintf("../../test/fixtures/api/%s_%s.%s", fixtureName, runtime.GOOS, extension)
 }
 
 func readFile(path string) []byte {
