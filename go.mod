@@ -17,7 +17,7 @@ require (
 	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24 // indirect
 	github.com/spf13/cobra v0.0.6 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/twmb/murmur3 v1.1.2
+	github.com/twmb/murmur3 v1.1.3
 	go.uber.org/multierr v1.5.0 // indirect
 	go.uber.org/zap v1.14.0
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4 // indirect
