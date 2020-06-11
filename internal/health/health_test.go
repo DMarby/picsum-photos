@@ -30,10 +30,9 @@ func TestHealth(t *testing.T) {
 	db, _ := fileDatabase.New("../../test/fixtures/file/metadata.json")
 	cache := memoryCache.New()
 
-	checker := &health.Checker{Ctx: ctx, Storage: storage, Database: db, Cache: cache, Log: log}
-	mockStorageChecker := &health.Checker{Ctx: ctx, Storage: &mockStorage.Provider{}, Database: db, Cache: cache, Log: log}
-	mockDatabaseChecker := &health.Checker{Ctx: ctx, Storage: storage, Database: &mockDatabase.Provider{}, Cache: cache, Log: log}
-	mockCacheChecker := &health.Checker{Ctx: ctx, Storage: storage, Database: db, Cache: &mockCache.Provider{}, Log: log}
+	checker := &health.Checker{Ctx: ctx, Storage: storage, ImageID: "1", Cache: cache, Log: log}
+	mockStorageChecker := &health.Checker{Ctx: ctx, Storage: &mockStorage.Provider{}, ImageID: "1", Cache: cache, Log: log}
+	mockCacheChecker := &health.Checker{Ctx: ctx, Storage: storage, ImageID: "1", Cache: &mockCache.Provider{}, Log: log}
 
 	dbOnlyChecker := &health.Checker{Ctx: ctx, Database: db, Log: log}
 	mockDbOnlyChecker := &health.Checker{Ctx: ctx, Database: &mockDatabase.Provider{}, Log: log}
@@ -46,40 +45,27 @@ func TestHealth(t *testing.T) {
 		{
 			Name: "runs checks and returns correct status",
 			ExpectedStatus: health.Status{
-				Healthy:  true,
-				Cache:    "healthy",
-				Database: "healthy",
-				Storage:  "healthy",
+				Healthy: true,
+				Cache:   "healthy",
+				Storage: "healthy",
 			},
 			Checker: checker,
 		},
 		{
 			Name: "runs checks and returns correct status with broken storage",
 			ExpectedStatus: health.Status{
-				Healthy:  false,
-				Cache:    "healthy",
-				Database: "healthy",
-				Storage:  "unhealthy",
+				Healthy: false,
+				Cache:   "healthy",
+				Storage: "unhealthy",
 			},
 			Checker: mockStorageChecker,
 		},
 		{
-			Name: "runs checks and returns correct status with broken database",
-			ExpectedStatus: health.Status{
-				Healthy:  false,
-				Cache:    "healthy",
-				Database: "unhealthy",
-				Storage:  "unknown",
-			},
-			Checker: mockDatabaseChecker,
-		},
-		{
 			Name: "runs checks and returns correct status with broken cache",
 			ExpectedStatus: health.Status{
-				Healthy:  false,
-				Cache:    "unhealthy",
-				Database: "healthy",
-				Storage:  "healthy",
+				Healthy: false,
+				Cache:   "unhealthy",
+				Storage: "healthy",
 			},
 			Checker: mockCacheChecker,
 		},

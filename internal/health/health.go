@@ -18,6 +18,7 @@ const checkTimeout = 8 * time.Second
 type Checker struct {
 	Ctx      context.Context
 	Storage  storage.Provider
+	ImageID  string // Image ID to use when fetching an image from storage. Only needed for checking storage health
 	Database database.Provider
 	Cache    cache.Provider
 	status   Status
@@ -29,7 +30,7 @@ type Checker struct {
 type Status struct {
 	Healthy  bool   `json:"healthy"`
 	Cache    string `json:"cache,omitempty"`
-	Database string `json:"database"`
+	Database string `json:"database,omitempty"`
 	Storage  string `json:"storage,omitempty"`
 }
 
@@ -73,8 +74,10 @@ func (c *Checker) runCheck() {
 		c.mutex.Lock()
 
 		c.status = Status{
-			Healthy:  false,
-			Database: "unknown",
+			Healthy: false,
+		}
+		if c.Database != nil {
+			c.status.Database = "unknown"
 		}
 		if c.Cache != nil {
 			c.status.Cache = "unknown"
@@ -101,14 +104,25 @@ func (c *Checker) check(channel chan Status) {
 	defer close(channel)
 
 	status := Status{
-		Healthy:  true,
-		Database: "unknown",
+		Healthy: true,
+	}
+	if c.Database != nil {
+		status.Database = "unknown"
 	}
 	if c.Cache != nil {
 		status.Cache = "unknown"
 	}
 	if c.Storage != nil {
 		status.Storage = "unknown"
+	}
+
+	if c.Database != nil {
+		if _, err := c.Database.GetRandom(); err != nil {
+			status.Healthy = false
+			status.Database = "unhealthy"
+		} else {
+			status.Database = "healthy"
+		}
 	}
 
 	if c.Cache != nil {
@@ -120,24 +134,13 @@ func (c *Checker) check(channel chan Status) {
 		}
 	}
 
-	image, err := c.Database.GetRandom()
-	if err != nil {
-		status.Healthy = false
-		status.Database = "unhealthy"
-		channel <- status
-		return
-	}
-	status.Database = "healthy"
-
 	if c.Storage != nil {
-		_, err = c.Storage.Get(context.Background(), image.ID)
-		if err != nil {
+		if _, err := c.Storage.Get(context.Background(), c.ImageID); err != nil {
 			status.Healthy = false
 			status.Storage = "unhealthy"
-			channel <- status
-			return
+		} else {
+			status.Storage = "healthy"
 		}
-		status.Storage = "healthy"
 	}
 
 	channel <- status
