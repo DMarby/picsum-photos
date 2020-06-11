@@ -66,7 +66,7 @@ func (c *Checker) runCheck() {
 
 	channel := make(chan Status, 1)
 	go func() {
-		c.check(channel)
+		c.check(ctx, channel)
 	}()
 
 	select {
@@ -88,7 +88,11 @@ func (c *Checker) runCheck() {
 
 		c.mutex.Unlock()
 		c.Log.Errorw("healthcheck timed out")
-	case status := <-channel:
+	case status, ok := <-channel:
+		if !ok {
+			return
+		}
+
 		c.mutex.Lock()
 		c.status = status
 		c.mutex.Unlock()
@@ -100,8 +104,12 @@ func (c *Checker) runCheck() {
 	}
 }
 
-func (c *Checker) check(channel chan Status) {
+func (c *Checker) check(ctx context.Context, channel chan Status) {
 	defer close(channel)
+
+	if ctx.Err() != nil {
+		return
+	}
 
 	status := Status{
 		Healthy: true,
@@ -125,6 +133,10 @@ func (c *Checker) check(channel chan Status) {
 		}
 	}
 
+	if ctx.Err() != nil {
+		return
+	}
+
 	if c.Cache != nil {
 		if _, err := c.Cache.Get("healthcheck"); err != cache.ErrNotFound {
 			status.Healthy = false
@@ -134,8 +146,12 @@ func (c *Checker) check(channel chan Status) {
 		}
 	}
 
+	if ctx.Err() != nil {
+		return
+	}
+
 	if c.Storage != nil {
-		if _, err := c.Storage.Get(context.Background(), c.ImageID); err != nil {
+		if _, err := c.Storage.Get(ctx, c.ImageID); err != nil {
 			status.Healthy = false
 			status.Storage = "unhealthy"
 		} else {

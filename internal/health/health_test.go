@@ -95,8 +95,4 @@ func TestHealth(t *testing.T) {
 			t.Errorf("%s: wrong status %+v", test.Name, status)
 		}
 	}
-
-	t.Run("checker runs and returns correct status", func(t *testing.T) {
-
-	})
 }
