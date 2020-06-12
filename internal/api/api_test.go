@@ -9,11 +9,13 @@ import (
 	"net/http/httptest"
 	"path"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/DMarby/picsum-photos/internal/api"
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/health"
+	"github.com/DMarby/picsum-photos/internal/hmac"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"go.uber.org/zap"
 
@@ -52,9 +54,13 @@ func TestAPI(t *testing.T) {
 
 	staticPath := "../../web"
 
-	router := (&api.API{db, checker, log, rootURL, imageServiceURL, staticPath, time.Minute}).Router()
-	paginationRouter := (&api.API{dbMultiple, checker, log, rootURL, imageServiceURL, staticPath, time.Minute}).Router()
-	mockDatabaseRouter := (&api.API{&mockDatabase.Provider{}, mockChecker, log, rootURL, imageServiceURL, staticPath, time.Minute}).Router()
+	hmac := &hmac.HMAC{
+		Key: []byte("test"),
+	}
+
+	router := (&api.API{db, checker, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	paginationRouter := (&api.API{dbMultiple, checker, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	mockDatabaseRouter := (&api.API{&mockDatabase.Provider{}, mockChecker, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
 
 	tests := []struct {
 		Name             string
@@ -70,7 +76,7 @@ func TestAPI(t *testing.T) {
 			Router:         paginationRouter,
 			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{
-				api.ListImage{
+				{
 					Image: database.Image{
 						ID:     "1",
 						Author: "John Doe",
@@ -80,7 +86,7 @@ func TestAPI(t *testing.T) {
 					},
 					DownloadURL: fmt.Sprintf("%s/id/1/300/400", rootURL),
 				},
-				api.ListImage{
+				{
 					Image: database.Image{
 						ID:     "2",
 						Author: "John Doe",
@@ -104,7 +110,7 @@ func TestAPI(t *testing.T) {
 			Router:         paginationRouter,
 			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{
-				api.ListImage{
+				{
 					Image: database.Image{
 						ID:     "1",
 						Author: "John Doe",
@@ -114,7 +120,7 @@ func TestAPI(t *testing.T) {
 					},
 					DownloadURL: fmt.Sprintf("%s/id/1/300/400", rootURL),
 				},
-				api.ListImage{
+				{
 					Image: database.Image{
 						ID:     "2",
 						Author: "John Doe",
@@ -137,7 +143,7 @@ func TestAPI(t *testing.T) {
 			Router:         paginationRouter,
 			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{
-				api.ListImage{
+				{
 					Image: database.Image{
 						ID:     "1",
 						Author: "John Doe",
@@ -161,7 +167,7 @@ func TestAPI(t *testing.T) {
 			Router:         paginationRouter,
 			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.ListImage{
-				api.ListImage{
+				{
 					Image: database.Image{
 						ID:     "2",
 						Author: "John Doe",
@@ -198,7 +204,7 @@ func TestAPI(t *testing.T) {
 			Router:         router,
 			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson([]api.DeprecatedImage{
-				api.DeprecatedImage{
+				{
 					Format:    "jpeg",
 					Width:     300,
 					Height:    400,
@@ -441,11 +447,21 @@ func TestAPI(t *testing.T) {
 
 		expectedURL := test.ExpectedURL
 		if !test.LocalRedirect {
-			expectedURL = imageServiceURL + test.ExpectedURL
+			expectedHMAC, err := hmac.Create(test.ExpectedURL)
+			if err != nil {
+				t.Errorf("%s: hmac error %s", test.Name, err)
+				continue
+			}
+
+			if strings.Contains(test.ExpectedURL, "?") {
+				expectedURL = imageServiceURL + test.ExpectedURL + "&hmac=" + expectedHMAC
+			} else {
+				expectedURL = imageServiceURL + test.ExpectedURL + "?hmac=" + expectedHMAC
+			}
 		}
 
 		if location != expectedURL {
-			t.Errorf("%s: wrong redirect %s", test.Name, location)
+			t.Errorf("%s: wrong redirect %s, expected %s", test.Name, location, expectedURL)
 		}
 
 		if test.TestCacheHeader {

@@ -6,23 +6,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/gorilla/mux"
 )
 
 // Errors
 var (
 	ErrInvalidSize          = fmt.Errorf("Invalid size")
-	ErrInvalidBlurAmount    = fmt.Errorf("Invalid blur amount")
 	ErrInvalidFileExtension = fmt.Errorf("Invalid file extension")
 )
 
-const (
-	defaultBlurAmount = 5
-	minBlurAmount     = 1
-	maxBlurAmount     = 10
-	maxImageSize      = 5000 // The max allowed image width/height that can be requested
-)
+const defaultBlurAmount = 5
 
 // Params contains all the parameters for a request
 type Params struct {
@@ -129,44 +122,6 @@ func getQueryParams(r *http.Request) (grayscale bool, blur bool, blurAmount int)
 			blurAmount = val
 			return
 		}
-	}
-
-	return
-}
-
-// Validate checks that the size and blur amounts are within the allowed limits
-func (p *Params) Validate(image *database.Image) error {
-	if p.Width > maxImageSize && p.Width != image.Width {
-		return ErrInvalidSize
-	}
-
-	if p.Height > maxImageSize && p.Height != image.Height {
-		return ErrInvalidSize
-	}
-
-	if p.Blur && p.BlurAmount < minBlurAmount {
-		return ErrInvalidBlurAmount
-	}
-
-	if p.Blur && p.BlurAmount > maxBlurAmount {
-		return ErrInvalidBlurAmount
-	}
-
-	return nil
-}
-
-// Dimensions returns the image dimensions based on the given params
-func (p *Params) Dimensions(databaseImage *database.Image) (width, height int) {
-	// Default to the image width/height if 0 is passed
-	width = p.Width
-	height = p.Height
-
-	if width == 0 {
-		width = databaseImage.Width
-	}
-
-	if height == 0 {
-		height = databaseImage.Height
 	}
 
 	return

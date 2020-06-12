@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/DMarby/picsum-photos/internal/handler"
+	"github.com/DMarby/picsum-photos/internal/hmac"
 
-	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/image"
 	"github.com/DMarby/picsum-photos/internal/logger"
@@ -16,10 +16,10 @@ import (
 // API is a http api
 type API struct {
 	ImageProcessor image.Processor
-	Database       database.Provider
 	HealthChecker  *health.Checker
 	Log            *logger.Logger
 	HandlerTimeout time.Duration
+	HMAC           *hmac.HMAC
 }
 
 // Utility methods for logging
@@ -46,6 +46,8 @@ func (a *API) Router() http.Handler {
 	// ?grayscale - Grayscale the image
 	// ?blur - Blur the image
 	// ?blur={amount} - Blur the image by {amount}
+
+	// ?hmac - HMAC signature of the path and URL parameters
 
 	// Set up handlers for adding a request id, handling panics, request logging, setting CORS headers, and handler execution timeout
 	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS([]string{"Picsum-ID"}, http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")))))

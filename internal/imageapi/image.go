@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/image"
 	"github.com/DMarby/picsum-photos/internal/params"
@@ -12,6 +11,15 @@ import (
 )
 
 func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
+	// Validate the path and query parameters
+	valid, err := params.ValidateHMAC(a.HMAC, r)
+	if err != nil {
+		return handler.InternalServerError()
+	}
+
+	if !valid {
+		return handler.BadRequest("Invalid parameters")
+	}
 
 	// Get the path and query parameters
 	p, err := params.GetParams(r)
@@ -19,23 +27,12 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 		return handler.BadRequest(err.Error())
 	}
 
-	// Get the image from the database
+	// Get the image ID from the path param
 	vars := mux.Vars(r)
 	imageID := vars["id"]
-	databaseImage, handlerErr := a.getImage(r, imageID)
-	if handlerErr != nil {
-		return handlerErr
-	}
-
-	// Validate the parameters
-	if err := p.Validate(databaseImage); err != nil {
-		return handler.BadRequest(err.Error())
-	}
-
-	width, height := p.Dimensions(databaseImage)
 
 	// Build the image task
-	task := image.NewTask(databaseImage.ID, width, height, fmt.Sprintf("Picsum ID: %s", databaseImage.ID), getOutputFormat(p.Extension))
+	task := image.NewTask(imageID, p.Width, p.Height, fmt.Sprintf("Picsum ID: %s", imageID), getOutputFormat(p.Extension))
 	if p.Blur {
 		task.Blur(p.BlurAmount)
 	}
@@ -52,29 +49,15 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	}
 
 	// Set the headers
-	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", buildFilename(imageID, p, width, height)))
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", buildFilename(imageID, p)))
 	w.Header().Set("Content-Type", getContentType(p.Extension))
 	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
-	w.Header().Set("Picsum-ID", databaseImage.ID)
+	w.Header().Set("Picsum-ID", imageID)
 
 	// Return the image
 	w.Write(processedImage)
 
 	return nil
-}
-
-func (a *API) getImage(r *http.Request, imageID string) (*database.Image, *handler.Error) {
-	databaseImage, err := a.Database.Get(imageID)
-	if err != nil {
-		if err == database.ErrNotFound {
-			return nil, &handler.Error{Message: err.Error(), Code: http.StatusNotFound}
-		}
-
-		a.logError(r, "error getting image from database", err)
-		return nil, handler.InternalServerError()
-	}
-
-	return databaseImage, nil
 }
 
 func getOutputFormat(extension string) image.OutputFormat {
@@ -95,8 +78,8 @@ func getContentType(extension string) string {
 	}
 }
 
-func buildFilename(imageID string, p *params.Params, width int, height int) string {
-	filename := fmt.Sprintf("%s-%dx%d", imageID, width, height)
+func buildFilename(imageID string, p *params.Params) string {
+	filename := fmt.Sprintf("%s-%dx%d", imageID, p.Width, p.Height)
 
 	if p.Blur {
 		filename += fmt.Sprintf("-blur_%d", p.BlurAmount)

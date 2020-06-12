@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/DMarby/picsum-photos/internal/handler"
+	"github.com/DMarby/picsum-photos/internal/hmac"
 
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/health"
@@ -22,6 +23,7 @@ type API struct {
 	ImageServiceURL string
 	StaticPath      string
 	HandlerTimeout  time.Duration
+	HMAC            *hmac.HMAC
 }
 
 // Utility methods for logging

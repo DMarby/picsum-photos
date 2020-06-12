@@ -8,6 +8,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/internal/api"
 	"github.com/DMarby/picsum-photos/internal/cmd"
+	"github.com/DMarby/picsum-photos/internal/hmac"
 
 	"github.com/DMarby/picsum-photos/internal/database"
 	fileDatabase "github.com/DMarby/picsum-photos/internal/database/file"
@@ -39,6 +40,9 @@ var (
 
 	// Database - Postgresql
 	databasePostgresqlAddress = flag.String("database-postgresql-address", "postgresql://postgres@127.0.0.1/postgres", "postgresql address")
+
+	// HMAC
+	hmacKey = flag.String("hmac-key", "", "hmac key to use for authentication between services")
 )
 
 func main() {
@@ -83,6 +87,9 @@ func main() {
 		ImageServiceURL: *imageServiceURL,
 		StaticPath:      staticPath,
 		HandlerTimeout:  cmd.HandlerTimeout,
+		HMAC: &hmac.HMAC{
+			Key: []byte(*hmacKey),
+		},
 	}
 	server := &http.Server{
 		Addr:         *listen,

@@ -10,10 +10,8 @@ import (
 	"github.com/DMarby/picsum-photos/internal/cache/memory"
 	"github.com/DMarby/picsum-photos/internal/cache/redis"
 	"github.com/DMarby/picsum-photos/internal/cmd"
-	"github.com/DMarby/picsum-photos/internal/database"
-	fileDatabase "github.com/DMarby/picsum-photos/internal/database/file"
-	"github.com/DMarby/picsum-photos/internal/database/postgresql"
 	"github.com/DMarby/picsum-photos/internal/health"
+	"github.com/DMarby/picsum-photos/internal/hmac"
 	"github.com/DMarby/picsum-photos/internal/image"
 	"github.com/DMarby/picsum-photos/internal/image/vips"
 	"github.com/DMarby/picsum-photos/internal/logger"
@@ -52,14 +50,11 @@ var (
 	cacheRedisAddress  = flag.String("cache-redis-address", "redis://127.0.0.1:6379", "redis address, may contain authentication details")
 	cacheRedisPoolSize = flag.Int("cache-redis-pool-size", 10, "redis connection pool size")
 
-	// Database
-	databaseBackend = flag.String("database", "file", "which database backend to use (file, postgresql)")
+	// Healthcheck
+	healthCheckImageID = flag.String("health-check-image-id", "1", "image ID to request from the storage to check storage health")
 
-	// Database - File
-	databaseFilePath = flag.String("database-file-path", "./test/fixtures/file/metadata.json", "path to the database file")
-
-	// Database - Postgresql
-	databasePostgresqlAddress = flag.String("database-postgresql-address", "postgresql://postgres@127.0.0.1/postgres", "postgresql address")
+	// HMAC
+	hmacKey = flag.String("hmac-key", "", "hmac key to use for authentication between services")
 )
 
 func main() {
@@ -77,13 +72,12 @@ func main() {
 	shutdownCtx, shutdown := context.WithCancel(context.Background())
 	defer shutdown()
 
-	// Initialize the storage, cache and database
-	storage, cache, database, err := setupBackends()
+	// Initialize the storage, cache
+	storage, cache, err := setupBackends()
 	if err != nil {
 		log.Fatalf("error initializing backends: %s", err)
 	}
 	defer cache.Shutdown()
-	defer database.Shutdown()
 
 	// Initialize the image processor
 	imageProcessorCtx, imageProcessorCancel := context.WithCancel(context.Background())
@@ -99,21 +93,23 @@ func main() {
 	defer checkerCancel()
 
 	checker := &health.Checker{
-		Ctx:      checkerCtx,
-		Storage:  storage,
-		Database: database,
-		Cache:    cache,
-		Log:      log,
+		Ctx:     checkerCtx,
+		Storage: storage,
+		ImageID: *healthCheckImageID,
+		Cache:   cache,
+		Log:     log,
 	}
 	go checker.Run()
 
 	// Start and listen on http
 	api := &api.API{
 		ImageProcessor: imageProcessor,
-		Database:       database,
 		HealthChecker:  checker,
 		Log:            log,
 		HandlerTimeout: cmd.HandlerTimeout,
+		HMAC: &hmac.HMAC{
+			Key: []byte(*hmacKey),
+		},
 	}
 	server := &http.Server{
 		Addr:         *listen,
@@ -143,7 +139,7 @@ func main() {
 	}
 }
 
-func setupBackends() (storage storage.Provider, cache cache.Provider, database database.Provider, err error) {
+func setupBackends() (storage storage.Provider, cache cache.Provider, err error) {
 	// Storage
 	switch *storageBackend {
 	case "file":
@@ -166,20 +162,6 @@ func setupBackends() (storage storage.Provider, cache cache.Provider, database d
 		cache, err = redis.New(*cacheRedisAddress, *cacheRedisPoolSize)
 	default:
 		err = fmt.Errorf("invalid cache backend")
-	}
-
-	if err != nil {
-		return
-	}
-
-	// Database
-	switch *databaseBackend {
-	case "file":
-		database, err = fileDatabase.New(*databaseFilePath)
-	case "postgresql":
-		database, err = postgresql.New(*databasePostgresqlAddress)
-	default:
-		err = fmt.Errorf("invalid database backend")
 	}
 
 	return

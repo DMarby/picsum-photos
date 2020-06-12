@@ -3,6 +3,8 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/handler"
@@ -88,15 +90,32 @@ func (a *API) getImage(r *http.Request, imageID string) (*database.Image, *handl
 }
 
 func (a *API) validateAndRedirect(w http.ResponseWriter, r *http.Request, p *params.Params, image *database.Image) *handler.Error {
-	if err := p.Validate(image); err != nil {
+	if err := validateImageParams(p, image); err != nil {
 		return handler.BadRequest(err.Error())
 	}
 
-	width, height := p.Dimensions(image)
+	width, height := getImageDimensions(p, image)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header()["Content-Type"] = nil
-	http.Redirect(w, r, fmt.Sprintf("%s/id/%s/%d/%d%s%s", a.ImageServiceURL, image.ID, width, height, p.Extension, params.BuildQuery(p.Grayscale, p.Blur, p.BlurAmount)), http.StatusFound)
+
+	path := fmt.Sprintf("/id/%s/%d/%d%s", image.ID, width, height, p.Extension)
+	query := url.Values{}
+
+	if p.Blur {
+		query.Add("blur", strconv.Itoa(p.BlurAmount))
+	}
+
+	if p.Grayscale {
+		query.Add("grayscale", "")
+	}
+
+	url, err := params.HMAC(a.HMAC, path, query)
+	if err != nil {
+		return handler.InternalServerError()
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("%s%s", a.ImageServiceURL, url), http.StatusFound)
 
 	return nil
 }

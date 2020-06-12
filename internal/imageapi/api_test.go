@@ -7,20 +7,19 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"reflect"
 	"runtime"
 	"time"
 
-	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/health"
+	"github.com/DMarby/picsum-photos/internal/hmac"
 	"github.com/DMarby/picsum-photos/internal/image"
 	api "github.com/DMarby/picsum-photos/internal/imageapi"
 	"github.com/DMarby/picsum-photos/internal/logger"
+	"github.com/DMarby/picsum-photos/internal/params"
 	"go.uber.org/zap"
-
-	fileDatabase "github.com/DMarby/picsum-photos/internal/database/file"
-	mockDatabase "github.com/DMarby/picsum-photos/internal/database/mock"
 
 	mockProcessor "github.com/DMarby/picsum-photos/internal/image/mock"
 	vipsProcessor "github.com/DMarby/picsum-photos/internal/image/vips"
@@ -40,24 +39,22 @@ func TestAPI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log, db, imageProcessor, checker := setup(t, ctx)
+	log, imageProcessor, checker, hmac := setup(t, ctx)
 	defer log.Sync()
 
 	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, image.NewCache(memoryCache.New(), &mockStorage.Provider{}))
 
 	mockChecker := &health.Checker{
-		Ctx:      ctx,
-		Storage:  &mockStorage.Provider{},
-		Database: &mockDatabase.Provider{},
-		Cache:    &mockCache.Provider{},
-		Log:      log,
+		Ctx:     ctx,
+		Storage: &mockStorage.Provider{},
+		Cache:   &mockCache.Provider{},
+		Log:     log,
 	}
 	mockChecker.Run()
 
-	router := (&api.API{imageProcessor, db, checker, log, time.Minute}).Router()
-	mockStorageRouter := (&api.API{mockStorageImageProcessor, db, mockChecker, log, time.Minute}).Router()
-	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, db, checker, log, time.Minute}).Router()
-	mockDatabaseRouter := (&api.API{imageProcessor, &mockDatabase.Provider{}, checker, log, time.Minute}).Router()
+	router := (&api.API{imageProcessor, checker, log, time.Minute, hmac}).Router()
+	mockStorageRouter := (&api.API{mockStorageImageProcessor, mockChecker, log, time.Minute, hmac}).Router()
+	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, checker, log, time.Minute, hmac}).Router()
 
 	tests := []struct {
 		Name             string
@@ -66,6 +63,7 @@ func TestAPI(t *testing.T) {
 		ExpectedStatus   int
 		ExpectedResponse []byte
 		ExpectedHeaders  map[string]string
+		HMAC             bool
 	}{
 		{
 			Name:           "/health returns healthy health status",
@@ -73,10 +71,9 @@ func TestAPI(t *testing.T) {
 			Router:         router,
 			ExpectedStatus: http.StatusOK,
 			ExpectedResponse: marshalJson(health.Status{
-				Healthy:  true,
-				Cache:    "healthy",
-				Database: "healthy",
-				Storage:  "healthy",
+				Healthy: true,
+				Cache:   "healthy",
+				Storage: "healthy",
 			}),
 			ExpectedHeaders: map[string]string{
 				"Content-Type": "application/json",
@@ -88,10 +85,9 @@ func TestAPI(t *testing.T) {
 			Router:         mockStorageRouter,
 			ExpectedStatus: http.StatusInternalServerError,
 			ExpectedResponse: marshalJson(health.Status{
-				Healthy:  false,
-				Cache:    "unhealthy",
-				Database: "unhealthy",
-				Storage:  "unknown",
+				Healthy: false,
+				Cache:   "unhealthy",
+				Storage: "unhealthy",
 			}),
 			ExpectedHeaders: map[string]string{
 				"Content-Type": "application/json",
@@ -99,25 +95,28 @@ func TestAPI(t *testing.T) {
 		},
 
 		// Errors
-		{"invalid image id", "/id/nonexistant/200/300.jpg", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"invalid size", "/id/1/1/9223372036854775808.jpg", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/9223372036854775808/1.jpg", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/5500/1.jpg", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},                // Number larger then maxImageSize to fail int parsing
-		{"invalid blur amount", "/id/1/100/100.jpg?blur=11", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"invalid blur amount", "/id/1/100/100.jpg?blur=0", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"invalid file extension", "/id/1/100/100.png", router, http.StatusBadRequest, []byte("Invalid file extension\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"invalid parameters", "/id/nonexistant/200/300.jpg", router, http.StatusBadRequest, []byte("Invalid parameters\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, false},
 		// Storage errors
-		{"Get() storage", "/id/1/100/100.jpg", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		// Database errors
-		{"Get() database", "/id/1/100/100.jpg", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"Get() storage", "/id/1/100/100.jpg", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, true},
 		// 404
-		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, true},
 		// Processor errors
-		{"processor error", "/id/1/100/100.jpg", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"processor error", "/id/1/100/100.jpg", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, true},
 	}
 
 	for _, test := range tests {
 		w := httptest.NewRecorder()
+
+		if test.HMAC {
+			url, err := params.HMAC(hmac, test.URL, url.Values{})
+			if err != nil {
+				t.Errorf("%s: hmac error %s", test.Name, err)
+				continue
+			}
+
+			test.URL = url
+		}
+
 		req, _ := http.NewRequest("GET", test.URL, nil)
 		test.Router.ServeHTTP(w, req)
 		if w.Code != test.ExpectedStatus {
@@ -150,24 +149,33 @@ func TestAPI(t *testing.T) {
 
 		// JPEG
 		{"/id/:id/:width/:height.jpg", "/id/1/200/120.jpg", readFixture("width_height", "jpg"), "inline; filename=\"1-200x120.jpg\"", "image/jpeg"},
-		{"/id/:id/:width/:height.jpg?blur", "/id/1/200/200.jpg?blur", readFixture("blur", "jpg"), "inline; filename=\"1-200x200-blur_5.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height.jpg?blur=5", "/id/1/200/200.jpg?blur=5", readFixture("blur", "jpg"), "inline; filename=\"1-200x200-blur_5.jpg\"", "image/jpeg"},
 		{"/id/:id/:width/:height.jpg?grayscale", "/id/1/200/200.jpg?grayscale", readFixture("grayscale", "jpg"), "inline; filename=\"1-200x200-grayscale.jpg\"", "image/jpeg"},
-		{"/id/:id/:width/:height.jpg?blur&grayscale", "/id/1/200/200.jpg?blur&grayscale", readFixture("all", "jpg"), "inline; filename=\"1-200x200-blur_5-grayscale.jpg\"", "image/jpeg"},
-		{"width/height larger then max allowed but same size as image", "/id/1/300/400.jpg", readFixture("max_allowed", "jpg"), "inline; filename=\"1-300x400.jpg\"", "image/jpeg"},
-		{"width/height of 0 returns original image width", "/id/1/0/0.jpg", readFixture("max_allowed", "jpg"), "inline; filename=\"1-300x400.jpg\"", "image/jpeg"},
+		{"/id/:id/:width/:height.jpg?blur=5&grayscale", "/id/1/200/200.jpg?blur=5&grayscale", readFixture("all", "jpg"), "inline; filename=\"1-200x200-blur_5-grayscale.jpg\"", "image/jpeg"},
 
 		// WebP
 		{"/id/:id/:width/:height.webp", "/id/1/200/120.webp", readFixture("width_height", "webp"), "inline; filename=\"1-200x120.webp\"", "image/webp"},
-		{"/id/:id/:width/:height.webp?blur", "/id/1/200/200.webp?blur", readFixture("blur", "webp"), "inline; filename=\"1-200x200-blur_5.webp\"", "image/webp"},
+		{"/id/:id/:width/:height.webp?blur=5", "/id/1/200/200.webp?blur=5", readFixture("blur", "webp"), "inline; filename=\"1-200x200-blur_5.webp\"", "image/webp"},
 		{"/id/:id/:width/:height.webp?grayscale", "/id/1/200/200.webp?grayscale", readFixture("grayscale", "webp"), "inline; filename=\"1-200x200-grayscale.webp\"", "image/webp"},
-		{"/id/:id/:width/:height.webp?blur&grayscale", "/id/1/200/200.webp?blur&grayscale", readFixture("all", "webp"), "inline; filename=\"1-200x200-blur_5-grayscale.webp\"", "image/webp"},
-		{"width/height larger then max allowed but same size as image", "/id/1/300/400.webp", readFixture("max_allowed", "webp"), "inline; filename=\"1-300x400.webp\"", "image/webp"},
-		{"width/height of 0 returns original image width", "/id/1/0/0.webp", readFixture("max_allowed", "webp"), "inline; filename=\"1-300x400.webp\"", "image/webp"},
+		{"/id/:id/:width/:height.webp?blur=5&grayscale", "/id/1/200/200.webp?blur=5&grayscale", readFixture("all", "webp"), "inline; filename=\"1-200x200-blur_5-grayscale.webp\"", "image/webp"},
 	}
 
 	for _, test := range imageTests {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", test.URL, nil)
+
+		u, err := url.Parse(test.URL)
+		if err != nil {
+			t.Errorf("%s: url error %s", test.Name, err)
+			continue
+		}
+
+		url, err := params.HMAC(hmac, u.Path, u.Query())
+		if err != nil {
+			t.Errorf("%s: hmac error %s", test.Name, err)
+			continue
+		}
+
+		req, _ := http.NewRequest("GET", url, nil)
 		router.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
 			t.Errorf("%s: wrong response code, %#v", test.Name, w.Code)
@@ -238,52 +246,59 @@ func TestFixtures(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log, db, imageProcessor, checker := setup(t, ctx)
+	log, imageProcessor, checker, hmac := setup(t, ctx)
 	defer log.Sync()
 
-	router := (&api.API{imageProcessor, db, checker, log, time.Minute}).Router()
+	router := (&api.API{imageProcessor, checker, log, time.Minute, hmac}).Router()
 
 	// JPEG
-	createFixture(router, "/id/1/200/120.jpg", "width_height", "jpg")
-	createFixture(router, "/id/1/200/200.jpg?blur", "blur", "jpg")
-	createFixture(router, "/id/1/200/200.jpg?grayscale", "grayscale", "jpg")
-	createFixture(router, "/id/1/200/200.jpg?blur&grayscale", "all", "jpg")
-	createFixture(router, "/id/1/300/400.jpg", "max_allowed", "jpg")
+	createFixture(router, hmac, "/id/1/200/120.jpg", "width_height", "jpg")
+	createFixture(router, hmac, "/id/1/200/200.jpg?blur=5", "blur", "jpg")
+	createFixture(router, hmac, "/id/1/200/200.jpg?grayscale", "grayscale", "jpg")
+	createFixture(router, hmac, "/id/1/200/200.jpg?blur=5&grayscale", "all", "jpg")
+	createFixture(router, hmac, "/id/1/300/400.jpg", "max_allowed", "jpg")
 
 	// WebP
-	createFixture(router, "/id/1/200/120.webp", "width_height", "webp")
-	createFixture(router, "/id/1/200/200.webp?blur", "blur", "webp")
-	createFixture(router, "/id/1/200/200.webp?grayscale", "grayscale", "webp")
-	createFixture(router, "/id/1/200/200.webp?blur&grayscale", "all", "webp")
-	createFixture(router, "/id/1/300/400.webp", "max_allowed", "webp")
+	createFixture(router, hmac, "/id/1/200/120.webp", "width_height", "webp")
+	createFixture(router, hmac, "/id/1/200/200.webp?blur=5", "blur", "webp")
+	createFixture(router, hmac, "/id/1/200/200.webp?grayscale", "grayscale", "webp")
+	createFixture(router, hmac, "/id/1/200/200.webp?blur=5&grayscale", "all", "webp")
+	createFixture(router, hmac, "/id/1/300/400.webp", "max_allowed", "webp")
 }
 
-func setup(t *testing.T, ctx context.Context) (*logger.Logger, database.Provider, image.Processor, *health.Checker) {
+func setup(t *testing.T, ctx context.Context) (*logger.Logger, image.Processor, *health.Checker, *hmac.HMAC) {
 	t.Helper()
 
 	log := logger.New(zap.FatalLevel)
 
 	storage, _ := fileStorage.New("../../test/fixtures/file")
-	db, _ := fileDatabase.New("../../test/fixtures/file/metadata.json")
 	cache := memoryCache.New()
 	imageCache := image.NewCache(cache, storage)
 	imageProcessor, _ := vipsProcessor.New(ctx, log, imageCache)
 
 	checker := &health.Checker{
-		Ctx:      ctx,
-		Storage:  storage,
-		Database: db,
-		Cache:    cache,
-		Log:      log,
+		Ctx:     ctx,
+		Storage: storage,
+		ImageID: "1",
+		Cache:   cache,
+		Log:     log,
 	}
 	checker.Run()
 
-	return log, db, imageProcessor, checker
+	hmac := &hmac.HMAC{
+		Key: []byte("test"),
+	}
+
+	return log, imageProcessor, checker, hmac
 }
 
-func createFixture(router http.Handler, URL string, fixtureName string, extension string) {
+func createFixture(router http.Handler, hmac *hmac.HMAC, URL string, fixtureName string, extension string) {
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", URL, nil)
+
+	u, _ := url.Parse(URL)
+	url, _ := params.HMAC(hmac, u.Path, u.Query())
+
+	req, _ := http.NewRequest("GET", url, nil)
 	router.ServeHTTP(w, req)
 	ioutil.WriteFile(fixturePath(fixtureName, extension), w.Body.Bytes(), 644)
 }

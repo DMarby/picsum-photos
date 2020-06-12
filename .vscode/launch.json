@@ -11,7 +11,8 @@
       "cwd": "${workspaceRoot}",
       "env": {
         "PICSUM_ROOT_URL": "http://localhost:8080",
-        "PICSUM_IMAGE_SERVICE_URL": "http://localhost:8081"
+        "PICSUM_IMAGE_SERVICE_URL": "http://localhost:8081",
+        "PICSUM_HMAC_KEY": "foo"
       }
     },
     {
@@ -21,7 +22,10 @@
       "mode": "debug",
       "program": "${workspaceRoot}/cmd/image-service",
       "showLog": true,
-      "cwd": "${workspaceRoot}"
+      "cwd": "${workspaceRoot}",
+      "env": {
+        "IMAGE_HMAC_KEY": "foo"
+      }
     },
     {
       "type": "node",
