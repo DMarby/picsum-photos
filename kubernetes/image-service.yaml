@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: image-service
-        image: 'dmarby/picsum-photos@sha256:44b9e5911d6a8d6055f90c08e6d15870ada11065885dff7795b1fc05d3fc2e37'
+        image: 'dmarby/picsum-photos@sha256:9c82481e20a4021b432b97dea6a5eeda18791249fed73d1938611515ab062126'
         command: ['./image-service']
         ports:
         - containerPort: 8081
@@ -45,13 +45,6 @@ spec:
             value: "redis"
           - name: IMAGE_CACHE_REDIS_ADDRESS
             value: "redis://redis-svc.default.svc:6379"
-          - name: IMAGE_DATABASE
-            value: postgresql
-          - name: IMAGE_DATABASE_POSTGRESQL_ADDRESS
-            valueFrom:
-              secretKeyRef:
-                name: picsum-db
-                key: connection_string
           - name: IMAGE_STORAGE
             value: "spaces"
           - name: IMAGE_STORAGE_SPACES_REGION
@@ -74,6 +67,11 @@ spec:
               secretKeyRef:
                 name: picsum-spaces
                 key: secret_key
+          - name: IMAGE_HMAC_KEY
+            valueFrom:
+              secretKeyRef:
+                name: picsum-hmac
+                key: hmac_key
       affinity: # Only one pod per node
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

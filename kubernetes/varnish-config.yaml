@@ -80,6 +80,8 @@ data:
       # Effects
       queryfilter.add_string("blur");
       queryfilter.add_string("grayscale");
+      # HMAC
+      queryfilter.add_string("hmac");
     }
 
     sub vcl_recv {

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: picsum
-        image: 'dmarby/picsum-photos@sha256:44b9e5911d6a8d6055f90c08e6d15870ada11065885dff7795b1fc05d3fc2e37'
+        image: 'dmarby/picsum-photos@sha256:9c82481e20a4021b432b97dea6a5eeda18791249fed73d1938611515ab062126'
         ports:
         - containerPort: 8080
         livenessProbe:
@@ -44,6 +44,11 @@ spec:
               secretKeyRef:
                 name: picsum-db
                 key: connection_string
+          - name: PICSUM_HMAC_KEY
+            valueFrom:
+              secretKeyRef:
+                name: picsum-hmac
+                key: hmac_key
 
 ---
 apiVersion: v1
