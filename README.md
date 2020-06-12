@@ -129,7 +129,9 @@ kubectl create secret generic picsum-spaces --from-literal=space='SPACE_HERE' --
 ```
 
 Then, we need to create a hmac key that the different services will use to authenticate the requests between eachother:
+```
 kubectl create secret generic picsum-hmac --from-literal=hmac_key="$(printf '%s' $(pwgen -s 64 1))"
+```
 
 #### HTTPS
 You'll need to upload an SSL certificate that the cluster will use for https. For picsum.photos, we use a Cloudflare origin certificate.
