@@ -125,7 +125,7 @@ func (c *Checker) check(ctx context.Context, channel chan Status) {
 	}
 
 	if c.Database != nil {
-		if _, err := c.Database.GetRandom(); err != nil {
+		if _, err := c.Database.GetRandom(ctx); err != nil {
 			status.Healthy = false
 			status.Database = "unhealthy"
 		} else {

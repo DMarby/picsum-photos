@@ -28,7 +28,7 @@ type ListImage struct {
 func (a *API) infoHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
 	vars := mux.Vars(r)
 	imageID := vars["id"]
-	image, err := a.Database.Get(imageID)
+	image, err := a.Database.Get(r.Context(), imageID)
 	if err != nil {
 		if err == database.ErrNotFound {
 			return &handler.Error{Message: err.Error(), Code: http.StatusNotFound}
@@ -58,7 +58,7 @@ func (a *API) listHandler(w http.ResponseWriter, r *http.Request) *handler.Error
 
 	offset := limit * (page - 1)
 
-	databaseList, err := a.Database.List(offset, limit)
+	databaseList, err := a.Database.List(r.Context(), offset, limit)
 	if err != nil {
 		a.logError(r, "error getting image list from database", err)
 		return handler.InternalServerError()

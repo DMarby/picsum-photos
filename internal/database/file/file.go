@@ -1,6 +1,7 @@
 package file
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"math/rand"
@@ -50,7 +51,7 @@ func (p *Provider) getImage(id string) (*database.Image, error) {
 }
 
 // Get returns the image data for an image id
-func (p *Provider) Get(id string) (i *database.Image, err error) {
+func (p *Provider) Get(ctx context.Context, id string) (i *database.Image, err error) {
 	image, err := p.getImage(id)
 	if err != nil {
 		return nil, err
@@ -60,12 +61,12 @@ func (p *Provider) Get(id string) (i *database.Image, err error) {
 }
 
 // GetRandom returns a random image ID
-func (p *Provider) GetRandom() (i *database.Image, err error) {
+func (p *Provider) GetRandom(ctx context.Context) (i *database.Image, err error) {
 	return &p.images[p.random.Intn(len(p.images))], nil
 }
 
 // GetRandomWithSeed returns a random image ID based on the given seed
-func (p *Provider) GetRandomWithSeed(seed int64) (i *database.Image, err error) {
+func (p *Provider) GetRandomWithSeed(ctx context.Context, seed int64) (i *database.Image, err error) {
 	source := rand.NewSource(seed)
 	random := rand.New(source)
 
@@ -73,12 +74,12 @@ func (p *Provider) GetRandomWithSeed(seed int64) (i *database.Image, err error) 
 }
 
 // ListAll returns a list of all the images
-func (p *Provider) ListAll() ([]database.Image, error) {
+func (p *Provider) ListAll(ctx context.Context) ([]database.Image, error) {
 	return p.images, nil
 }
 
 // List returns a list of all the images with an offset/limit
-func (p *Provider) List(offset, limit int) ([]database.Image, error) {
+func (p *Provider) List(ctx context.Context, offset, limit int) ([]database.Image, error) {
 	images := len(p.images)
 	if offset > images {
 		offset = images

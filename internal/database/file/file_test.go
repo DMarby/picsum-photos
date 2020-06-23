@@ -1,6 +1,7 @@
 package file_test
 
 import (
+	"context"
 	"reflect"
 
 	"github.com/DMarby/picsum-photos/internal/database"
@@ -26,6 +27,9 @@ var secondImage = database.Image{
 }
 
 func TestFile(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	provider, err := file.New("../../../test/fixtures/file/metadata_multiple.json")
 	if err != nil {
 		t.Fatal(err)
@@ -33,7 +37,7 @@ func TestFile(t *testing.T) {
 	defer provider.Shutdown()
 
 	t.Run("Get an image by id", func(t *testing.T) {
-		buf, err := provider.Get("1")
+		buf, err := provider.Get(ctx, "1")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -44,14 +48,14 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("Returns error on a nonexistant image", func(t *testing.T) {
-		_, err := provider.Get("nonexistant")
+		_, err := provider.Get(ctx, "nonexistant")
 		if err == nil || err.Error() != database.ErrNotFound.Error() {
 			t.FailNow()
 		}
 	})
 
 	t.Run("Returns a random image", func(t *testing.T) {
-		image, err := provider.GetRandom()
+		image, err := provider.GetRandom(ctx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -62,7 +66,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("Returns a random based on the seed", func(t *testing.T) {
-		image, err := provider.GetRandomWithSeed(0)
+		image, err := provider.GetRandomWithSeed(ctx, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -73,7 +77,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("Returns a list of all the images", func(t *testing.T) {
-		images, err := provider.ListAll()
+		images, err := provider.ListAll(ctx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -84,7 +88,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("Returns a list of images", func(t *testing.T) {
-		images, err := provider.List(1, 1)
+		images, err := provider.List(ctx, 1, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -95,7 +99,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("Handles offset and limit larger then db", func(t *testing.T) {
-		_, err := provider.List(10, 30)
+		_, err := provider.List(ctx, 10, 30)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"errors"
 )
 
@@ -15,11 +16,11 @@ type Image struct {
 
 // Provider is an interface for listing and retrieving images
 type Provider interface {
-	Get(id string) (i *Image, err error)
-	GetRandom() (i *Image, err error)
-	GetRandomWithSeed(seed int64) (i *Image, err error)
-	ListAll() ([]Image, error)
-	List(offset, limit int) ([]Image, error)
+	Get(ctx context.Context, id string) (i *Image, err error)
+	GetRandom(ctx context.Context) (i *Image, err error)
+	GetRandomWithSeed(ctx context.Context, seed int64) (i *Image, err error)
+	ListAll(ctx context.Context) ([]Image, error)
+	List(ctx context.Context, offset, limit int) ([]Image, error)
 	Shutdown()
 }
 

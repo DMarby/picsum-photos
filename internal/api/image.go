@@ -40,7 +40,7 @@ func (a *API) randomImageRedirectHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get a random image
-	image, err := a.Database.GetRandom()
+	image, err := a.Database.GetRandom(r.Context())
 	if err != nil {
 		a.logError(r, "error getting random image from database", err)
 		return handler.InternalServerError()
@@ -65,7 +65,7 @@ func (a *API) seedImageRedirectHandler(w http.ResponseWriter, r *http.Request) *
 	murmurHash := murmur3.StringSum64(imageSeed)
 
 	// Get a random image by the hash
-	image, err := a.Database.GetRandomWithSeed(int64(murmurHash))
+	image, err := a.Database.GetRandomWithSeed(r.Context(), int64(murmurHash))
 	if err != nil {
 		a.logError(r, "error getting random image from database", err)
 		return handler.InternalServerError()
@@ -76,7 +76,7 @@ func (a *API) seedImageRedirectHandler(w http.ResponseWriter, r *http.Request) *
 }
 
 func (a *API) getImage(r *http.Request, imageID string) (*database.Image, *handler.Error) {
-	databaseImage, err := a.Database.Get(imageID)
+	databaseImage, err := a.Database.Get(r.Context(), imageID)
 	if err != nil {
 		if err == database.ErrNotFound {
 			return nil, &handler.Error{Message: err.Error(), Code: http.StatusNotFound}

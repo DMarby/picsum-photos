@@ -25,7 +25,7 @@ type DeprecatedImage struct {
 }
 
 func (a *API) deprecatedListHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
-	list, err := a.Database.ListAll()
+	list, err := a.Database.ListAll(r.Context())
 	if err != nil {
 		a.logError(r, "error getting image list from database", err)
 		return handler.InternalServerError()
@@ -78,7 +78,7 @@ func (a *API) deprecatedImageHandler(w http.ResponseWriter, r *http.Request) *ha
 			return handlerErr
 		}
 	} else {
-		image, err = a.Database.GetRandom()
+		image, err = a.Database.GetRandom(r.Context())
 		if err != nil {
 			a.logError(r, "error getting random image from database", err)
 			return handler.InternalServerError()

@@ -1,6 +1,7 @@
 package postgresql
 
 import (
+	"context"
 	"database/sql"
 	"math/rand"
 
@@ -53,9 +54,9 @@ func New(address string) (*Provider, error) {
 }
 
 // Get returns the image data for an image id
-func (p *Provider) Get(id string) (i *database.Image, err error) {
+func (p *Provider) Get(ctx context.Context, id string) (i *database.Image, err error) {
 	i = &database.Image{}
-	err = p.db.Get(i, "select * from image where id = $1", id)
+	err = p.db.GetContext(ctx, i, "select * from image where id = $1", id)
 
 	if err != nil && err == sql.ErrNoRows {
 		return nil, database.ErrNotFound
@@ -65,16 +66,16 @@ func (p *Provider) Get(id string) (i *database.Image, err error) {
 }
 
 // GetRandom returns a random image ID
-func (p *Provider) GetRandom() (i *database.Image, err error) {
+func (p *Provider) GetRandom(ctx context.Context) (i *database.Image, err error) {
 	i = &database.Image{}
 	// This will be slow on large tables
-	err = p.db.Get(i, "select * from image order by random() limit 1")
+	err = p.db.GetContext(ctx, i, "select * from image order by random() limit 1")
 	return
 }
 
 // GetRandomWithSeed returns a random image ID based on the given seed
-func (p *Provider) GetRandomWithSeed(seed int64) (i *database.Image, err error) {
-	images, err := p.ListAll()
+func (p *Provider) GetRandomWithSeed(ctx context.Context, seed int64) (i *database.Image, err error) {
+	images, err := p.ListAll(ctx)
 	if err != nil {
 		return
 	}
@@ -86,9 +87,9 @@ func (p *Provider) GetRandomWithSeed(seed int64) (i *database.Image, err error) 
 }
 
 // ListAll returns a list of all the images
-func (p *Provider) ListAll() ([]database.Image, error) {
+func (p *Provider) ListAll(ctx context.Context) ([]database.Image, error) {
 	i := []database.Image{}
-	err := p.db.Select(&i, "select * from image order by id")
+	err := p.db.SelectContext(ctx, &i, "select * from image order by id")
 
 	if err != nil {
 		return nil, err
@@ -98,9 +99,9 @@ func (p *Provider) ListAll() ([]database.Image, error) {
 }
 
 // List returns a list of all the images with an offset/limit
-func (p *Provider) List(offset, limit int) ([]database.Image, error) {
+func (p *Provider) List(ctx context.Context, offset, limit int) ([]database.Image, error) {
 	i := []database.Image{}
-	err := p.db.Select(&i, "select * from image order by id OFFSET $1 LIMIT $2", offset, limit)
+	err := p.db.SelectContext(ctx, &i, "select * from image order by id OFFSET $1 LIMIT $2", offset, limit)
 
 	if err != nil {
 		return nil, err
