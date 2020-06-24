@@ -81,7 +81,7 @@ In the DigitalOcean control panel, go to:
   - Create a new connection pool named `picsum`
     - Database: `picsum`
     - User: `picsum`
-    - Pool mode: `transaction`
+    - Pool mode: `session`
     - Pool size: 22
 
 Get the connection string from the connection details link for the connection pool.
