@@ -24,8 +24,7 @@ go run . -log-level debug
 This will start a server accessible on `localhost:8080`, with debug logging enabled.  
 For other options/backends, see `go run . -h`.  
 
-Information on how to set up the postgres backend can be found [here](#database-migrations).  
-Instructions on how to add pictures to the postgres/spaces backends are available [below](#3-adding-pictures).
+Instructions on how to add pictures to the postgres/spaces backends are available [below](#4-adding-pictures).
 
 ### Creating new database migrations
 In order to create new database migrations if you need to modify the database structure, run:
@@ -33,6 +32,8 @@ In order to create new database migrations if you need to modify the database st
 migrate create -ext sql -dir migrations my_new_migration
 ```
 Then add your SQL to `migrations/<timestamp>_my_new_migration.up.sql` and `migrations/<timestamp>_my_new_migration.down.sql`
+
+Migrations are applied automatically when the `picsum-photos` application starts.
 
 ## Deployment on DigitalOcean
 <p>This project is kindly hosted by:</p>
@@ -72,7 +73,7 @@ In the DigitalOcean control panel, go to:
 - Databases -> picsum-db -> Settings:
   - Add `picsum-k8s-worker` to "Allow inbound sources"
   - Add "Your computers current IP" to "Allow inbound sources"
-    - You should remove this once you are one adding images/running migrations against the database.
+    - You should remove this once you are done adding images to the database.
 - Databases -> picsum-db -> Users & Databases:
   - Create a new user named `picsum`
   - Create a new database named `picsum`
@@ -85,29 +86,7 @@ In the DigitalOcean control panel, go to:
 
 Get the connection string from the connection details link for the connection pool.
 
-#### Database migrations
-Next up, you need to run the migrations to set up the database for the application.
-We use [migrate](https://github.com/golang-migrate/migrate) to handle database migrations.
-Install it, and then run
-```
-migrate -path migrations -database 'connection_string_here' up
-```
-to set up your database.
-
-### 3. Adding pictures
-To add pictures for the service to use, they need to be added to both spaces, as well as the database.
-
-#### Spaces
-In the DigitalOcean control panel, go to Spaces -> picsum-photos and upload your pictures.  
-They should be named `{id}.jpg`, eg `foo.jpg`.
-
-#### Database
-Connect to the Postgres database using a postgres client, and add an entry for each image into the `image` table:  
-```
-insert into image (id, author, url, width, height) VALUES ('foo', 'John Doe', 'https://picsum.photos', 300, 400);
-```
-
-### 4. Kubernetes
+### 3. Kubernetes
 Picsum runs on top of DigitalOcean's hosted Kubernetes offering.
 
 Install [doctl](https://github.com/digitalocean/doctl) and log in with the API token you created earlier by running `doctl auth init`  
@@ -117,6 +96,14 @@ Then, run `kubectl config use-context do-ams3-picsum-k8s` to switch to the new c
 #### Secrets
 To give the Picsum application access to various things we need to create secrets in Kubernetes.
 First, we need to store the connection string we got earlier for the postgres database connection pool. 
+
+In order for it to work, we need to append `statement_cache_mode=describe` to it.
+It should look like something like this:
+```
+postgres://user:password@something.db.ondigitalocean.com:25061/picsum?sslmode=require&statement_cache_mode=describe
+```
+
+To add it to kubernetes, run the following command:
 ```
 kubectl create secret generic picsum-db --from-literal=connection_string='CONNECTION_STRING_HERE'
 ```
@@ -196,6 +183,19 @@ Then, enable client cert authentication on the ingress:
 ```
 kubectl annotate ingress picsum-ingress "nginx.ingress.kubernetes.io/auth-tls-verify-client=on"
 kubectl annotate ingress picsum-ingress "nginx.ingress.kubernetes.io/auth-tls-secret=default/cloudflare-ca"
+```
+
+### 4. Adding pictures
+To add pictures for the service to use, they need to be added to both spaces, as well as the database.
+
+#### Spaces
+In the DigitalOcean control panel, go to Spaces -> picsum-photos and upload your pictures.  
+They should be named `{id}.jpg`, eg `foo.jpg`.
+
+#### Database
+Connect to the Postgres database using a postgres client, and add an entry for each image into the `image` table:  
+```
+insert into image (id, author, url, width, height) VALUES ('foo', 'John Doe', 'https://picsum.photos', 300, 400);
 ```
 
 ## License

@@ -14,6 +14,9 @@
 !test
 !web
 
+# Include migrations
+!migrations
+
 # Include frontend build-pipeline stuff
 !gulpfile.js
 !package.json

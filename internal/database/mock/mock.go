@@ -36,5 +36,17 @@ func (p *Provider) List(ctx context.Context, offset, limit int) ([]database.Imag
 	return nil, fmt.Errorf("list error")
 }
 
-// Shutdown shuts down the database client
-func (p *Provider) Shutdown() {}
+// Wait mock
+func (p *Provider) Wait(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// Migrate mock
+func (p *Provider) Migrate(migrationsURL string) error {
+	panic("not implemented")
+}
+
+// Shutdown mock
+func (p *Provider) Shutdown() {
+	panic("not implemented")
+}

@@ -3,14 +3,22 @@ package postgresql
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/DMarby/picsum-photos/internal/database"
 
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/pgtype"
-	"github.com/jackc/pgx/stdlib"
+	// Import the pgx stdlib to register the pgx connection type for the sql driver
+	_ "github.com/jackc/pgx/v4/stdlib"
+
 	"github.com/jmoiron/sqlx"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+
+	// Register the file driver for migrations
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 // Provider implements a postgresql based storage
@@ -18,31 +26,10 @@ type Provider struct {
 	db *sqlx.DB
 }
 
-// New returns a new Provider instance
+// New establishes the database connection and returns a new Provider instance
 func New(address string) (*Provider, error) {
-	// Needed to work with pgbouncer
-	d := &stdlib.DriverConfig{
-		ConnConfig: pgx.ConnConfig{
-			PreferSimpleProtocol: true,
-			RuntimeParams: map[string]string{
-				"client_encoding": "UTF8",
-			},
-			CustomConnInfo: func(c *pgx.Conn) (*pgtype.ConnInfo, error) {
-				info := c.ConnInfo.DeepCopy()
-				info.RegisterDataType(pgtype.DataType{
-					Value: &pgtype.OIDValue{},
-					Name:  "int8OID",
-					OID:   pgtype.Int8OID,
-				})
-
-				return info, nil
-			},
-		},
-	}
-
-	stdlib.RegisterDriverConfig(d)
-
-	db, err := sqlx.Connect("pgx", d.ConnectionString(address))
+	// Establish the database connection
+	db, err := sqlx.Open("pgx", address)
 	if err != nil {
 		return nil, err
 	}
@@ -51,6 +38,59 @@ func New(address string) (*Provider, error) {
 	return &Provider{
 		db: db.Unsafe(),
 	}, nil
+}
+
+const waitDelay = time.Second
+
+// Wait blocks until a database connection is ready
+// You can use the given context to specify a timeout
+func (p *Provider) Wait(ctx context.Context) error {
+	lock := make(chan struct{}, 1)
+	done := make(chan struct{}, 1)
+
+	ping := func(ctx context.Context) {
+		if err := p.db.PingContext(ctx); err == nil {
+			done <- struct{}{}
+			return
+		}
+
+		time.Sleep(waitDelay)
+		// Empty the lock channel to allow for another attempt
+		<-lock
+	}
+
+	for {
+		select {
+		// Try to send a message to the lock channel
+		case lock <- struct{}{}:
+			// The lock channel was empty, execute a ping
+			go ping(ctx)
+		case <-ctx.Done():
+			return fmt.Errorf("timed out waiting for database connection")
+		case <-done:
+			return nil
+		}
+	}
+}
+
+// Migrate attempts to migrate the database to the latest migration
+func (p *Provider) Migrate(migrationsURL string) error {
+	driver, err := postgres.WithInstance(p.db.DB, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(migrationsURL, "postgres", driver)
+	if err != nil {
+		return err
+	}
+
+	err = m.Up()
+	if err == migrate.ErrNoChange {
+		return nil
+	}
+
+	return err
 }
 
 // Get returns the image data for an image id

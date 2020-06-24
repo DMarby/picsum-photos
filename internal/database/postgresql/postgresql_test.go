@@ -5,6 +5,7 @@ package postgresql_test
 import (
 	"context"
 	"reflect"
+	"time"
 
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/database/postgresql"
@@ -29,17 +30,16 @@ var secondImage = database.Image{
 	Height: 400,
 }
 
-var address = "postgresql://postgres@localhost/postgres"
+const address = "postgresql://postgres@localhost/postgres"
 
 func TestPostgresql(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	provider, err := postgresql.New(address)
-	if err != nil {
-		t.Fatal(err)
-	}
+	provider := mustInitialize(t, "file://../../../migrations")
 	defer provider.Shutdown()
+
+	defer clean()
 
 	db := sqlx.MustConnect("pgx", address)
 	defer db.Close()
@@ -112,14 +112,35 @@ func TestPostgresql(t *testing.T) {
 			t.Error("image data doesn't match")
 		}
 	})
-
-	// Clean up the test data
-	db.MustExec("truncate table image")
 }
 
-func TestNew(t *testing.T) {
-	_, err := postgresql.New("")
-	if err == nil {
-		t.FailNow()
+// mustInitialize connects to and migrates the database
+func mustInitialize(t *testing.T, migrationsURL string) *postgresql.Provider {
+	db, err := postgresql.New(address)
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	err = db.Wait(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = db.Migrate(migrationsURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return db
+}
+
+// clean cleans up the database after testing
+func clean() {
+	db := sqlx.MustConnect("pgx", address)
+	defer db.Close()
+
+	db.MustExec("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
 }

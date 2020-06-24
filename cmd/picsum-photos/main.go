@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/DMarby/picsum-photos/internal/api"
 	"github.com/DMarby/picsum-photos/internal/cmd"
@@ -33,7 +34,9 @@ var (
 	loglevel        = zap.LevelFlag("log-level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
 
 	// Database
-	databaseBackend = flag.String("database", "file", "which database backend to use (file, postgresql)")
+	databaseBackend           = flag.String("database", "file", "which database backend to use (file, postgresql)")
+	databaseWaitTimeout       = flag.Duration("database-wait-timeout", time.Second*30, "time to wait for a database connection to be established before giving up")
+	databaseMigrationsAddress = flag.String("database-migrations-address", "file://migrations", "path to the database migrations")
 
 	// Database - File
 	databaseFilePath = flag.String("database-file-path", "./test/fixtures/file/metadata.json", "path to the database file")
@@ -66,6 +69,22 @@ func main() {
 		log.Fatalf("error initializing backends: %s", err)
 	}
 	defer database.Shutdown()
+
+	log.Infof("waiting for the database")
+	// Wait for the database for up to 30 seconds
+	waitCtx, cancel := context.WithTimeout(context.Background(), *databaseWaitTimeout)
+	err = database.Wait(waitCtx)
+	if err != nil {
+		log.Fatalf("error waiting for the database: %s", err)
+	}
+
+	cancel()
+
+	log.Infof("migrating the database")
+	err = database.Migrate(*databaseMigrationsAddress)
+	if err != nil {
+		log.Fatalf("error migrating the database: %s", err)
+	}
 
 	// Initialize and start the health checker
 	checkerCtx, checkerCancel := context.WithCancel(context.Background())
