@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: picsum
-        image: 'dmarby/picsum-photos@sha256:599315aaddc1b6f76060543945ea0204e91f439e2b364d6d047456efe79316d2'
+        image: 'dmarby/picsum-photos@sha256:3f6d8485cf6a04f54204ff1fd16a60b583b83367e5e110991d1de0fbd58a29db'
         ports:
         - containerPort: 8080
         livenessProbe:
@@ -44,6 +44,8 @@ spec:
               secretKeyRef:
                 name: picsum-db
                 key: connection_string
+          - name: PICSUM_DATABASE_POSTGRESQL_MAX_CONNS
+            value: "10"
           - name: PICSUM_HMAC_KEY
             valueFrom:
               secretKeyRef:
