@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 
@@ -27,12 +28,16 @@ type Provider struct {
 }
 
 // New establishes the database connection and returns a new Provider instance
-func New(address string) (*Provider, error) {
+func New(address string, maxConns int) (*Provider, error) {
 	// Establish the database connection
 	db, err := sqlx.Open("pgx", address)
 	if err != nil {
 		return nil, err
 	}
+
+	// Limit the maximum open and idle database connections
+	db.SetMaxOpenConns(maxConns)
+	db.SetMaxIdleConns(int(math.Ceil(float64(maxConns) / 2)))
 
 	// Use Unsafe so that the app doesn't fail if we add new columns to the database
 	return &Provider{

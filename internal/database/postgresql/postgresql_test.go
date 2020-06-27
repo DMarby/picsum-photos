@@ -116,7 +116,7 @@ func TestPostgresql(t *testing.T) {
 
 // mustInitialize connects to and migrates the database
 func mustInitialize(t *testing.T, migrationsURL string) *postgresql.Provider {
-	db, err := postgresql.New(address)
+	db, err := postgresql.New(address, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

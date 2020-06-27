@@ -18,6 +18,7 @@ import (
 	"github.com/DMarby/picsum-photos/internal/logger"
 
 	"github.com/jamiealquiza/envy"
+	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
 )
 
@@ -42,7 +43,8 @@ var (
 	databaseFilePath = flag.String("database-file-path", "./test/fixtures/file/metadata.json", "path to the database file")
 
 	// Database - Postgresql
-	databasePostgresqlAddress = flag.String("database-postgresql-address", "postgresql://postgres@127.0.0.1/postgres", "postgresql address")
+	databasePostgresqlAddress  = flag.String("database-postgresql-address", "postgresql://postgres@127.0.0.1/postgres", "postgresql address")
+	databasePostgresqlMaxConns = flag.Int("database-postgresql-max-conns", 0, "postgresql max connections")
 
 	// HMAC
 	hmacKey = flag.String("hmac-key", "", "hmac key to use for authentication between services")
@@ -58,6 +60,9 @@ func main() {
 	// Initialize the logger
 	log := logger.New(*loglevel)
 	defer log.Sync()
+
+	// Set GOMAXPROCS
+	maxprocs.Set(maxprocs.Logger(log.Infof))
 
 	// Set up context for shutting down
 	shutdownCtx, shutdown := context.WithCancel(context.Background())
@@ -144,7 +149,7 @@ func setupBackends() (database database.Provider, err error) {
 	case "file":
 		database, err = fileDatabase.New(*databaseFilePath)
 	case "postgresql":
-		database, err = postgresql.New(*databasePostgresqlAddress)
+		database, err = postgresql.New(*databasePostgresqlAddress, *databasePostgresqlMaxConns)
 	default:
 		err = fmt.Errorf("invalid database backend")
 	}

@@ -22,6 +22,7 @@ import (
 	api "github.com/DMarby/picsum-photos/internal/imageapi"
 
 	"github.com/jamiealquiza/envy"
+	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
 )
 
@@ -67,6 +68,9 @@ func main() {
 	// Initialize the logger
 	log := logger.New(*loglevel)
 	defer log.Sync()
+
+	// Set GOMAXPROCS
+	maxprocs.Set(maxprocs.Logger(log.Infof))
 
 	// Set up context for shutting down
 	shutdownCtx, shutdown := context.WithCancel(context.Background())
