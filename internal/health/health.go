@@ -18,7 +18,6 @@ const checkTimeout = 8 * time.Second
 type Checker struct {
 	Ctx      context.Context
 	Storage  storage.Provider
-	ImageID  string // Image ID to use when fetching an image from storage. Only needed for checking storage health
 	Database database.Provider
 	Cache    cache.Provider
 	status   Status
@@ -151,7 +150,7 @@ func (c *Checker) check(ctx context.Context, channel chan Status) {
 	}
 
 	if c.Storage != nil {
-		if _, err := c.Storage.Get(ctx, c.ImageID); err != nil {
+		if _, err := c.Storage.Get(ctx, "healthcheck"); err != storage.ErrNotFound {
 			status.Healthy = false
 			status.Storage = "unhealthy"
 		} else {

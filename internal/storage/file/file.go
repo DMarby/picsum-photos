@@ -2,10 +2,13 @@ package file
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/DMarby/picsum-photos/internal/storage"
 )
 
 // Provider implements a file-based image storage
@@ -28,6 +31,10 @@ func New(path string) (*Provider, error) {
 func (p *Provider) Get(ctx context.Context, id string) ([]byte, error) {
 	imageData, err := ioutil.ReadFile(filepath.Join(p.path, fmt.Sprintf("%s.jpg", id)))
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, storage.ErrNotFound
+		}
+
 		return nil, err
 	}
 

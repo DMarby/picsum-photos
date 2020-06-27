@@ -41,7 +41,7 @@ func TestVips(t *testing.T) {
 
 		t.Run("process image handles errors", func(t *testing.T) {
 			_, err := processor.ProcessImage(context.Background(), image.NewTask("foo", 500, 500, "testing", image.JPEG))
-			if err == nil || err.Error() != "error getting image from cache: open ../../../test/fixtures/file/foo.jpg: no such file or directory" {
+			if err == nil || err.Error() != "error getting image from cache: Image does not exist" {
 				t.Error()
 			}
 		})

@@ -51,9 +51,6 @@ var (
 	cacheRedisAddress  = flag.String("cache-redis-address", "redis://127.0.0.1:6379", "redis address, may contain authentication details")
 	cacheRedisPoolSize = flag.Int("cache-redis-pool-size", 10, "redis connection pool size")
 
-	// Healthcheck
-	healthCheckImageID = flag.String("health-check-image-id", "1", "image ID to request from the storage to check storage health")
-
 	// HMAC
 	hmacKey = flag.String("hmac-key", "", "hmac key to use for authentication between services")
 )
@@ -99,7 +96,6 @@ func main() {
 	checker := &health.Checker{
 		Ctx:     checkerCtx,
 		Storage: storage,
-		ImageID: *healthCheckImageID,
 		Cache:   cache,
 		Log:     log,
 	}

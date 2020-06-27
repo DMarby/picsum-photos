@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"reflect"
 
+	"github.com/DMarby/picsum-photos/internal/storage"
 	"github.com/DMarby/picsum-photos/internal/storage/file"
 
 	"testing"
@@ -37,7 +38,7 @@ func TestFile(t *testing.T) {
 
 	t.Run("Returns error on a nonexistant image", func(t *testing.T) {
 		_, err := provider.Get(context.Background(), "nonexistant")
-		if err == nil {
+		if err == nil || err != storage.ErrNotFound {
 			t.FailNow()
 		}
 	})

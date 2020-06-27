@@ -279,7 +279,6 @@ func setup(t *testing.T, ctx context.Context) (*logger.Logger, image.Processor, 
 	checker := &health.Checker{
 		Ctx:     ctx,
 		Storage: storage,
-		ImageID: "1",
 		Cache:   cache,
 		Log:     log,
 	}
