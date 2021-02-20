@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/DMarby/picsum-photos/internal/database"
@@ -15,6 +16,7 @@ type Provider struct {
 	path   string
 	images []database.Image
 	random *rand.Rand
+	mu     sync.Mutex
 }
 
 // New returns a new Provider instance
@@ -34,9 +36,9 @@ func New(path string) (*Provider, error) {
 	random := rand.New(source)
 
 	return &Provider{
-		path,
-		images,
-		random,
+		path:   path,
+		images: images,
+		random: random,
 	}, nil
 }
 
@@ -62,7 +64,10 @@ func (p *Provider) Get(ctx context.Context, id string) (i *database.Image, err e
 
 // GetRandom returns a random image ID
 func (p *Provider) GetRandom(ctx context.Context) (i *database.Image, err error) {
-	return &p.images[p.random.Intn(len(p.images))], nil
+	p.mu.Lock()
+	image := &p.images[p.random.Intn(len(p.images))]
+	p.mu.Unlock()
+	return image, nil
 }
 
 // GetRandomWithSeed returns a random image ID based on the given seed
