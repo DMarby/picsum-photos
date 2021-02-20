@@ -1,0 +1,19 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: unsplash-redirect-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+    nginx.ingress.kubernetes.io/auth-tls-secret: "default/cloudflare-ca"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header 'Access-Control-Allow-Origin' '*';
+      return 302 https://picsum.photos$request_uri;
+spec:
+  tls:
+    - hosts:
+      - unsplash.it
+      - www.unsplash.it
+      secretName: unsplash-cert
+  rules:
+  - host: unsplash.it
+  - host: www.unsplash.it

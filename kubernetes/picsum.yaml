@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: picsum
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: picsum
@@ -37,20 +37,21 @@ spec:
             value: "redis"
           - name: PICSUM_CACHE_REDIS_ADDRESS
             value: "redis://redis-svc.default.svc:6379"
-          - name: PICSUM_DATABASE
-            value: postgresql
-          - name: PICSUM_DATABASE_POSTGRESQL_ADDRESS
-            valueFrom:
-              secretKeyRef:
-                name: picsum-db
-                key: connection_string
-          - name: PICSUM_DATABASE_POSTGRESQL_MAX_CONNS
-            value: "10"
+          - name: PICSUM_DATABASE_FILE_PATH
+            value: /etc/picsum-images/picsum-images.json
           - name: PICSUM_HMAC_KEY
             valueFrom:
               secretKeyRef:
                 name: picsum-hmac
                 key: hmac_key
+        volumeMounts:
+          - name: picsum-images
+            mountPath: "/etc/picsum-images"
+            readOnly: true
+      volumes:
+      - name: picsum-images
+        configMap:
+          name: picsum-images
 
 ---
 apiVersion: v1

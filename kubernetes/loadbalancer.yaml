@@ -10,6 +10,7 @@ metadata:
     service.beta.kubernetes.io/do-loadbalancer-protocol: "http2"
     service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
     service.beta.kubernetes.io/do-loadbalancer-algorithm: "round_robin"
+    service.beta.kubernetes.io/do-loadbalancer-size-slug: "lb-medium"
 spec:
   type: LoadBalancer
   selector:
