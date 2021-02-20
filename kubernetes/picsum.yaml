@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: picsum
-        image: 'dmarby/picsum-photos@sha256:13fdc7c52e7b2a38c3406ce23039db9ef72682aa422bf555ec4d6fe3182c418a'
+        image: 'dmarby/picsum-photos@sha256:e575eef624cbf5e6ac05fdef9d9f000d042bc9461b95778544b4034224f3e35b'
         ports:
         - containerPort: 8080
         livenessProbe:
