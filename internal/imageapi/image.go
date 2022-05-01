@@ -53,6 +53,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	w.Header().Set("Content-Type", getContentType(p.Extension))
 	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
 	w.Header().Set("Picsum-ID", imageID)
+	w.Header().Set("Timing-Allow-Origin", "*") // Allow all origins to see timing resources
 
 	// Return the image
 	w.Write(processedImage)
