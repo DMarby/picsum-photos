@@ -1,7 +1,9 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: picsum-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
 spec:
   tls:
     - hosts:
@@ -13,14 +15,20 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: picsum-svc
-          servicePort: 8080
+          service:
+            name: picsum-svc
+            port:
+              number: 8080
+        pathType: ImplementationSpecific
   - host: i.picsum.photos
     http:
       paths:
       - backend:
-          serviceName: varnish
-          servicePort: 80
+          service:
+            name: varnish
+            port:
+              number: 80
+        pathType: ImplementationSpecific
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -33,3 +41,4 @@ metadata:
 data:
   use-forwarded-headers: "true"
   hsts: "false"
+  allow-snippet-annotations: "true"
