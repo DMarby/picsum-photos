@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package postgresql_test
@@ -30,7 +31,7 @@ var secondImage = database.Image{
 	Height: 400,
 }
 
-const address = "postgresql://postgres@localhost/postgres"
+const address = "postgresql://postgres:postgres@localhost:5433/postgres"
 
 func TestPostgresql(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())

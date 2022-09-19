@@ -10,6 +10,10 @@ test:
 integration:
 	go test -tags integration ./...
 
+integration_services:
+	docker run --rm -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres & \
+	docker run --rm -p 6380:6379 redis
+
 vet:
 	go vet ./...
 

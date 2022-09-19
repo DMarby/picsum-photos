@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package redis_test
@@ -11,7 +12,7 @@ import (
 )
 
 const (
-	address  = "127.0.0.1:6379"
+	address  = "127.0.0.1:6380"
 	poolSize = 10
 )
 
