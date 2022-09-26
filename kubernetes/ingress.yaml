@@ -25,9 +25,9 @@ spec:
       paths:
       - backend:
           service:
-            name: varnish
+            name: image-service
             port:
-              number: 80
+              number: 8081
         pathType: ImplementationSpecific
 ---
 apiVersion: v1
