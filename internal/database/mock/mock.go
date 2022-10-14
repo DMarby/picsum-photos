@@ -35,18 +35,3 @@ func (p *Provider) ListAll(ctx context.Context) ([]database.Image, error) {
 func (p *Provider) List(ctx context.Context, offset, limit int) ([]database.Image, error) {
 	return nil, fmt.Errorf("list error")
 }
-
-// Wait mock
-func (p *Provider) Wait(ctx context.Context) error {
-	panic("not implemented")
-}
-
-// Migrate mock
-func (p *Provider) Migrate(migrationsURL string) error {
-	panic("not implemented")
-}
-
-// Shutdown mock
-func (p *Provider) Shutdown() {
-	panic("not implemented")
-}

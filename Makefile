@@ -11,7 +11,6 @@ integration:
 	go test -tags integration ./...
 
 integration_services:
-	docker run --rm -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres & \
 	docker run --rm -p 6380:6379 redis
 
 vet:
@@ -27,7 +26,7 @@ publish: package
 	docker push dmarby/picsum-photos:latest
 
 fixtures: generate_fixtures
-	docker run --rm -v $(PWD):/picsum-photos golang:1.14-alpine sh -c 'apk add make && cd /picsum-photos && make docker_fixtures generate_fixtures'
+	docker run --rm -v $(PWD):/picsum-photos golang:1.19-alpine sh -c 'apk add make && cd /picsum-photos && make docker_fixtures generate_fixtures'
 
 generate_fixtures:
 	GENERATE_FIXTURES=1 go test ./... -run '^(TestFixtures)$$'

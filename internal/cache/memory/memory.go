@@ -22,9 +22,9 @@ func New() *Provider {
 // Get returns an object from the cache if it exists
 func (p *Provider) Get(key string) (data []byte, err error) {
 	p.mutex.RLock()
-	defer p.mutex.RUnlock()
-
 	data, exists := p.cache[key]
+	p.mutex.RUnlock()
+
 	if !exists {
 		return nil, cache.ErrNotFound
 	}
@@ -35,9 +35,9 @@ func (p *Provider) Get(key string) (data []byte, err error) {
 // Set adds an object to the cache
 func (p *Provider) Set(key string, data []byte) (err error) {
 	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
 	p.cache[key] = data
+	p.mutex.Unlock()
+
 	return nil
 }
 

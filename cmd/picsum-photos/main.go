@@ -3,17 +3,13 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/DMarby/picsum-photos/internal/api"
 	"github.com/DMarby/picsum-photos/internal/cmd"
 	"github.com/DMarby/picsum-photos/internal/hmac"
 
-	"github.com/DMarby/picsum-photos/internal/database"
 	fileDatabase "github.com/DMarby/picsum-photos/internal/database/file"
-	"github.com/DMarby/picsum-photos/internal/database/postgresql"
 	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/logger"
 
@@ -34,17 +30,8 @@ var (
 	imageServiceURL = flag.String("image-service-url", "https://i.picsum.photos", "image service url")
 	loglevel        = zap.LevelFlag("log-level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
 
-	// Database
-	databaseBackend           = flag.String("database", "file", "which database backend to use (file, postgresql)")
-	databaseWaitTimeout       = flag.Duration("database-wait-timeout", time.Second*30, "time to wait for a database connection to be established before giving up")
-	databaseMigrationsAddress = flag.String("database-migrations-address", "file://migrations", "path to the database migrations")
-
 	// Database - File
 	databaseFilePath = flag.String("database-file-path", "./test/fixtures/file/metadata.json", "path to the database file")
-
-	// Database - Postgresql
-	databasePostgresqlAddress  = flag.String("database-postgresql-address", "postgresql://postgres@127.0.0.1/postgres", "postgresql address")
-	databasePostgresqlMaxConns = flag.Int("database-postgresql-max-conns", 0, "postgresql max connections")
 
 	// HMAC
 	hmacKey = flag.String("hmac-key", "", "hmac key to use for authentication between services")
@@ -69,26 +56,9 @@ func main() {
 	defer shutdown()
 
 	// Initialize the database
-	database, err := setupBackends()
+	database, err := fileDatabase.New(*databaseFilePath)
 	if err != nil {
-		log.Fatalf("error initializing backends: %s", err)
-	}
-	defer database.Shutdown()
-
-	log.Infof("waiting for the database")
-	// Wait for the database for up to 30 seconds
-	waitCtx, cancel := context.WithTimeout(context.Background(), *databaseWaitTimeout)
-	err = database.Wait(waitCtx)
-	if err != nil {
-		log.Fatalf("error waiting for the database: %s", err)
-	}
-
-	cancel()
-
-	log.Infof("migrating the database")
-	err = database.Migrate(*databaseMigrationsAddress)
-	if err != nil {
-		log.Fatalf("error migrating the database: %s", err)
+		log.Fatalf("error initializing database: %s", err)
 	}
 
 	// Initialize and start the health checker
@@ -141,18 +111,4 @@ func main() {
 	if err := server.Shutdown(serverCtx); err != nil {
 		log.Warnf("error shutting down: %s", err)
 	}
-}
-
-func setupBackends() (database database.Provider, err error) {
-	// Database
-	switch *databaseBackend {
-	case "file":
-		database, err = fileDatabase.New(*databaseFilePath)
-	case "postgresql":
-		database, err = postgresql.New(*databasePostgresqlAddress, *databasePostgresqlMaxConns)
-	default:
-		err = fmt.Errorf("invalid database backend")
-	}
-
-	return
 }

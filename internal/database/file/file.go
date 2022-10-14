@@ -3,8 +3,8 @@ package file
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 
@@ -21,7 +21,7 @@ type Provider struct {
 
 // New returns a new Provider instance
 func New(path string) (*Provider, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -97,17 +97,3 @@ func (p *Provider) List(ctx context.Context, offset, limit int) ([]database.Imag
 
 	return p.images[offset:limit], nil
 }
-
-// Wait blocks until a database connection is ready
-// You can use the given context to specify a timeout
-func (p *Provider) Wait(ctx context.Context) error {
-	return nil
-}
-
-// Migrate attempts to migrate the database to the latest migration
-func (p *Provider) Migrate(migrationsURL string) error {
-	return nil
-}
-
-// Shutdown shuts down the database client
-func (p *Provider) Shutdown() {}

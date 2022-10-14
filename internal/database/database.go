@@ -21,10 +21,6 @@ type Provider interface {
 	GetRandomWithSeed(ctx context.Context, seed int64) (i *Image, err error)
 	ListAll(ctx context.Context) ([]Image, error)
 	List(ctx context.Context, offset, limit int) ([]Image, error)
-
-	Wait(ctx context.Context) error
-	Migrate(migrationsURL string) error
-	Shutdown()
 }
 
 // Errors
