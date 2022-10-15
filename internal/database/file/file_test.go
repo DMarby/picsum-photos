@@ -34,7 +34,6 @@ func TestFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer provider.Shutdown()
 
 	t.Run("Get an image by id", func(t *testing.T) {
 		buf, err := provider.Get(ctx, "1")
