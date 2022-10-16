@@ -36,7 +36,7 @@ func New(ctx context.Context, log *logger.Logger, cache *image.Cache) (*Processo
 }
 
 func getWorkerCount() int {
-	workers := runtime.NumCPU()
+	workers := runtime.GOMAXPROCS(0)
 	return workers
 }
 
