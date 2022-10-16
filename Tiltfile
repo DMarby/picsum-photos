@@ -17,7 +17,7 @@ docker_build_with_restart(
     'dmarby/picsum-photos',
     context='.',
     dockerfile='./containers/picsum-photos/Dockerfile.dev',
-    entrypoint='''
+    entrypoint="""
         dlv debug \\
         --accept-multiclient \\
         --continue \\
@@ -25,8 +25,9 @@ docker_build_with_restart(
         --listen=:%s \\
         --api-version=2 \\
         --log \\
+        --build-flags="-gcflags='all=-N -l'" \\
         ./cmd/picsum-photos
-    ''' % ports['picsum-photos'][1],
+    """ % ports['picsum-photos'][1],
     live_update=[
         fall_back_on('./go.mod'),
         fall_back_on([
@@ -217,7 +218,7 @@ docker_build_with_restart(
     'dmarby/image-service',
     context='.',
     dockerfile='./containers/image-service/Dockerfile.dev',
-    entrypoint='''
+    entrypoint="""
         dlv debug \\
         --accept-multiclient \\
         --continue \\
@@ -225,8 +226,9 @@ docker_build_with_restart(
         --listen=:%s \\
         --api-version=2 \\
         --log \\
+        --build-flags="-gcflags='all=-N -l'" \\
         ./cmd/image-service
-    ''' % ports['image-service'][1],
+    """ % ports['image-service'][1],
     live_update=[
         fall_back_on('./go.mod'),
         sync('.', '/app/'),
