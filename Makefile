@@ -1,8 +1,4 @@
-.PHONY: fmt test vet install integration package publish fixtures generate_fixtures docker_fixtures
-all: test vet install
-
-fmt:
-	go fmt ./...
+.PHONY: test integration package publish fixtures generate_fixtures docker_fixtures
 
 test:
 	go test ./...
@@ -13,17 +9,13 @@ integration:
 integration_services:
 	docker run --rm -p 6380:6379 redis
 
-vet:
-	go vet ./...
-
-install:
-	go install ./...
-
 package:
-	docker build . -t dmarby/picsum-photos:latest
+	docker build . -f containers/picsum-photos/Dockerfile -t dmarby/picsum-photos:latest
+	docker build . -f containers/image-service/Dockerfile -t dmarby/image-service:latest
 
 publish: package
 	docker push dmarby/picsum-photos:latest
+	docker push dmarby/image-service:latest
 
 fixtures: generate_fixtures
 	docker run --rm -v $(PWD):/picsum-photos golang:1.19-alpine sh -c 'apk add make && cd /picsum-photos && make docker_fixtures generate_fixtures'

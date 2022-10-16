@@ -10,7 +10,7 @@ gulp.task('clean', () => {
 
 gulp.task('assets', () => {
   return gulp
-          .src(['web/**/*', '!web/**/*.min.css'])
+          .src(['**/*', '!**/*.min.css'])
           .pipe(gulp.dest('dist'))
 })
 
@@ -22,12 +22,12 @@ class TailwindExtractor {
 }
 
 gulp.task('purgecss', function() {
-  var pipe = gulp.src('web/**/*.min.css')
+  var pipe = gulp.src('**/*.min.css')
 
   if (!watch) {
     pipe = pipe.pipe(
       purgecss({
-        content: ['web/*.html'],
+        content: ['*.html'],
         extractors: [
           {
             extractor: TailwindExtractor,
@@ -43,7 +43,7 @@ gulp.task('purgecss', function() {
 
 gulp.task('watch', () => {
   watch = true
-  gulp.watch(['web/**/*'], gulp.parallel('assets', 'purgecss'))
+  gulp.watch(['**/*'], gulp.parallel('assets', 'purgecss'))
 })
 
 gulp.task('default', gulp.series('clean', gulp.parallel('assets', 'purgecss')))

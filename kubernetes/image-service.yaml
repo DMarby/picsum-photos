@@ -47,11 +47,11 @@ spec:
             value: "redis://redis-svc.default.svc:6379"
           - name: IMAGE_STORAGE
             value: "spaces"
-          - name: IMAGE_STORAGE_SPACES_REGION
+          - name: IMAGE_STORAGE_SPACES_ENDPOINT
             valueFrom:
               secretKeyRef:
                 name: picsum-spaces
-                key: region
+                key: endpoint
           - name: IMAGE_STORAGE_SPACES_SPACE
             valueFrom:
               secretKeyRef:

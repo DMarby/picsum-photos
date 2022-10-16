@@ -34,6 +34,7 @@ func TestSpaces(t *testing.T) {
 		region,
 		accessKey,
 		secretKey,
+		false,
 	)
 
 	if err != nil {
@@ -86,7 +87,7 @@ func TestSpaces(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	_, err := spaces.New("", "", "", "")
+	_, err := spaces.New("", "", "", "", false)
 	if err == nil {
 		t.Fatal("no error")
 	}

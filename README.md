@@ -12,6 +12,7 @@ You will also need to [install libvips](https://libvips.github.io/libvips/instal
 To build the frontend, you need to have NodeJS installed.
 Run the following commands to install the dependencies and build it:
 ```
+cd ./web
 npm install
 npm run-script build
 ```

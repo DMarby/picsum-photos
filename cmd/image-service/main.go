@@ -39,10 +39,11 @@ var (
 	storageFilePath = flag.String("storage-file-path", "./test/fixtures/file", "path to the file storage")
 
 	// Storage - Spaces
-	storageSpacesSpace     = flag.String("storage-spaces-space", "", "digitalocean space to use")
-	storageSpacesRegion    = flag.String("storage-spaces-region", "", "spaces region")
-	storageSpacesAccessKey = flag.String("storage-spaces-access-key", "", "spaces access key")
-	storageSpacesSecretKey = flag.String("storage-spaces-secret-key", "", "spaces secret key")
+	storageSpacesSpace          = flag.String("storage-spaces-space", "", "digitalocean space to use")
+	storageSpacesEndpoint       = flag.String("storage-spaces-endpoint", "", "spaces endpoint")
+	storageSpacesForcePathStyle = flag.Bool("storage-spaces-force-path-style", false, "spaces force path style")
+	storageSpacesAccessKey      = flag.String("storage-spaces-access-key", "", "spaces access key")
+	storageSpacesSecretKey      = flag.String("storage-spaces-secret-key", "", "spaces secret key")
 
 	// Cache
 	cacheBackend = flag.String("cache", "memory", "which cache backend to use (memory, redis)")
@@ -145,7 +146,7 @@ func setupBackends() (storage storage.Provider, cache cache.Provider, err error)
 	case "file":
 		storage, err = fileStorage.New(*storageFilePath)
 	case "spaces":
-		storage, err = spaces.New(*storageSpacesSpace, *storageSpacesRegion, *storageSpacesAccessKey, *storageSpacesSecretKey)
+		storage, err = spaces.New(*storageSpacesSpace, *storageSpacesEndpoint, *storageSpacesAccessKey, *storageSpacesSecretKey, *storageSpacesForcePathStyle)
 	default:
 		err = fmt.Errorf("invalid storage backend")
 	}

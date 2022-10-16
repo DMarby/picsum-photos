@@ -3,9 +3,11 @@
 
 picsum-photos
 !cmd/picsum-photos/
+!containers/picsum-photos/
 
 image-service
 !cmd/image-service/
+!containers/image-service/
 
 .vscode/c_cpp_properties.json
 .vscode/settings.json

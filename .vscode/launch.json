@@ -1,50 +1,23 @@
 {
   "version": "0.2.0",
   "configurations": [
-    {
-      "name": "picsum-photos",
-      "type": "go",
-      "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceRoot}/cmd/picsum-photos",
-      "showLog": true,
-      "cwd": "${workspaceRoot}",
-      "env": {
-        "PICSUM_ROOT_URL": "http://localhost:8080",
-        "PICSUM_IMAGE_SERVICE_URL": "http://localhost:8081",
-        "PICSUM_HMAC_KEY": "foo"
-      }
-    },
-    {
-      "name": "image-service",
-      "type": "go",
-      "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceRoot}/cmd/image-service",
-      "showLog": true,
-      "cwd": "${workspaceRoot}",
-      "env": {
-        "IMAGE_HMAC_KEY": "foo"
-      }
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "gulp",
-      "program": "${workspaceFolder}/node_modules/.bin/gulp",
-      "args": [
-        "watch"
-      ]
-    },
-  ],
-  "compounds": [
-    {
-      "name": "All",
-      "configurations": [
-        "picsum-photos",
-        "image-service",
-        "gulp"
-      ]
+      {
+          "name": "Attach to picsum",
+          "type": "go",
+          "request": "attach",
+          "mode": "remote",
+          "port": 2345,
+          "host": "127.0.0.1",
+          "showLog": true
+      },
+      {
+        "name": "Attach to image-service",
+        "type": "go",
+        "request": "attach",
+        "mode": "remote",
+        "port": 2346,
+        "host": "127.0.0.1",
+        "showLog": true
     }
   ]
 }

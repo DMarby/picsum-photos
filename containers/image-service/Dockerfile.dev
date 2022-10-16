@@ -1,0 +1,12 @@
+FROM docker.io/golang:1.19-alpine
+
+RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-dev && \
+    apk add \
+      git \
+      make \
+      gcc \
+      musl-dev && \
+    go install github.com/go-delve/delve/cmd/dlv@v1.9.1
+
+ADD . /app
+WORKDIR /app

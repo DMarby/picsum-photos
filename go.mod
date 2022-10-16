@@ -3,7 +3,7 @@ module github.com/DMarby/picsum-photos
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go v1.44.100
+	github.com/aws/aws-sdk-go v1.44.116
 	github.com/gorilla/mux v1.8.0
 	github.com/jamiealquiza/envy v1.1.0
 	github.com/mediocregopher/radix/v3 v3.8.1

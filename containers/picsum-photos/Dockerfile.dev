@@ -1,0 +1,21 @@
+FROM node:16.14-alpine as nodebuilder
+
+# Add the project
+ADD ./web /web
+WORKDIR /web
+
+# Install dependencies and run the build
+RUN npm ci && npm run-script build
+
+FROM docker.io/golang:1.19-alpine
+
+RUN apk add \
+      git \
+      make \
+      gcc \
+      musl-dev && \
+    go install github.com/go-delve/delve/cmd/dlv@v1.9.1
+
+ADD . /app
+WORKDIR /app
+COPY --from=nodebuilder /web/dist dist

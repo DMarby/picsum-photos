@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path"
 	"reflect"
 	"strings"
@@ -478,6 +478,6 @@ func marshalJson(v interface{}) []byte {
 }
 
 func readFile(path string) []byte {
-	fixture, _ := ioutil.ReadFile(path)
+	fixture, _ := os.ReadFile(path)
 	return fixture
 }
