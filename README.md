@@ -126,7 +126,7 @@ helmfile apply --environment production
 Note that this requires `helm`, `helmfile` and `helm-diff` to be installed.
 
 By default, the ingress requires being behind Cloudflare with Authenticated Origin Pulls enabled.
-To disable this, set `cloudflareEnabled` to `false` in `kubernetes/environments/production.yaml`.
+To disable this, set `cloudflareAuthEnabled` to `false` in `kubernetes/environments/production.yaml`.
 
 Now everything should be running, and you should be able to access your instance of Picsum by going to `https://your-domain-pointing-to-the-loadbalancer`.  
 Note that the loadbalancer/cluster *only* serves https.

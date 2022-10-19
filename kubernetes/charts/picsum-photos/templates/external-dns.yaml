@@ -1,3 +1,4 @@
+{{- if .Values.externalDNSEnabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -59,3 +60,4 @@ spec:
             secretKeyRef:
               name: external-dns
               key: cf_api_token
+{{- end }}

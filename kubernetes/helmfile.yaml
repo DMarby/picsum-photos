@@ -15,6 +15,7 @@ releases:
     namespace: ingress-nginx
     chart: ingress-nginx/ingress-nginx
     version: "4.3.0"
+    installed: {{ eq .Environment.Name "production" | toYaml }}
     values:
       - values/ingress-nginx.yaml
 

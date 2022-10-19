@@ -4,7 +4,7 @@ metadata:
   name: picsum-ingress
   annotations:
     kubernetes.io/ingress.class: nginx
-{{- if .Values.cloudflareEnabled }}
+{{- if .Values.cloudflareAuthEnabled }}
     nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
     nginx.ingress.kubernetes.io/auth-tls-secret: "default/cloudflare-ca"
 {{- end }}
