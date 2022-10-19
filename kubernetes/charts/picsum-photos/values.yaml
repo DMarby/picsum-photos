@@ -1,0 +1,2 @@
+picsumPhotosDockerImage: '{{ .Values.dockerImage }}'
+imageServiceDockerImage: '{{ .Values.dockerImage }}'

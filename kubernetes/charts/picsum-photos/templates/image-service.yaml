@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: image-service
 spec:
-  replicas: 4
+  replicas: {{ .Values.imageServiceReplicas }}
   selector:
     matchLabels:
       app: image-service
@@ -12,9 +12,11 @@ spec:
       labels:
         app: image-service
     spec:
+      imagePullSecrets:
+      - name: picsum-registry
       containers:
       - name: image-service
-        image: 'dmarby/picsum-photos@sha256:e575eef624cbf5e6ac05fdef9d9f000d042bc9461b95778544b4034224f3e35b'
+        image: '{{ .Values.imageServiceDockerImage }}'
         command: ['./image-service']
         ports:
         - containerPort: 8081
@@ -67,6 +69,10 @@ spec:
               secretKeyRef:
                 name: picsum-spaces
                 key: secret_key
+          {{- if .Values.imageServiceStorageSpacesForcePathStyle }}
+          - name: IMAGE_STORAGE_SPACES_FORCE_PATH_STYLE
+            value: "{{ .Values.imageServiceStorageSpacesForcePathStyle }}"
+          {{- end }}
           - name: IMAGE_HMAC_KEY
             valueFrom:
               secretKeyRef:

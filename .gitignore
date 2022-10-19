@@ -1,13 +1,9 @@
 **/debug
 **/debug.test
 
-picsum-photos
-!cmd/picsum-photos/
-!containers/picsum-photos/
+/picsum-photos
 
-image-service
-!cmd/image-service/
-!containers/image-service/
+/image-service
 
 .vscode/c_cpp_properties.json
 .vscode/settings.json
@@ -16,6 +12,7 @@ dist
 node_modules
 
 .terraform
+.terraform.lock.hcl
 terraform.tfvars
 terraform.tf
 

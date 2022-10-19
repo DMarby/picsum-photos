@@ -1,0 +1,4 @@
+---
+apiVersion: v1
+name: fixtures
+version: 1.0.0

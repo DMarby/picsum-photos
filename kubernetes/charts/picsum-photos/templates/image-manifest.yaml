@@ -1,9 +1,10 @@
+{{- if .Values.picsumCreateImageManifest }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: picsum-images
+  name: image-manifest
 data:
-  picsum-images.json: |-
+  image-manifest.json: |-
     [
         {
             "id": "0",
@@ -6957,3 +6958,4 @@ data:
             "url": "https://unsplash.com/photos/R3LcfTvcGWY"
         }
     ]
+{{- end }}

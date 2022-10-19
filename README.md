@@ -71,7 +71,7 @@ First, we need to create another spaces access key for the app to access Spaces.
 Go to API -> Tokens/Keys in the DigitalOcean control panel, and click "Generate New Key". Copy the Key and the secret.
 Then, we'll add it to kubernetes, along with the name of the space, and the region, that we defined earlier in `terraform.tfvars`.
 ```
-kubectl create secret generic picsum-spaces --from-literal=space='SPACE_HERE' --from-literal=region='REGION_HERE' --from-literal=access_key='ACCESS_KEY_HERE' --from-literal=secret_key='SECRET_KEY_HERE'
+kubectl create secret generic picsum-spaces --from-literal=space='SPACE_HERE' --from-literal=access_key='ACCESS_KEY_HERE' --from-literal=secret_key='SECRET_KEY_HERE' --from-literal=endpoint='https://REGION_HERE.digitaloceanspaces.com'
 ```
 
 Then, we need to create a hmac key that the different services will use to authenticate the requests between eachother:
@@ -121,31 +121,19 @@ Note that you will need to manually set up a CNAME for the domain you specified 
 #### Deployment
 Then, go to the `kubernetes` directory and run the following command to create the kubernetes deployment:
 ```
-kubectl apply -f .
+helmfile apply --environment production
 ```
+Note that this requires `helm`, `helmfile` and `helm-diff` to be installed.
 
-Finally, if you want to automatically configure the DNS, you need to annotate the load balancer with the domain to update the A record for, set it to the same one you defined previously in `kubernetes/ingress.yaml` and `kubernetes/picsum.yaml`.
-```
-kubectl annotate service --namespace=ingress-nginx picsum-lb "external-dns.alpha.kubernetes.io/hostname=example.com"
-kubectl annotate service --namespace=ingress-nginx picsum-lb "external-dns.alpha.kubernetes.io/cloudflare-proxied=true"
-```
+By default, the ingress requires being behind Cloudflare with Authenticated Origin Pulls enabled.
+To disable this, set `cloudflareEnabled` to `false` in `kubernetes/environments/production.yaml`.
 
 Now everything should be running, and you should be able to access your instance of Picsum by going to `https://your-domain-pointing-to-the-loadbalancer`.  
 Note that the loadbalancer/cluster *only* serves https.
 
-If you want to enable Authenticated Origin Pulls in Cloudflare, download their CA and add it as a secret:
-```
-kubectl create secret generic cloudflare-ca --from-file=ca.crt=origin-pull-ca.pem
-```
-
-Then, enable client cert authentication on the ingress:
-```
-kubectl annotate ingress picsum-ingress "nginx.ingress.kubernetes.io/auth-tls-verify-client=on"
-kubectl annotate ingress picsum-ingress "nginx.ingress.kubernetes.io/auth-tls-secret=default/cloudflare-ca"
-```
 
 ### 3. Adding pictures
-To add pictures for the service to use, they need to be added to both spaces, as well as to the `picsum-images.yaml` kubernetes manifest.
+To add pictures for the service to use, they need to be added to both spaces, as well as to the `image-manifest.yaml` kubernetes manifest.
 
 #### Spaces
 In the DigitalOcean control panel, go to Spaces -> picsum-photos and upload your pictures.  

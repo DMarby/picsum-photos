@@ -1,3 +1,12 @@
+FROM node:16.14-alpine as nodebuilder
+
+# Add the project
+ADD ./web /web
+WORKDIR /web
+
+# Install dependencies and run the build
+RUN npm ci && npm run-script build
+
 FROM docker.io/golang:1.19-alpine
 
 RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-dev && \
@@ -10,3 +19,4 @@ RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/test
 
 ADD . /app
 WORKDIR /app
+COPY --from=nodebuilder /web/dist dist

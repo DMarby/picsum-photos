@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: picsum
 spec:
-  replicas: 3
+  replicas: {{ .Values.picsumReplicas }}
   selector:
     matchLabels:
       app: picsum
@@ -12,9 +12,11 @@ spec:
       labels:
         app: picsum
     spec:
+      imagePullSecrets:
+      - name: picsum-registry
       containers:
       - name: picsum
-        image: 'dmarby/picsum-photos@sha256:e575eef624cbf5e6ac05fdef9d9f000d042bc9461b95778544b4034224f3e35b'
+        image: '{{ .Values.picsumPhotosDockerImage }}'
         ports:
         - containerPort: 8080
         livenessProbe:
@@ -38,20 +40,28 @@ spec:
           - name: PICSUM_CACHE_REDIS_ADDRESS
             value: "redis://redis-svc.default.svc:6379"
           - name: PICSUM_DATABASE_FILE_PATH
-            value: /etc/picsum-images/picsum-images.json
+            value: /etc/image-manifest/image-manifest.json
           - name: PICSUM_HMAC_KEY
             valueFrom:
               secretKeyRef:
                 name: picsum-hmac
                 key: hmac_key
+{{- if .Values.picsumRootURL }}
+          - name: PICSUM_ROOT_URL
+            value: "{{ .Values.picsumRootURL }}"
+{{- end }}
+{{- if .Values.picsumImageServiceURL }}
+          - name: PICSUM_IMAGE_SERVICE_URL
+            value: "{{ .Values.picsumImageServiceURL }}"
+{{- end }}
         volumeMounts:
-          - name: picsum-images
-            mountPath: "/etc/picsum-images"
+          - name: image-manifest
+            mountPath: "/etc/image-manifest"
             readOnly: true
       volumes:
-      - name: picsum-images
+      - name: image-manifest
         configMap:
-          name: picsum-images
+          name: image-manifest
 
 ---
 apiVersion: v1

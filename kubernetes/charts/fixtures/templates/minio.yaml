@@ -1,0 +1,99 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  labels:
+    component: minio
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: minio
+  template:
+    metadata:
+      labels:
+        component: minio
+    spec:
+      volumes:
+      - name: storage
+        emptyDir: {}
+      - name: config
+        emptyDir: {}
+      containers:
+      - name: minio
+        image: minio/minio:latest
+        imagePullPolicy: IfNotPresent
+        args:
+        - server
+        - /storage
+        - --config-dir=/config
+        env:
+        - name: MINIO_CONSOLE_ADDRESS
+          value: ":9001"
+        - name: MINIO_ROOT_USER
+          value: "username"
+        - name: MINIO_ROOT_PASSWORD
+          value: "password"
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - name: storage
+          mountPath: "/storage"
+        - name: config
+          mountPath: "/config"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  labels:
+    component: minio
+spec:
+  clusterIP: None
+  selector:
+    component: minio
+  ports:
+  - port: 9000
+    name: minio
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-files
+binaryData:
+  1.jpg: |-
+  {{ .Files.Get "1.jpg" | b64enc | indent 4 }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-setup
+  labels:
+    component: minio
+spec:
+  template:
+    metadata:
+      name: minio-setup
+    spec:
+      restartPolicy: OnFailure
+      volumes:
+      - name: minio-files
+        configMap:
+          name: minio-files
+      containers:
+      - name: mc
+        image: minio/mc:latest
+        imagePullPolicy: IfNotPresent
+        entrypoint: ["/bin/sh","-c"]
+        volumeMounts:
+          - name: minio-files
+            mountPath: "/etc/minio-files"
+            readOnly: true
+        command:
+        - /bin/sh
+        - -c
+        - "sleep 10 && mc alias set minio http://minio:9000 username password && mc mb -p minio/picsum-photos && mc cp /etc/minio-files/1.jpg minio/picsum-photos/1.jpg"
