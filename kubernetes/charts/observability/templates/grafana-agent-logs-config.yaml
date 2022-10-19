@@ -45,6 +45,9 @@ data:
           pipeline_stages:
             - docker: {}
           relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_observability_scrape]
+              action: keep
+              regex: true
             - source_labels:
                 - __meta_kubernetes_pod_node_name
               target_label: __host__
