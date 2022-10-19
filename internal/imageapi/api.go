@@ -6,6 +6,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/hmac"
+	"tailscale.com/tsweb"
 
 	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/image"
@@ -38,6 +39,7 @@ func (a *API) Router() http.Handler {
 
 	// Healthcheck
 	router.Handle("/health", handler.Health(a.HealthChecker)).Methods("GET")
+	router.HandleFunc("/metrics", tsweb.VarzHandler)
 
 	// Image by ID routes
 	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:\\..*}", handler.Handler(a.imageHandler)).Methods("GET")

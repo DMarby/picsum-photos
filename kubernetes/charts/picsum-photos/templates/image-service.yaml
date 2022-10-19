@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: image-service
+      annotations:
+        observability/scrape: 'true'
+        observability/port: '8081'
+        observability/path: '/metrics'
     spec:
       imagePullSecrets:
       - name: picsum-registry

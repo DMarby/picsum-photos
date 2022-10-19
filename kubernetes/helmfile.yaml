@@ -19,10 +19,12 @@ releases:
     values:
       - values/ingress-nginx.yaml
 
+  - name: observability
+    namespace: observability
+    chart: ./charts/observability
+
   - name: picsum-photos
     chart: ./charts/picsum-photos
-    needs:
-     - ingress-nginx/ingress-nginx
     values:
     - values/values.yaml.gotmpl
 
