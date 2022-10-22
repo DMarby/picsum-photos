@@ -22,6 +22,7 @@ releases:
   - name: observability
     namespace: observability
     chart: ./charts/observability
+    installed: {{ eq .Environment.Name "production" | toYaml }}
 
   - name: picsum-photos
     chart: ./charts/picsum-photos
