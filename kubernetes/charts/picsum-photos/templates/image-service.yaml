@@ -77,6 +77,10 @@ spec:
           - name: IMAGE_STORAGE_SPACES_FORCE_PATH_STYLE
             value: "{{ .Values.imageServiceStorageSpacesForcePathStyle }}"
           {{- end }}
+          {{- if .Values.imageServiceLogLevel }}
+          - name: IMAGE_LOG_LEVEL
+            value: "{{ .Values.imageServiceLogLevel }}"
+          {{- end }}
           - name: IMAGE_HMAC_KEY
             valueFrom:
               secretKeyRef:

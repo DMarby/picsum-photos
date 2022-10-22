@@ -1,7 +1,9 @@
 package logger
 
 import (
+	stdlog "log"
 	"os"
+	"strings"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -45,4 +47,24 @@ func New(loglevel zapcore.Level) *Logger {
 	return &Logger{
 		log.Sugar(),
 	}
+}
+
+type httpErrorLog struct {
+	log *Logger
+}
+
+func (h *httpErrorLog) Write(p []byte) (int, error) {
+	m := string(p)
+
+	if strings.HasPrefix(m, "http: URL query contains semicolon") {
+		h.log.Debug(m)
+	} else {
+		h.log.Error(m)
+	}
+
+	return len(p), nil
+}
+
+func NewHTTPErrorLog(logger *Logger) *stdlog.Logger {
+	return stdlog.New(&httpErrorLog{logger}, "", 0)
 }

@@ -46,14 +46,18 @@ spec:
               secretKeyRef:
                 name: picsum-hmac
                 key: hmac_key
-{{- if .Values.picsumRootURL }}
+          {{- if .Values.picsumRootURL }}
           - name: PICSUM_ROOT_URL
             value: "{{ .Values.picsumRootURL }}"
-{{- end }}
-{{- if .Values.picsumImageServiceURL }}
+          {{- end }}
+          {{- if .Values.picsumImageServiceURL }}
           - name: PICSUM_IMAGE_SERVICE_URL
             value: "{{ .Values.picsumImageServiceURL }}"
-{{- end }}
+          {{- end }}
+          {{- if .Values.picsumLogLevel }}
+          - name: PICSUM_LOG_LEVEL
+            value: "{{ .Values.picsumLogLevel }}"
+          {{- end }}
         volumeMounts:
           - name: image-manifest
             mountPath: "/etc/image-manifest"

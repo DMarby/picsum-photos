@@ -117,6 +117,7 @@ func main() {
 		Handler:      api.Router(),
 		ReadTimeout:  cmd.ReadTimeout,
 		WriteTimeout: cmd.WriteTimeout,
+		ErrorLog:     logger.NewHTTPErrorLog(log),
 	}
 
 	go func() {
