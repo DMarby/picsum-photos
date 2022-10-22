@@ -4,6 +4,9 @@ import (
 	"context"
 	"flag"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/DMarby/picsum-photos/internal/api"
 	"github.com/DMarby/picsum-photos/internal/cmd"
@@ -38,6 +41,8 @@ var (
 )
 
 func main() {
+	ctx := context.Background()
+
 	// Parse environment variables
 	envy.Parse("PICSUM")
 
@@ -52,7 +57,7 @@ func main() {
 	maxprocs.Set(maxprocs.Logger(log.Infof))
 
 	// Set up context for shutting down
-	shutdownCtx, shutdown := context.WithCancel(context.Background())
+	shutdownCtx, shutdown := signal.NotifyContext(ctx, os.Interrupt, os.Kill, syscall.SIGTERM)
 	defer shutdown()
 
 	// Initialize the database
@@ -62,7 +67,7 @@ func main() {
 	}
 
 	// Initialize and start the health checker
-	checkerCtx, checkerCancel := context.WithCancel(context.Background())
+	checkerCtx, checkerCancel := context.WithCancel(ctx)
 	defer checkerCancel()
 
 	checker := &health.Checker{
@@ -103,11 +108,11 @@ func main() {
 	log.Infof("http server listening on %s", *listen)
 
 	// Wait for shutdown or error
-	err = cmd.WaitForInterrupt(shutdownCtx)
-	log.Infof("shutting down: %s", err)
+	<-shutdownCtx.Done()
+	log.Infof("shutting down: %s", shutdownCtx.Err())
 
 	// Shut down http server
-	serverCtx, serverCancel := context.WithTimeout(context.Background(), cmd.WriteTimeout)
+	serverCtx, serverCancel := context.WithTimeout(ctx, cmd.WriteTimeout)
 	defer serverCancel()
 	if err := server.Shutdown(serverCtx); err != nil {
 		log.Warnf("error shutting down: %s", err)

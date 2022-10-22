@@ -5,6 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/DMarby/picsum-photos/internal/cache"
 	"github.com/DMarby/picsum-photos/internal/cache/memory"
@@ -57,6 +60,8 @@ var (
 )
 
 func main() {
+	ctx := context.Background()
+
 	// Parse environment variables
 	envy.Parse("IMAGE")
 
@@ -71,7 +76,7 @@ func main() {
 	maxprocs.Set(maxprocs.Logger(log.Infof))
 
 	// Set up context for shutting down
-	shutdownCtx, shutdown := context.WithCancel(context.Background())
+	shutdownCtx, shutdown := signal.NotifyContext(ctx, os.Interrupt, os.Kill, syscall.SIGTERM)
 	defer shutdown()
 
 	// Initialize the storage, cache
@@ -82,7 +87,7 @@ func main() {
 	defer cache.Shutdown()
 
 	// Initialize the image processor
-	imageProcessorCtx, imageProcessorCancel := context.WithCancel(context.Background())
+	imageProcessorCtx, imageProcessorCancel := context.WithCancel(ctx)
 	defer imageProcessorCancel()
 
 	imageProcessor, err := vips.New(imageProcessorCtx, log, image.NewCache(cache, storage))
@@ -91,7 +96,7 @@ func main() {
 	}
 
 	// Initialize and start the health checker
-	checkerCtx, checkerCancel := context.WithCancel(context.Background())
+	checkerCtx, checkerCancel := context.WithCancel(ctx)
 	defer checkerCancel()
 
 	checker := &health.Checker{
@@ -129,9 +134,9 @@ func main() {
 
 	log.Infof("http server listening on %s", *listen)
 
-	// Wait for shutdown or error
-	err = cmd.WaitForInterrupt(shutdownCtx)
-	log.Infof("shutting down: %s", err)
+	// Wait for shutdown
+	<-shutdownCtx.Done()
+	log.Infof("shutting down: %s", shutdownCtx.Err())
 
 	// Shut down http server
 	serverCtx, serverCancel := context.WithTimeout(context.Background(), cmd.WriteTimeout)
