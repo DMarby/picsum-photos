@@ -13,7 +13,7 @@ spec:
         app: image-service
       annotations:
         observability/scrape: 'true'
-        observability/port: '8081'
+        observability/port: '8083'
         observability/path: '/metrics'
     spec:
       imagePullSecrets:
@@ -34,7 +34,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8081
+            port: 8083
           initialDelaySeconds: 30
           timeoutSeconds: 10
           periodSeconds: 10
@@ -42,7 +42,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /health
-            port: 8081
+            port: 8083
           initialDelaySeconds: 30
           timeoutSeconds: 10
           periodSeconds: 10

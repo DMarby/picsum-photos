@@ -11,6 +11,7 @@ import (
 	"github.com/DMarby/picsum-photos/internal/api"
 	"github.com/DMarby/picsum-photos/internal/cmd"
 	"github.com/DMarby/picsum-photos/internal/hmac"
+	"github.com/DMarby/picsum-photos/internal/metrics"
 
 	fileDatabase "github.com/DMarby/picsum-photos/internal/database/file"
 	"github.com/DMarby/picsum-photos/internal/health"
@@ -29,6 +30,7 @@ const (
 var (
 	// Global
 	listen          = flag.String("listen", ":8080", "listen address")
+	metricsListen   = flag.String("metrics-listen", ":8082", "metrics listen address")
 	rootURL         = flag.String("root-url", "https://picsum.photos", "root url")
 	imageServiceURL = flag.String("image-service-url", "https://i.picsum.photos", "image service url")
 	loglevel        = zap.LevelFlag("log-level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
@@ -80,7 +82,6 @@ func main() {
 	// Start and listen on http
 	api := &api.API{
 		Database:        database,
-		HealthChecker:   checker,
 		Log:             log,
 		RootURL:         *rootURL,
 		ImageServiceURL: *imageServiceURL,
@@ -99,15 +100,17 @@ func main() {
 	}
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
-			log.Infof("shutting down the http server: %s", err)
-			shutdown()
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Infof("error shutting down the http server: %s", err)
 		}
 	}()
 
 	log.Infof("http server listening on %s", *listen)
 
-	// Wait for shutdown or error
+	// Start the metrics http server
+	go metrics.Serve(shutdownCtx, log, checker, *metricsListen)
+
+	// Wait for shutdown
 	<-shutdownCtx.Done()
 	log.Infof("shutting down: %s", shutdownCtx.Err())
 

@@ -6,9 +6,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/hmac"
-	"tailscale.com/tsweb"
 
-	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/image"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/gorilla/mux"
@@ -17,7 +15,6 @@ import (
 // API is a http api
 type API struct {
 	ImageProcessor image.Processor
-	HealthChecker  *health.Checker
 	Log            *logger.Logger
 	HandlerTimeout time.Duration
 	HMAC           *hmac.HMAC
@@ -36,10 +33,6 @@ func (a *API) Router() http.Handler {
 
 	// Redirect trailing slashes
 	router.StrictSlash(true)
-
-	// Healthcheck
-	router.Handle("/health", handler.Health(a.HealthChecker)).Methods("GET")
-	router.HandleFunc("/metrics", tsweb.VarzHandler)
 
 	// Image by ID routes
 	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:\\..*}", handler.Handler(a.imageHandler)).Methods("GET")

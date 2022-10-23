@@ -3,6 +3,9 @@ version_settings(constraint='>=0.30.9')
 load('ext://restart_process', 'docker_build_with_restart')
 load('ext://secret', 'secret_from_dict')
 
+# Watch for any changes in the kubernetes directory
+watch_file('kubernetes')
+
 def helmfile(file, environment):
     return local("helmfile -f %s --environment %s template" % (file, environment))
 
@@ -21,15 +24,15 @@ def dlv_live_reload(service):
             --log \\
             --build-flags="-gcflags='all=-N -l'" \\
             ./cmd/%s
-        """ % (ports[service][1], service),
+        """ % (ports[service][2], service),
         live_update=[
             sync('.', '/app/'),
         ],
     )
 
 ports = {
-    'picsum-photos': (8080, 2345),
-    'image-service': (8081, 2346),
+    'picsum-photos': (8080, 8082, 2345),
+    'image-service': (8081, 8083, 2346),
     'minio': (9000, 9001),
 }
 
@@ -57,7 +60,8 @@ k8s_resource(
     'picsum',
     port_forwards=[
         port_forward(ports['picsum-photos'][0], ports['picsum-photos'][0], name='picsum'),
-        port_forward(ports['picsum-photos'][1], ports['picsum-photos'][1], name='debugger'),
+        port_forward(ports['picsum-photos'][1], ports['picsum-photos'][1], name='metrics'),
+        port_forward(ports['picsum-photos'][2], ports['picsum-photos'][2], name='debugger'),
     ],
     labels=['picsum-photos'],
 )
@@ -101,7 +105,8 @@ k8s_resource(
     'image-service',
     port_forwards=[
         port_forward(ports['image-service'][0], ports['image-service'][0], name='image-service'),
-        port_forward(ports['image-service'][1], ports['image-service'][1], name='debugger'),
+        port_forward(ports['image-service'][1], ports['image-service'][1], name='metrics'),
+        port_forward(ports['image-service'][2], ports['image-service'][2], name='debugger'),
     ],
     labels=['image-service'],
 )

@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: picsum
+      annotations:
+        observability/scrape: 'true'
+        observability/port: '8082'
+        observability/path: '/metrics'
     spec:
       imagePullSecrets:
       - name: picsum-registry
@@ -22,7 +26,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8080
+            port: 8082
           initialDelaySeconds: 30
           timeoutSeconds: 10
           periodSeconds: 10
@@ -30,7 +34,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /health
-            port: 8080
+            port: 8082
           initialDelaySeconds: 30
           timeoutSeconds: 10
           periodSeconds: 10

@@ -13,7 +13,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/hmac"
 	"github.com/DMarby/picsum-photos/internal/image"
 	api "github.com/DMarby/picsum-photos/internal/imageapi"
@@ -28,12 +27,9 @@ import (
 	mockStorage "github.com/DMarby/picsum-photos/internal/storage/mock"
 
 	memoryCache "github.com/DMarby/picsum-photos/internal/cache/memory"
-	mockCache "github.com/DMarby/picsum-photos/internal/cache/mock"
 
 	"testing"
 )
-
-const rootURL = "https://example.com"
 
 func TestAPI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -44,17 +40,9 @@ func TestAPI(t *testing.T) {
 
 	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, image.NewCache(memoryCache.New(), &mockStorage.Provider{}))
 
-	mockChecker := &health.Checker{
-		Ctx:     ctx,
-		Storage: &mockStorage.Provider{},
-		Cache:   &mockCache.Provider{},
-		Log:     log,
-	}
-	mockChecker.Run()
-
 	router := (&api.API{imageProcessor, checker, log, time.Minute, hmac}).Router()
-	mockStorageRouter := (&api.API{mockStorageImageProcessor, mockChecker, log, time.Minute, hmac}).Router()
-	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, checker, log, time.Minute, hmac}).Router()
+	mockStorageRouter := (&api.API{mockStorageImageProcessor, log, time.Minute, hmac}).Router()
+	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, log, time.Minute, hmac}).Router()
 
 	tests := []struct {
 		Name             string
@@ -65,35 +53,6 @@ func TestAPI(t *testing.T) {
 		ExpectedHeaders  map[string]string
 		HMAC             bool
 	}{
-		{
-			Name:           "/health returns healthy health status",
-			URL:            "/health",
-			Router:         router,
-			ExpectedStatus: http.StatusOK,
-			ExpectedResponse: marshalJson(health.Status{
-				Healthy: true,
-				Cache:   "healthy",
-				Storage: "healthy",
-			}),
-			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
-			},
-		},
-		{
-			Name:           "/health returns unhealthy health status",
-			URL:            "/health",
-			Router:         mockStorageRouter,
-			ExpectedStatus: http.StatusInternalServerError,
-			ExpectedResponse: marshalJson(health.Status{
-				Healthy: false,
-				Cache:   "unhealthy",
-				Storage: "unhealthy",
-			}),
-			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
-			},
-		},
-
 		// Errors
 		{"invalid parameters", "/id/nonexistant/200/300.jpg", router, http.StatusBadRequest, []byte("Invalid parameters\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, false},
 		// Storage errors
@@ -266,7 +225,7 @@ func TestFixtures(t *testing.T) {
 	createFixture(router, hmac, "/id/1/300/400.webp", "max_allowed", "webp")
 }
 
-func setup(t *testing.T, ctx context.Context) (*logger.Logger, image.Processor, *health.Checker, *hmac.HMAC) {
+func setup(t *testing.T, ctx context.Context) (*logger.Logger, image.Processor, *hmac.HMAC) {
 	t.Helper()
 
 	log := logger.New(zap.FatalLevel)
@@ -276,19 +235,11 @@ func setup(t *testing.T, ctx context.Context) (*logger.Logger, image.Processor, 
 	imageCache := image.NewCache(cache, storage)
 	imageProcessor, _ := vipsProcessor.New(ctx, log, imageCache)
 
-	checker := &health.Checker{
-		Ctx:     ctx,
-		Storage: storage,
-		Cache:   cache,
-		Log:     log,
-	}
-	checker.Run()
-
 	hmac := &hmac.HMAC{
 		Key: []byte("test"),
 	}
 
-	return log, imageProcessor, checker, hmac
+	return log, imageProcessor, hmac
 }
 
 func createFixture(router http.Handler, hmac *hmac.HMAC, URL string, fixtureName string, extension string) {

@@ -14,7 +14,6 @@ import (
 
 	"github.com/DMarby/picsum-photos/internal/api"
 	"github.com/DMarby/picsum-photos/internal/database"
-	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/hmac"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"go.uber.org/zap"
@@ -38,29 +37,15 @@ func TestAPI(t *testing.T) {
 	db, _ := fileDatabase.New("../../test/fixtures/file/metadata.json")
 	dbMultiple, _ := fileDatabase.New("../../test/fixtures/file/metadata_multiple.json")
 
-	checker := &health.Checker{
-		Ctx:      ctx,
-		Database: db,
-		Log:      log,
-	}
-	checker.Run()
-
-	mockChecker := &health.Checker{
-		Ctx:      ctx,
-		Database: &mockDatabase.Provider{},
-		Log:      log,
-	}
-	mockChecker.Run()
-
 	staticPath := "../../web"
 
 	hmac := &hmac.HMAC{
 		Key: []byte("test"),
 	}
 
-	router := (&api.API{db, checker, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
-	paginationRouter := (&api.API{dbMultiple, checker, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
-	mockDatabaseRouter := (&api.API{&mockDatabase.Provider{}, mockChecker, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	router := (&api.API{db, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	paginationRouter := (&api.API{dbMultiple, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	mockDatabaseRouter := (&api.API{&mockDatabase.Provider{}, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
 
 	tests := []struct {
 		Name             string
@@ -218,32 +203,6 @@ func TestAPI(t *testing.T) {
 			ExpectedHeaders: map[string]string{
 				"Content-Type":  "application/json",
 				"Cache-Control": "no-cache, no-store, must-revalidate",
-			},
-		},
-		{
-			Name:           "/health returns healthy health status",
-			URL:            "/health",
-			Router:         router,
-			ExpectedStatus: http.StatusOK,
-			ExpectedResponse: marshalJson(health.Status{
-				Healthy:  true,
-				Database: "healthy",
-			}),
-			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
-			},
-		},
-		{
-			Name:           "/health returns unhealthy health status",
-			URL:            "/health",
-			Router:         mockDatabaseRouter,
-			ExpectedStatus: http.StatusInternalServerError,
-			ExpectedResponse: marshalJson(health.Status{
-				Healthy:  false,
-				Database: "unhealthy",
-			}),
-			ExpectedHeaders: map[string]string{
-				"Content-Type": "application/json",
 			},
 		},
 		{

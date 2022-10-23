@@ -9,7 +9,6 @@ import (
 	"github.com/DMarby/picsum-photos/internal/hmac"
 
 	"github.com/DMarby/picsum-photos/internal/database"
-	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/gorilla/mux"
 )
@@ -17,7 +16,6 @@ import (
 // API is a http api
 type API struct {
 	Database        database.Provider
-	HealthChecker   *health.Checker
 	Log             *logger.Logger
 	RootURL         string
 	ImageServiceURL string
@@ -39,9 +37,6 @@ func (a *API) Router() http.Handler {
 
 	// Redirect trailing slashes
 	router.StrictSlash(true)
-
-	// Healthcheck
-	router.Handle("/health", handler.Health(a.HealthChecker)).Methods("GET")
 
 	// Image list
 	router.Handle("/v2/list", handler.Handler(a.listHandler)).Methods("GET")
