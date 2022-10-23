@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/DMarby/picsum-photos/internal/logger"
+	"github.com/felixge/httpsnoop"
 )
 
 // Logger is a handler that logs requests using Zap
@@ -13,32 +15,21 @@ func Logger(log *logger.Logger, h http.Handler) http.Handler {
 		ctx := r.Context()
 		id := GetReqID(ctx)
 
-		fields := []interface{}{
+		respMetrics := httpsnoop.CaptureMetricsFn(w, func(ww http.ResponseWriter) {
+			time.Sleep(time.Millisecond * 10)
+			h.ServeHTTP(ww, r)
+		})
+
+		log.Debugw("request completed",
 			"request-id", id,
 			"http-method", r.Method,
 			"remote-addr", r.RemoteAddr,
 			"user-agent", r.UserAgent(),
-			"uri", r.RequestURI,
-		}
-
-		log.Debugw("request started", fields...)
-
-		responseWriter := &loggingResponseWriter{w, -1}
-		start := time.Now()
-		h.ServeHTTP(responseWriter, r)
-
-		log.Debugw("request completed", append(fields, "status-code", responseWriter.statusCode, "elapsed-ms", float64(time.Since(start).Nanoseconds())/1000000.0)...)
+			"uri", r.URL.String(),
+			"status-code", respMetrics.Code,
+			"elapsed", fmt.Sprintf("%.9fs", respMetrics.Duration.Seconds()),
+		)
 	})
-}
-
-type loggingResponseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (l *loggingResponseWriter) WriteHeader(code int) {
-	l.statusCode = code
-	l.ResponseWriter.WriteHeader(code)
 }
 
 // LogFields logs the given keys and values for a request

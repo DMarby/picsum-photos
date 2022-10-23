@@ -7,6 +7,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/hmac"
+	"github.com/rs/cors"
 
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/logger"
@@ -82,8 +83,19 @@ func (a *API) Router() http.Handler {
 	router.HandleFunc("/favicon.ico", serveFile(path.Join(a.StaticPath, "assets/images/favicon/favicon.ico")))
 	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))).ServeHTTP))
 
-	// Set up handlers for adding a request id, handling panics, request logging, setting CORS headers, and handler execution timeout
-	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS(nil, http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")))))
+	// Set up handlers
+	cors := cors.New(cors.Options{
+		AllowedMethods: []string{"GET"},
+		AllowedOrigins: []string{"*"},
+	})
+
+	httpHandler := http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")
+	httpHandler = cors.Handler(httpHandler)
+	httpHandler = handler.Logger(a.Log, httpHandler)
+	httpHandler = handler.Recovery(a.Log, httpHandler)
+	httpHandler = handler.AddRequestID(httpHandler)
+
+	return httpHandler
 }
 
 // Handle not found errors

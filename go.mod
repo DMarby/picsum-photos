@@ -4,9 +4,11 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.116
+	github.com/felixge/httpsnoop v1.0.3
 	github.com/gorilla/mux v1.8.0
 	github.com/jamiealquiza/envy v1.1.0
 	github.com/mediocregopher/radix/v3 v3.8.1
+	github.com/rs/cors v1.8.2
 	github.com/twmb/murmur3 v1.1.6
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.23.0

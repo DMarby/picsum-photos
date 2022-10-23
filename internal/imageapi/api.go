@@ -6,6 +6,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/hmac"
+	"github.com/rs/cors"
 
 	"github.com/DMarby/picsum-photos/internal/image"
 	"github.com/DMarby/picsum-photos/internal/logger"
@@ -44,8 +45,20 @@ func (a *API) Router() http.Handler {
 
 	// ?hmac - HMAC signature of the path and URL parameters
 
-	// Set up handlers for adding a request id, handling panics, request logging, setting CORS headers, and handler execution timeout
-	return handler.AddRequestID(handler.Recovery(a.Log, handler.Logger(a.Log, handler.CORS([]string{"Picsum-ID"}, http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")))))
+	// Set up handlers
+	cors := cors.New(cors.Options{
+		AllowedMethods: []string{"GET"},
+		AllowedOrigins: []string{"*"},
+		ExposedHeaders: []string{"Content-Type", "Picsum-ID"},
+	})
+
+	httpHandler := http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")
+	httpHandler = cors.Handler(httpHandler)
+	httpHandler = handler.Logger(a.Log, httpHandler)
+	httpHandler = handler.Recovery(a.Log, httpHandler)
+	httpHandler = handler.AddRequestID(httpHandler)
+
+	return httpHandler
 }
 
 // Handle not found errors
