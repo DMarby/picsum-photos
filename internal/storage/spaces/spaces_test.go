@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 
@@ -41,7 +40,7 @@ func TestSpaces(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fixture, _ := ioutil.ReadFile("../../test/fixtures/fixture.jpg")
+	fixture, _ := os.ReadFile("../../test/fixtures/fixture.jpg")
 
 	// Upload a fixture to the bucket
 	spacesSession := session.New(&aws.Config{

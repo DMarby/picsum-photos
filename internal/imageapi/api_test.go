@@ -2,9 +2,7 @@ package imageapi_test
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -35,12 +33,12 @@ func TestAPI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log, imageProcessor, checker, hmac := setup(t, ctx)
+	log, imageProcessor, hmac := setup(t, ctx)
 	defer log.Sync()
 
 	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, image.NewCache(memoryCache.New(), &mockStorage.Provider{}))
 
-	router := (&api.API{imageProcessor, checker, log, time.Minute, hmac}).Router()
+	router := (&api.API{imageProcessor, log, time.Minute, hmac}).Router()
 	mockStorageRouter := (&api.API{mockStorageImageProcessor, log, time.Minute, hmac}).Router()
 	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, log, time.Minute, hmac}).Router()
 
@@ -187,11 +185,6 @@ func TestAPI(t *testing.T) {
 	}
 }
 
-func marshalJson(v interface{}) []byte {
-	fixture, _ := json.Marshal(v)
-	return append(fixture[:], []byte("\n")...)
-}
-
 func readFixture(fixtureName string, extension string) []byte {
 	return readFile(fixturePath(fixtureName, extension))
 }
@@ -205,10 +198,10 @@ func TestFixtures(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log, imageProcessor, checker, hmac := setup(t, ctx)
+	log, imageProcessor, hmac := setup(t, ctx)
 	defer log.Sync()
 
-	router := (&api.API{imageProcessor, checker, log, time.Minute, hmac}).Router()
+	router := (&api.API{imageProcessor, log, time.Minute, hmac}).Router()
 
 	// JPEG
 	createFixture(router, hmac, "/id/1/200/120.jpg", "width_height", "jpg")
@@ -250,7 +243,7 @@ func createFixture(router http.Handler, hmac *hmac.HMAC, URL string, fixtureName
 
 	req, _ := http.NewRequest("GET", url, nil)
 	router.ServeHTTP(w, req)
-	ioutil.WriteFile(fixturePath(fixtureName, extension), w.Body.Bytes(), 644)
+	os.WriteFile(fixturePath(fixtureName, extension), w.Body.Bytes(), 0644)
 }
 
 func fixturePath(fixtureName string, extension string) string {
@@ -258,6 +251,6 @@ func fixturePath(fixtureName string, extension string) string {
 }
 
 func readFile(path string) []byte {
-	fixture, _ := ioutil.ReadFile(path)
+	fixture, _ := os.ReadFile(path)
 	return fixture
 }

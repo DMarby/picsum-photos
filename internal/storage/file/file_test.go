@@ -2,7 +2,7 @@ package file_test
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"reflect"
 
 	"github.com/DMarby/picsum-photos/internal/storage"
@@ -23,7 +23,7 @@ func TestFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		resultFixture, _ := ioutil.ReadFile("../../../test/fixtures/file/1.jpg")
+		resultFixture, _ := os.ReadFile("../../../test/fixtures/file/1.jpg")
 		if !reflect.DeepEqual(buf, resultFixture) {
 			t.Error("image data doesn't match")
 		}

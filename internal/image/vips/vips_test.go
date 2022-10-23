@@ -3,7 +3,6 @@ package vips_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"runtime"
@@ -47,7 +46,7 @@ func TestVips(t *testing.T) {
 		})
 
 		t.Run("full test jpeg", func(t *testing.T) {
-			resultFixture, _ := ioutil.ReadFile(jpegFixture)
+			resultFixture, _ := os.ReadFile(jpegFixture)
 			testResult := fullTest(processor, buf, image.JPEG)
 			if !reflect.DeepEqual(testResult, resultFixture) {
 				t.Error("image data doesn't match")
@@ -55,7 +54,7 @@ func TestVips(t *testing.T) {
 		})
 
 		t.Run("full test webp", func(t *testing.T) {
-			resultFixture, _ := ioutil.ReadFile(webpFixture)
+			resultFixture, _ := os.ReadFile(webpFixture)
 			testResult := fullTest(processor, buf, image.WebP)
 			if !reflect.DeepEqual(testResult, resultFixture) {
 				t.Error("image data doesn't match")
@@ -96,10 +95,10 @@ func TestFixtures(t *testing.T) {
 	defer processor.Shutdown()
 
 	jpeg := fullTest(processor, buf, image.JPEG)
-	ioutil.WriteFile(jpegFixture, jpeg, 644)
+	os.WriteFile(jpegFixture, jpeg, 0644)
 
 	webp := fullTest(processor, buf, image.WebP)
-	ioutil.WriteFile(webpFixture, webp, 644)
+	os.WriteFile(webpFixture, webp, 0644)
 }
 
 func setup() (context.CancelFunc, *vips.Processor, []byte, error) {
@@ -121,7 +120,7 @@ func setup() (context.CancelFunc, *vips.Processor, []byte, error) {
 		return nil, nil, nil, err
 	}
 
-	buf, err := ioutil.ReadFile("../../../test/fixtures/fixture.jpg")
+	buf, err := os.ReadFile("../../../test/fixtures/fixture.jpg")
 	if err != nil {
 		cancel()
 		return nil, nil, nil, err

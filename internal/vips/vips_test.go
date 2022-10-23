@@ -12,8 +12,6 @@ import (
 	"go.uber.org/zap"
 
 	"testing"
-
-	"io/ioutil"
 )
 
 func TestVips(t *testing.T) {
@@ -178,29 +176,29 @@ func TestFixtures(t *testing.T) {
 	// Resize
 	image, _ := vips.ResizeImage(imageBuffer, 500, 500)
 	resizeJpeg, _ := vips.SaveToJpegBuffer(image)
-	ioutil.WriteFile(fixturePath("resize", "jpg"), resizeJpeg, 644)
+	os.WriteFile(fixturePath("resize", "jpg"), resizeJpeg, 0644)
 
 	image, _ = vips.ResizeImage(imageBuffer, 500, 500)
 	resizeWebP, _ := vips.SaveToWebPBuffer(image)
-	ioutil.WriteFile(fixturePath("resize", "webp"), resizeWebP, 644)
+	os.WriteFile(fixturePath("resize", "webp"), resizeWebP, 0644)
 
 	// Grayscale
 	image, _ = vips.Grayscale(resizeImage(t, imageBuffer))
 	grayscaleJpeg, _ := vips.SaveToJpegBuffer(image)
-	ioutil.WriteFile(fixturePath("grayscale", "jpg"), grayscaleJpeg, 644)
+	os.WriteFile(fixturePath("grayscale", "jpg"), grayscaleJpeg, 0644)
 
 	image, _ = vips.Grayscale(resizeImage(t, imageBuffer))
 	grayscaleWebP, _ := vips.SaveToWebPBuffer(image)
-	ioutil.WriteFile(fixturePath("grayscale", "webp"), grayscaleWebP, 644)
+	os.WriteFile(fixturePath("grayscale", "webp"), grayscaleWebP, 0644)
 
 	// Blur
 	image, _ = vips.Blur(resizeImage(t, imageBuffer), 5)
 	blurJpeg, _ := vips.SaveToJpegBuffer(image)
-	ioutil.WriteFile(fixturePath("blur", "jpg"), blurJpeg, 644)
+	os.WriteFile(fixturePath("blur", "jpg"), blurJpeg, 0644)
 
 	image, _ = vips.Blur(resizeImage(t, imageBuffer), 5)
 	blurWebP, _ := vips.SaveToWebPBuffer(image)
-	ioutil.WriteFile(fixturePath("blur", "webp"), blurWebP, 644)
+	os.WriteFile(fixturePath("blur", "webp"), blurWebP, 0644)
 }
 
 func setup(t *testing.T) []byte {
@@ -212,7 +210,7 @@ func setup(t *testing.T) []byte {
 		t.Fatal(err)
 	}
 
-	imageBuffer, err := ioutil.ReadFile("../../test/fixtures/fixture.jpg")
+	imageBuffer, err := os.ReadFile("../../test/fixtures/fixture.jpg")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -232,7 +230,7 @@ func resizeImage(t *testing.T, imageBuffer []byte) vips.Image {
 }
 
 func readFixture(fixtureName string, extension string) []byte {
-	fixture, _ := ioutil.ReadFile(fixturePath(fixtureName, extension))
+	fixture, _ := os.ReadFile(fixturePath(fixtureName, extension))
 	return fixture
 }
 func fixturePath(fixtureName string, extension string) string {

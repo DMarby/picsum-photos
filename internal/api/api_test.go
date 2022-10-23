@@ -1,7 +1,6 @@
 package api_test
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -28,9 +27,6 @@ const rootURL = "https://example.com"
 const imageServiceURL = "https://i.example.com"
 
 func TestAPI(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	log := logger.New(zap.FatalLevel)
 	defer log.Sync()
 
