@@ -2,6 +2,7 @@ package vips
 
 import (
 	"context"
+	"expvar"
 	"fmt"
 	"runtime"
 
@@ -15,6 +16,9 @@ import (
 type Processor struct {
 	queue *queue.Queue
 }
+
+var queueSize = expvar.NewInt("gauge_image_processor_queue_size")
+var processedImages = expvar.NewInt("image_processor_processed_images")
 
 // New initializes a new processor instance
 func New(ctx context.Context, log *logger.Logger, cache *image.Cache) (*Processor, error) {
@@ -42,6 +46,11 @@ func getWorkerCount() int {
 
 // ProcessImage loads an image from a byte buffer, processes it, and returns a buffer containing the processed image
 func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (processedImage []byte, err error) {
+	queueSize.Add(1)
+	defer queueSize.Add(-1)
+
+	defer processedImages.Add(1)
+
 	result, err := p.queue.Process(ctx, task)
 
 	if err != nil {
