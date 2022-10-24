@@ -52,11 +52,13 @@ func (a *API) Router() http.Handler {
 		ExposedHeaders: []string{"Content-Type", "Picsum-ID"},
 	})
 
-	httpHandler := http.TimeoutHandler(router, a.HandlerTimeout, "Something went wrong. Timed out.")
-	httpHandler = cors.Handler(httpHandler)
-	httpHandler = handler.Logger(a.Log, httpHandler)
+	httpHandler := cors.Handler(router)
 	httpHandler = handler.Recovery(a.Log, httpHandler)
+	httpHandler = http.TimeoutHandler(httpHandler, a.HandlerTimeout, "Something went wrong. Timed out.")
+	httpHandler = handler.Logger(a.Log, httpHandler)
 	httpHandler = handler.AddRequestID(httpHandler)
+
+	httpHandler = handler.Metrics(httpHandler, &handler.MuxRouteMatcher{Router: router})
 
 	return httpHandler
 }
