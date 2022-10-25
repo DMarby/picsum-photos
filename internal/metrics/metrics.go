@@ -7,13 +7,12 @@ import (
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/logger"
-	"tailscale.com/tsweb"
 )
 
 // Serve starts an http server for metrics and healthchecks
 func Serve(ctx context.Context, log *logger.Logger, healthChecker *health.Checker, listenAddress string) {
 	router := http.NewServeMux()
-	router.HandleFunc("/metrics", tsweb.VarzHandler)
+	router.HandleFunc("/metrics", handler.VarzHandler)
 	router.Handle("/health", handler.Health(healthChecker))
 
 	server := &http.Server{
