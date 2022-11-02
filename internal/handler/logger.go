@@ -31,8 +31,6 @@ func Logger(log *logger.Logger, h http.Handler) http.Handler {
 		switch {
 		case respMetrics.Code >= 500:
 			log.Errorw("Request completed", logFields...)
-		case respMetrics.Code >= 400:
-			log.Warnw("Request completed", logFields...)
 		default:
 			log.Debugw("Request completed", logFields...)
 		}
