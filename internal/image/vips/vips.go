@@ -17,8 +17,10 @@ type Processor struct {
 	queue *queue.Queue
 }
 
-var queueSize = expvar.NewInt("gauge_image_processor_queue_size")
-var processedImages = expvar.NewInt("image_processor_processed_images")
+var (
+	queueSize       = expvar.NewInt("gauge_image_processor_queue_size")
+	processedImages = expvar.NewInt("image_processor_processed_images")
+)
 
 // New initializes a new processor instance
 func New(ctx context.Context, log *logger.Logger, cache *image.Cache) (*Processor, error) {

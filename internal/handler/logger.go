@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/felixge/httpsnoop"
@@ -16,11 +15,10 @@ func Logger(log *logger.Logger, h http.Handler) http.Handler {
 		id := GetReqID(ctx)
 
 		respMetrics := httpsnoop.CaptureMetricsFn(w, func(ww http.ResponseWriter) {
-			time.Sleep(time.Millisecond * 10)
 			h.ServeHTTP(ww, r)
 		})
 
-		log.Debugw("request completed",
+		logFields := []interface{}{
 			"request-id", id,
 			"http-method", r.Method,
 			"remote-addr", r.RemoteAddr,
@@ -28,7 +26,16 @@ func Logger(log *logger.Logger, h http.Handler) http.Handler {
 			"uri", r.URL.String(),
 			"status-code", respMetrics.Code,
 			"elapsed", fmt.Sprintf("%.9fs", respMetrics.Duration.Seconds()),
-		)
+		}
+
+		switch {
+		case respMetrics.Code >= 500:
+			log.Errorw("Request completed", logFields...)
+		case respMetrics.Code >= 400:
+			log.Warnw("Request completed", logFields...)
+		default:
+			log.Debugw("Request completed", logFields...)
+		}
 	})
 }
 
