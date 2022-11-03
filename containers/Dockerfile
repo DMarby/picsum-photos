@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine as gobuilder
+FROM docker.io/golang:1.19-alpine as gobuilder
 
 RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-dev && \
     apk add \
@@ -12,7 +12,7 @@ WORKDIR /picsum-photos
 
 RUN go install ./...
 
-FROM node:16.14-alpine as nodebuilder
+FROM docker.io/node:16.14-alpine as nodebuilder
 
 ADD ./web /web
 WORKDIR /web
@@ -20,7 +20,7 @@ WORKDIR /web
 RUN npm ci && npm run-script build
 
 
-FROM alpine:3.16
+FROM docker.io/alpine:3.16
 
 RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips ca-certificates
 

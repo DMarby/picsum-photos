@@ -52,7 +52,7 @@ func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (process
 	queueSize.Add(1)
 	defer queueSize.Add(-1)
 
-	defer processedImages.Add(fmt.Sprintf("%0.f_%0.f", math.Round(float64(task.Width)/500)*500, math.Round(float64(task.Height)/500)*500), 1)
+	defer processedImages.Add(fmt.Sprintf("%0.f", math.Max(math.Round(float64(task.Width)/500)*500, math.Round(float64(task.Height)/500)*500)), 1)
 
 	result, err := p.queue.Process(ctx, task)
 
@@ -75,7 +75,16 @@ func taskProcessor(cache *image.Cache) func(ctx context.Context, data interface{
 			return nil, fmt.Errorf("invalid data")
 		}
 
-		imageBuffer, err := cache.Get(ctx, task.ImageID)
+		// Use a pre-processed source image closer to the desired size then the original
+		imageKey := task.ImageID
+		width := math.Ceil(float64(task.Width)/500) * 500
+		height := math.Ceil(float64(task.Height)/500) * 500
+		size := math.Max(width, height)
+		if size <= 4500 { // Files larger then 4500 doesn't have a suffix
+			imageKey = fmt.Sprintf("%s_%0.f", task.ImageID, size)
+		}
+
+		imageBuffer, err := cache.Get(ctx, imageKey)
 		if err != nil {
 			return nil, fmt.Errorf("error getting image from cache: %s", err)
 		}

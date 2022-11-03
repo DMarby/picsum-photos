@@ -1,4 +1,4 @@
-FROM node:16.14-alpine as nodebuilder
+FROM docker.io/node:16.14-alpine as nodebuilder
 
 # Add the project
 ADD ./web /web

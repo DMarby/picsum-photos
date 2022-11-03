@@ -16,7 +16,7 @@ publish: package
 	docker push registry.digitalocean.com/picsum-registry/picsum-photos:latest
 
 fixtures: generate_fixtures
-	docker run --rm -v $(PWD):/picsum-photos golang:1.19-alpine sh -c 'apk add make && cd /picsum-photos && make docker_fixtures generate_fixtures'
+	docker run --rm -v $(PWD):/picsum-photos docker.io/golang:1.19-alpine sh -c 'apk add make && cd /picsum-photos && make docker_fixtures generate_fixtures'
 
 generate_fixtures:
 	GENERATE_FIXTURES=1 go test ./... -run '^(TestFixtures)$$'

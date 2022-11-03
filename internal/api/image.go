@@ -125,7 +125,7 @@ func (a *API) validateAndRedirect(w http.ResponseWriter, r *http.Request, p *par
 		return handler.InternalServerError()
 	}
 
-	imageRequests.Add(fmt.Sprintf("%0.f_%0.f", math.Round(float64(width)/500)*500, math.Round(float64(height)/500)*500), 1)
+	imageRequests.Add(fmt.Sprintf("%0.f", math.Max(math.Round(float64(width)/500)*500, math.Round(float64(height)/500)*500)), 1)
 
 	http.Redirect(w, r, fmt.Sprintf("%s%s", a.ImageServiceURL, url), http.StatusFound)
 
