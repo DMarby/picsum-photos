@@ -9,6 +9,7 @@ require (
 	github.com/jamiealquiza/envy v1.1.0
 	github.com/mediocregopher/radix/v3 v3.8.1
 	github.com/prometheus/client_golang v1.13.0
+	github.com/prometheus/common v0.37.0
 	github.com/rs/cors v1.8.2
 	github.com/twmb/murmur3 v1.1.6
 	go.uber.org/automaxprocs v1.5.1
@@ -25,7 +26,6 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/spf13/cobra v1.5.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

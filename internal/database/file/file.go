@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"math/rand"
 	"os"
+	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -13,8 +15,9 @@ import (
 
 // Provider implements a file-based image storage
 type Provider struct {
-	path   string
-	images []database.Image
+	images       []database.Image
+	sortedImages []database.Image
+
 	random *rand.Rand
 	mu     sync.Mutex
 }
@@ -32,13 +35,21 @@ func New(path string) (*Provider, error) {
 		return nil, err
 	}
 
+	sortedImages := make([]database.Image, len(images))
+	copy(sortedImages, images)
+	sort.Slice(sortedImages, func(i, j int) bool {
+		ii, _ := strconv.Atoi(sortedImages[i].ID)
+		jj, _ := strconv.Atoi(sortedImages[j].ID)
+		return ii < jj
+	})
+
 	source := rand.NewSource(time.Now().UnixNano())
 	random := rand.New(source)
 
 	return &Provider{
-		path:   path,
-		images: images,
-		random: random,
+		images:       images,
+		sortedImages: sortedImages,
+		random:       random,
 	}, nil
 }
 
@@ -80,12 +91,12 @@ func (p *Provider) GetRandomWithSeed(ctx context.Context, seed int64) (i *databa
 
 // ListAll returns a list of all the images
 func (p *Provider) ListAll(ctx context.Context) ([]database.Image, error) {
-	return p.images, nil
+	return p.sortedImages, nil
 }
 
 // List returns a list of all the images with an offset/limit
 func (p *Provider) List(ctx context.Context, offset, limit int) ([]database.Image, error) {
-	images := len(p.images)
+	images := len(p.sortedImages)
 	if offset > images {
 		offset = images
 	}
@@ -95,5 +106,5 @@ func (p *Provider) List(ctx context.Context, offset, limit int) ([]database.Imag
 		limit = images
 	}
 
-	return p.images[offset:limit], nil
+	return p.sortedImages[offset:limit], nil
 }

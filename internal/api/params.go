@@ -18,12 +18,12 @@ const (
 	maxImageSize  = 5000 // The max allowed image width/height that can be requested
 )
 
-func validateImageParams(p *params.Params, image *database.Image) error {
-	if p.Width > maxImageSize && p.Width != image.Width {
+func validateImageParams(p *params.Params) error {
+	if p.Width > maxImageSize {
 		return params.ErrInvalidSize
 	}
 
-	if p.Height > maxImageSize && p.Height != image.Height {
+	if p.Height > maxImageSize {
 		return params.ErrInvalidSize
 	}
 

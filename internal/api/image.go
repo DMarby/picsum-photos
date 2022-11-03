@@ -19,7 +19,6 @@ var (
 	imageRequests          = expvar.NewMap("counter_labelmap_dimensions_image_requests_dimension")
 	imageRequestsBlur      = expvar.NewInt("image_requests_blur")
 	imageRequestsGrayscale = expvar.NewInt("image_requests_grayscale")
-	imageRequestsExactSize = expvar.NewInt("image_requests_exact_size")
 )
 
 func (a *API) imageRedirectHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
@@ -99,14 +98,11 @@ func (a *API) getImage(r *http.Request, imageID string) (*database.Image, *handl
 }
 
 func (a *API) validateAndRedirect(w http.ResponseWriter, r *http.Request, p *params.Params, image *database.Image) *handler.Error {
-	if err := validateImageParams(p, image); err != nil {
+	if err := validateImageParams(p); err != nil {
 		return handler.BadRequest(err.Error())
 	}
 
 	width, height := getImageDimensions(p, image)
-	if width == image.Width && height == image.Height {
-		imageRequestsExactSize.Add(1)
-	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header()["Content-Type"] = nil
