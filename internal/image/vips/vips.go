@@ -4,6 +4,7 @@ import (
 	"context"
 	"expvar"
 	"fmt"
+	"math"
 	"runtime"
 
 	"github.com/DMarby/picsum-photos/internal/image"
@@ -19,7 +20,7 @@ type Processor struct {
 
 var (
 	queueSize       = expvar.NewInt("gauge_image_processor_queue_size")
-	processedImages = expvar.NewInt("image_processor_processed_images")
+	processedImages = expvar.NewMap("counter_labelmap_dimensions_image_processor_processed_images")
 )
 
 // New initializes a new processor instance
@@ -51,7 +52,7 @@ func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (process
 	queueSize.Add(1)
 	defer queueSize.Add(-1)
 
-	defer processedImages.Add(1)
+	defer processedImages.Add(fmt.Sprintf("%0.f_%0.f", math.Round(float64(task.Width)/500)*500, math.Round(float64(task.Height)/500)*500), 1)
 
 	result, err := p.queue.Process(ctx, task)
 

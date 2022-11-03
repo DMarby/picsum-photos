@@ -1,7 +1,9 @@
 package api
 
 import (
+	"expvar"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -11,6 +13,13 @@ import (
 	"github.com/DMarby/picsum-photos/internal/params"
 	"github.com/gorilla/mux"
 	"github.com/twmb/murmur3"
+)
+
+var (
+	imageRequests          = expvar.NewMap("counter_labelmap_dimensions_image_requests_dimension")
+	imageRequestsBlur      = expvar.NewInt("image_requests_blur")
+	imageRequestsGrayscale = expvar.NewInt("image_requests_grayscale")
+	imageRequestsExactSize = expvar.NewInt("image_requests_exact_size")
 )
 
 func (a *API) imageRedirectHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
@@ -95,6 +104,9 @@ func (a *API) validateAndRedirect(w http.ResponseWriter, r *http.Request, p *par
 	}
 
 	width, height := getImageDimensions(p, image)
+	if width == image.Width && height == image.Height {
+		imageRequestsExactSize.Add(1)
+	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header()["Content-Type"] = nil
@@ -104,16 +116,20 @@ func (a *API) validateAndRedirect(w http.ResponseWriter, r *http.Request, p *par
 
 	if p.Blur {
 		query.Add("blur", strconv.Itoa(p.BlurAmount))
+		imageRequestsBlur.Add(1)
 	}
 
 	if p.Grayscale {
 		query.Add("grayscale", "")
+		imageRequestsGrayscale.Add(1)
 	}
 
 	url, err := params.HMAC(a.HMAC, path, query)
 	if err != nil {
 		return handler.InternalServerError()
 	}
+
+	imageRequests.Add(fmt.Sprintf("%0.f_%0.f", math.Round(float64(width)/500)*500, math.Round(float64(height)/500)*500), 1)
 
 	http.Redirect(w, r, fmt.Sprintf("%s%s", a.ImageServiceURL, url), http.StatusFound)
 
