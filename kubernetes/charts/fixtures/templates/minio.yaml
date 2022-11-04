@@ -65,8 +65,8 @@ kind: ConfigMap
 metadata:
   name: minio-files
 binaryData:
-  1.jpg: |-
-  {{ .Files.Get "1_500.jpg" | b64enc | indent 4 }}
+  1_1000.jpg: |-
+  {{ .Files.Get "1_1000.jpg" | b64enc | indent 4 }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -96,4 +96,4 @@ spec:
         command:
         - /bin/sh
         - -c
-        - "sleep 10 && mc alias set minio http://minio:9000 username password && mc mb -p minio/picsum-photos && mc cp /etc/minio-files/1_500.jpg minio/picsum-photos/1_500.jpg"
+        - "sleep 10 && mc alias set minio http://minio:9000 username password && mc mb -p minio/picsum-photos && mc cp /etc/minio-files/1_1000.jpg minio/picsum-photos/1_1000.jpg"
