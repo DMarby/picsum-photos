@@ -6,5 +6,5 @@ imageServiceReplicas: 4
 cloudflareAuthEnabled: true
 externalDNSEnabled: true
 
-picsumPhotosDockerImage: 'registry.digitalocean.com/picsum-registry/picsum-photos@sha256:56c69c6b20a3df156a58c46eb7b661d4e604284c2c165453bc56019075c0a534'
-imageServiceDockerImage: 'registry.digitalocean.com/picsum-registry/picsum-photos@sha256:56c69c6b20a3df156a58c46eb7b661d4e604284c2c165453bc56019075c0a534'
+picsumPhotosDockerImage: 'registry.digitalocean.com/picsum-registry/picsum-photos@sha256:cf22a00c861a65b7841bb56265a646f31c927ee89ad58abbb09f997364b3c1ef'
+imageServiceDockerImage: 'registry.digitalocean.com/picsum-registry/picsum-photos@sha256:cf22a00c861a65b7841bb56265a646f31c927ee89ad58abbb09f997364b3c1ef'
