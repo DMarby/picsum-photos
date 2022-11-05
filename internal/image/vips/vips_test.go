@@ -114,7 +114,7 @@ func setup() (context.CancelFunc, *vips.Processor, []byte, error) {
 
 	cache := image.NewCache(memory.New(), storage)
 
-	processor, err := vips.New(ctx, log, cache)
+	processor, err := vips.New(ctx, log, 3, cache)
 	if err != nil {
 		cancel()
 		return nil, nil, nil, err

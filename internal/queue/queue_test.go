@@ -10,7 +10,7 @@ import (
 
 func setupQueue(f func(ctx context.Context, data interface{}) (interface{}, error)) (*queue.Queue, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
-	workerQueue := queue.New(ctx, 5, f)
+	workerQueue := queue.New(ctx, 3, f)
 	go workerQueue.Run()
 	return workerQueue, cancel
 }

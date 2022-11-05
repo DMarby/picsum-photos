@@ -36,7 +36,7 @@ func TestAPI(t *testing.T) {
 	log, imageProcessor, hmac := setup(t, ctx)
 	defer log.Sync()
 
-	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, image.NewCache(memoryCache.New(), &mockStorage.Provider{}))
+	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, 3, image.NewCache(memoryCache.New(), &mockStorage.Provider{}))
 
 	router := (&api.API{imageProcessor, log, time.Minute, hmac}).Router()
 	mockStorageRouter := (&api.API{mockStorageImageProcessor, log, time.Minute, hmac}).Router()
@@ -226,7 +226,7 @@ func setup(t *testing.T, ctx context.Context) (*logger.Logger, image.Processor, 
 	storage, _ := fileStorage.New("../../test/fixtures/file")
 	cache := memoryCache.New()
 	imageCache := image.NewCache(cache, storage)
-	imageProcessor, _ := vipsProcessor.New(ctx, log, imageCache)
+	imageProcessor, _ := vipsProcessor.New(ctx, log, 3, imageCache)
 
 	hmac := &hmac.HMAC{
 		Key: []byte("test"),

@@ -5,7 +5,6 @@ import (
 	"expvar"
 	"fmt"
 	"math"
-	"runtime"
 
 	"github.com/DMarby/picsum-photos/internal/image"
 	"github.com/DMarby/picsum-photos/internal/logger"
@@ -24,13 +23,12 @@ var (
 )
 
 // New initializes a new processor instance
-func New(ctx context.Context, log *logger.Logger, cache *image.Cache) (*Processor, error) {
+func New(ctx context.Context, log *logger.Logger, workers int, cache *image.Cache) (*Processor, error) {
 	err := vips.Initialize(log)
 	if err != nil {
 		return nil, err
 	}
 
-	workers := getWorkerCount()
 	workerQueue := queue.New(ctx, workers, taskProcessor(cache))
 	instance := &Processor{
 		queue: workerQueue,
@@ -42,11 +40,6 @@ func New(ctx context.Context, log *logger.Logger, cache *image.Cache) (*Processo
 	return instance, err
 }
 
-func getWorkerCount() int {
-	workers := runtime.GOMAXPROCS(0)
-	return workers
-}
-
 // ProcessImage loads an image from a byte buffer, processes it, and returns a buffer containing the processed image
 func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (processedImage []byte, err error) {
 	queueSize.Add(1)
@@ -55,7 +48,6 @@ func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (process
 	defer processedImages.Add(fmt.Sprintf("%0.f", math.Max(math.Round(float64(task.Width)/500)*500, math.Round(float64(task.Height)/500)*500)), 1)
 
 	result, err := p.queue.Process(ctx, task)
-
 	if err != nil {
 		return nil, err
 	}

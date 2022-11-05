@@ -59,6 +59,9 @@ var (
 
 	// HMAC
 	hmacKey = flag.String("hmac-key", "", "hmac key to use for authentication between services")
+
+	// Image processor
+	workers = flag.Int("workers", 3, "worker queue concurrency")
 )
 
 func main() {
@@ -92,7 +95,7 @@ func main() {
 	imageProcessorCtx, imageProcessorCancel := context.WithCancel(ctx)
 	defer imageProcessorCancel()
 
-	imageProcessor, err := vips.New(imageProcessorCtx, log, image.NewCache(cache, storage))
+	imageProcessor, err := vips.New(imageProcessorCtx, log, *workers, image.NewCache(cache, storage))
 	if err != nil {
 		log.Fatalf("error initializing image processor %s", err.Error())
 	}
