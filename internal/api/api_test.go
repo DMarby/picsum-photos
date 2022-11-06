@@ -223,6 +223,28 @@ func TestAPI(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		},
+		{
+			Name:           "/seed/{seed}/info returns info about an image",
+			URL:            "/seed/1/info",
+			Router:         paginationRouter,
+			ExpectedStatus: http.StatusOK,
+			ExpectedResponse: marshalJson(
+				api.ListImage{
+					Image: database.Image{
+						ID:     "1",
+						Author: "John Doe",
+						URL:    "https://picsum.photos",
+						Width:  300,
+						Height: 400,
+					},
+					DownloadURL: fmt.Sprintf("%s/id/1/300/400", rootURL),
+				},
+			),
+			ExpectedHeaders: map[string]string{
+				"Content-Type":  "application/json",
+				"Cache-Control": "no-cache, no-store, must-revalidate",
+			},
+		},
 
 		// Static page handling
 		{"index", "/", router, http.StatusOK, readFile(path.Join(staticPath, "index.html")), map[string]string{"Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600"}},

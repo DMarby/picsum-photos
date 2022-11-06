@@ -69,14 +69,9 @@ func (a *API) seedImageRedirectHandler(w http.ResponseWriter, r *http.Request) *
 	vars := mux.Vars(r)
 	imageSeed := vars["seed"]
 
-	// Hash the input using murmur3
-	murmurHash := murmur3.StringSum64(imageSeed)
-
-	// Get a random image by the hash
-	image, err := a.Database.GetRandomWithSeed(r.Context(), int64(murmurHash))
-	if err != nil {
-		a.logError(r, "error getting random image from database", err)
-		return handler.InternalServerError()
+	image, handlerErr := a.getImageFromSeed(r, imageSeed)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	// Validate the params and redirect to the image service
@@ -95,6 +90,20 @@ func (a *API) getImage(r *http.Request, imageID string) (*database.Image, *handl
 	}
 
 	return databaseImage, nil
+}
+
+func (a *API) getImageFromSeed(r *http.Request, imageSeed string) (*database.Image, *handler.Error) {
+	// Hash the input using murmur3
+	murmurHash := murmur3.StringSum64(imageSeed)
+
+	// Get a random image by the hash
+	image, err := a.Database.GetRandomWithSeed(r.Context(), int64(murmurHash))
+	if err != nil {
+		a.logError(r, "error getting random image from database", err)
+		return nil, handler.InternalServerError()
+	}
+
+	return image, nil
 }
 
 func (a *API) validateAndRedirect(w http.ResponseWriter, r *http.Request, p *params.Params, image *database.Image) *handler.Error {

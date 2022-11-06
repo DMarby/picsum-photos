@@ -28,14 +28,32 @@ type ListImage struct {
 func (a *API) infoHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
 	vars := mux.Vars(r)
 	imageID := vars["id"]
-	image, err := a.Database.Get(r.Context(), imageID)
-	if err != nil {
-		if err == database.ErrNotFound {
-			return &handler.Error{Message: err.Error(), Code: http.StatusNotFound}
-		}
+	image, handlerErr := a.getImage(r, imageID)
+	if handlerErr != nil {
+		return handlerErr
+	}
 
-		a.logError(r, "error getting image from database", err)
+	listImage := a.getListImage(*image)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+
+	if err := json.NewEncoder(w).Encode(listImage); err != nil {
+		a.logError(r, "error encoding image info", err)
 		return handler.InternalServerError()
+	}
+
+	return nil
+}
+
+// Returns info about an image based on the seed
+func (a *API) infoSeedHandler(w http.ResponseWriter, r *http.Request) *handler.Error {
+	vars := mux.Vars(r)
+	imageSeed := vars["seed"]
+
+	image, handlerErr := a.getImageFromSeed(r, imageSeed)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	listImage := a.getListImage(*image)
