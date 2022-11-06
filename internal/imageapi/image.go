@@ -3,6 +3,7 @@ package imageapi
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/image"
@@ -51,6 +52,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	// Set the headers
 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", buildFilename(imageID, p)))
 	w.Header().Set("Content-Type", getContentType(p.Extension))
+	w.Header().Set("Content-Length", strconv.Itoa(len(processedImage)))
 	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
 	w.Header().Set("Picsum-ID", imageID)
 
