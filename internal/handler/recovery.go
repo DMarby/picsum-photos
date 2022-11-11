@@ -5,6 +5,7 @@ import (
 	"runtime/debug"
 
 	"github.com/DMarby/picsum-photos/internal/logger"
+	"github.com/DMarby/picsum-photos/internal/tracing"
 )
 
 // Recovery is a handler for handling panics
@@ -14,9 +15,10 @@ func Recovery(log *logger.Logger, next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				ctx := r.Context()
-				id := GetReqID(ctx)
+				traceID, spanID := tracing.TraceInfo(ctx)
 				log.Errorw("panic handling request",
-					"request-id", id,
+					"trace-id", traceID,
+					"span-id", spanID,
 					"stacktrace", string(debug.Stack()),
 				)
 			}

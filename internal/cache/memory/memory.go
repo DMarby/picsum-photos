@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"sync"
 
 	"github.com/DMarby/picsum-photos/internal/cache"
@@ -20,7 +21,7 @@ func New() *Provider {
 }
 
 // Get returns an object from the cache if it exists
-func (p *Provider) Get(key string) (data []byte, err error) {
+func (p *Provider) Get(ctx context.Context, key string) (data []byte, err error) {
 	p.mutex.RLock()
 	data, exists := p.cache[key]
 	p.mutex.RUnlock()
@@ -33,7 +34,7 @@ func (p *Provider) Get(key string) (data []byte, err error) {
 }
 
 // Set adds an object to the cache
-func (p *Provider) Set(key string, data []byte) (err error) {
+func (p *Provider) Set(ctx context.Context, key string, data []byte) (err error) {
 	p.mutex.Lock()
 	p.cache[key] = data
 	p.mutex.Unlock()

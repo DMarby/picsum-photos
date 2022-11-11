@@ -39,10 +39,10 @@ func New(loglevel zapcore.Level) *Logger {
 	)
 
 	// Construct our logger
-	log := zap.New(core)
+	log := zap.New(core, zap.AddCaller())
 
 	// Redirect stdlib log package to zap
-	zap.RedirectStdLog(log)
+	_, _ = zap.RedirectStdLogAt(log, zapcore.ErrorLevel)
 
 	return &Logger{
 		log.Sugar(),

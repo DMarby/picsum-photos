@@ -9,12 +9,16 @@ import (
 	"github.com/DMarby/picsum-photos/internal/image"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/DMarby/picsum-photos/internal/queue"
+	"github.com/DMarby/picsum-photos/internal/tracing"
 	"github.com/DMarby/picsum-photos/internal/vips"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Processor is an image processor that uses vips to process images
 type Processor struct {
-	queue *queue.Queue
+	queue  *queue.Queue
+	tracer *tracing.Tracer
 }
 
 var (
@@ -23,15 +27,16 @@ var (
 )
 
 // New initializes a new processor instance
-func New(ctx context.Context, log *logger.Logger, workers int, cache *image.Cache) (*Processor, error) {
+func New(ctx context.Context, log *logger.Logger, tracer *tracing.Tracer, workers int, cache *image.Cache) (*Processor, error) {
 	err := vips.Initialize(log)
 	if err != nil {
 		return nil, err
 	}
 
-	workerQueue := queue.New(ctx, workers, taskProcessor(cache))
+	workerQueue := queue.New(ctx, workers, taskProcessor(cache, tracer))
 	instance := &Processor{
-		queue: workerQueue,
+		queue:  workerQueue,
+		tracer: tracer,
 	}
 
 	go workerQueue.Run()
@@ -42,6 +47,15 @@ func New(ctx context.Context, log *logger.Logger, workers int, cache *image.Cach
 
 // ProcessImage loads an image from a byte buffer, processes it, and returns a buffer containing the processed image
 func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (processedImage []byte, err error) {
+	ctx, span := p.tracer.Start(
+		ctx,
+		"image.ProcessImage",
+		trace.WithAttributes(attribute.Int("width", task.Width)),
+		trace.WithAttributes(attribute.Int("height", task.Height)),
+		trace.WithAttributes(attribute.Int("format", int(task.OutputFormat))),
+	)
+	defer span.End()
+
 	queueSize.Add(1)
 	defer queueSize.Add(-1)
 
@@ -60,7 +74,7 @@ func (p *Processor) ProcessImage(ctx context.Context, task *image.Task) (process
 	return image, nil
 }
 
-func taskProcessor(cache *image.Cache) func(ctx context.Context, data interface{}) (interface{}, error) {
+func taskProcessor(cache *image.Cache, tracer *tracing.Tracer) func(ctx context.Context, data interface{}) (interface{}, error) {
 	return func(ctx context.Context, data interface{}) (interface{}, error) {
 		task, ok := data.(*image.Task)
 		if !ok {
@@ -81,20 +95,26 @@ func taskProcessor(cache *image.Cache) func(ctx context.Context, data interface{
 			return nil, fmt.Errorf("error getting image from cache: %s", err)
 		}
 
+		_, span := tracer.Start(ctx, "image.resizeImage")
 		processedImage, err := resizeImage(imageBuffer, task.Width, task.Height)
+		span.End()
 		if err != nil {
 			return nil, err
 		}
 
 		if task.ApplyBlur {
+			_, span := tracer.Start(ctx, "image.blur")
 			processedImage, err = processedImage.blur(task.BlurAmount)
+			span.End()
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		if task.ApplyGrayscale {
+			_, span := tracer.Start(ctx, "image.grayscale")
 			processedImage, err = processedImage.grayscale()
+			span.End()
 			if err != nil {
 				return nil, err
 			}
@@ -105,9 +125,13 @@ func taskProcessor(cache *image.Cache) func(ctx context.Context, data interface{
 		var buffer []byte
 		switch task.OutputFormat {
 		case image.JPEG:
+			_, span := tracer.Start(ctx, "image.saveToJpegBuffer")
 			buffer, err = processedImage.saveToJpegBuffer()
+			span.End()
 		case image.WebP:
+			_, span := tracer.Start(ctx, "image.saveToWebPBuffer")
 			buffer, err = processedImage.saveToWebPBuffer()
+			span.End()
 		}
 
 		if err != nil {

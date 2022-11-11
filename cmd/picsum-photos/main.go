@@ -12,6 +12,7 @@ import (
 	"github.com/DMarby/picsum-photos/internal/cmd"
 	"github.com/DMarby/picsum-photos/internal/hmac"
 	"github.com/DMarby/picsum-photos/internal/metrics"
+	"github.com/DMarby/picsum-photos/internal/tracing"
 
 	fileDatabase "github.com/DMarby/picsum-photos/internal/database/file"
 	"github.com/DMarby/picsum-photos/internal/health"
@@ -55,6 +56,16 @@ func main() {
 	log := logger.New(*loglevel)
 	defer log.Sync()
 
+	// Initialize tracing
+	tracerCtx, tracerCancel := context.WithCancel(ctx)
+	defer tracerCancel()
+
+	tracer, err := tracing.New(tracerCtx, log, "picsum-photos")
+	if err != nil {
+		log.Fatalf("error initializing tracing: %s", err)
+	}
+	defer tracer.Shutdown(tracerCtx)
+
 	// Set GOMAXPROCS
 	maxprocs.Set(maxprocs.Logger(log.Infof))
 
@@ -83,6 +94,7 @@ func main() {
 	api := &api.API{
 		Database:        database,
 		Log:             log,
+		Tracer:          tracer,
 		RootURL:         *rootURL,
 		ImageServiceURL: *imageServiceURL,
 		StaticPath:      staticPath,

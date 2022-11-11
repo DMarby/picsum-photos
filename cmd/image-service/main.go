@@ -22,6 +22,7 @@ import (
 	"github.com/DMarby/picsum-photos/internal/storage"
 	fileStorage "github.com/DMarby/picsum-photos/internal/storage/file"
 	"github.com/DMarby/picsum-photos/internal/storage/spaces"
+	"github.com/DMarby/picsum-photos/internal/tracing"
 
 	api "github.com/DMarby/picsum-photos/internal/imageapi"
 
@@ -84,28 +85,32 @@ func main() {
 	shutdownCtx, shutdown := signal.NotifyContext(ctx, os.Interrupt, os.Kill, syscall.SIGTERM)
 	defer shutdown()
 
+	// Initialize tracing
+	tracerCtx, tracerCancel := context.WithCancel(ctx)
+	defer tracerCancel()
+
+	tracer, err := tracing.New(tracerCtx, log, "image-service")
+	if err != nil {
+		log.Fatalf("error initializing tracing: %s", err)
+	}
+	defer tracer.Shutdown(tracerCtx)
+
 	// Initialize the storage, cache
-	storage, cache, err := setupBackends()
+	storage, cache, err := setupBackends(shutdownCtx, tracer)
 	if err != nil {
 		log.Fatalf("error initializing backends: %s", err)
 	}
 	defer cache.Shutdown()
 
 	// Initialize the image processor
-	imageProcessorCtx, imageProcessorCancel := context.WithCancel(ctx)
-	defer imageProcessorCancel()
-
-	imageProcessor, err := vips.New(imageProcessorCtx, log, *workers, image.NewCache(cache, storage))
+	imageProcessor, err := vips.New(shutdownCtx, log, tracer, *workers, image.NewCache(tracer, cache, storage))
 	if err != nil {
 		log.Fatalf("error initializing image processor %s", err.Error())
 	}
 
 	// Initialize and start the health checker
-	checkerCtx, checkerCancel := context.WithCancel(ctx)
-	defer checkerCancel()
-
 	checker := &health.Checker{
-		Ctx:     checkerCtx,
+		Ctx:     shutdownCtx,
 		Storage: storage,
 		Cache:   cache,
 		Log:     log,
@@ -116,6 +121,7 @@ func main() {
 	api := &api.API{
 		ImageProcessor: imageProcessor,
 		Log:            log,
+		Tracer:         tracer,
 		HandlerTimeout: cmd.HandlerTimeout,
 		HMAC: &hmac.HMAC{
 			Key: []byte(*hmacKey),
@@ -152,7 +158,7 @@ func main() {
 	}
 }
 
-func setupBackends() (storage storage.Provider, cache cache.Provider, err error) {
+func setupBackends(ctx context.Context, tracer *tracing.Tracer) (storage storage.Provider, cache cache.Provider, err error) {
 	// Storage
 	switch *storageBackend {
 	case "file":
@@ -172,7 +178,7 @@ func setupBackends() (storage storage.Provider, cache cache.Provider, err error)
 	case "memory":
 		cache = memory.New()
 	case "redis":
-		cache, err = redis.New(*cacheRedisAddress, *cacheRedisPoolSize)
+		cache, err = redis.New(ctx, tracer, *cacheRedisAddress, *cacheRedisPoolSize)
 	default:
 		err = fmt.Errorf("invalid cache backend")
 	}

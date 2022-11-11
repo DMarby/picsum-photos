@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,6 +16,8 @@ import (
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/hmac"
 	"github.com/DMarby/picsum-photos/internal/logger"
+	"github.com/DMarby/picsum-photos/internal/tracing"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	fileDatabase "github.com/DMarby/picsum-photos/internal/database/file"
@@ -39,9 +42,19 @@ func TestAPI(t *testing.T) {
 		Key: []byte("test"),
 	}
 
-	router := (&api.API{db, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
-	paginationRouter := (&api.API{dbMultiple, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
-	mockDatabaseRouter := (&api.API{&mockDatabase.Provider{}, log, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	tp := trace.NewNoopTracerProvider()
+	tracer := &tracing.Tracer{
+		ServiceName:    "test",
+		Log:            log,
+		TracerProvider: tp,
+		ShutdownFunc: func(context.Context) error {
+			return nil
+		},
+	}
+
+	router := (&api.API{db, log, tracer, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	paginationRouter := (&api.API{dbMultiple, log, tracer, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	mockDatabaseRouter := (&api.API{&mockDatabase.Provider{}, log, tracer, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
 
 	tests := []struct {
 		Name             string

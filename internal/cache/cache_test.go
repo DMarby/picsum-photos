@@ -7,6 +7,9 @@ import (
 
 	"github.com/DMarby/picsum-photos/internal/cache"
 	"github.com/DMarby/picsum-photos/internal/cache/mock"
+	"github.com/DMarby/picsum-photos/internal/logger"
+	"github.com/DMarby/picsum-photos/internal/tracing/test"
+	"go.uber.org/zap"
 )
 
 var mockLoaderFunc cache.LoaderFunc = func(ctx context.Context, key string) (data []byte, err error) {
@@ -18,7 +21,13 @@ var mockLoaderFunc cache.LoaderFunc = func(ctx context.Context, key string) (dat
 }
 
 func TestAuto(t *testing.T) {
+	log := logger.New(zap.ErrorLevel)
+	defer log.Sync()
+
+	tracer := test.Tracer(log)
+
 	auto := &cache.Auto{
+		Tracer:   tracer,
 		Provider: &mock.Provider{},
 		Loader:   mockLoaderFunc,
 	}

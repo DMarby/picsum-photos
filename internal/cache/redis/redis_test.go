@@ -4,11 +4,15 @@
 package redis_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/DMarby/picsum-photos/internal/cache"
 	"github.com/DMarby/picsum-photos/internal/cache/redis"
-	"github.com/mediocregopher/radix/v3"
+	"github.com/DMarby/picsum-photos/internal/logger"
+	"github.com/DMarby/picsum-photos/internal/tracing/test"
+	"github.com/mediocregopher/radix/v4"
+	"go.uber.org/zap"
 )
 
 const (
@@ -17,23 +21,32 @@ const (
 )
 
 func TestRedis(t *testing.T) {
-	provider, err := redis.New(address, poolSize)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	log := logger.New(zap.ErrorLevel)
+	defer log.Sync()
+
+	tracer := test.Tracer(log)
+
+	provider, err := redis.New(ctx, tracer, address, poolSize)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	pool, err := radix.NewPool("tcp", address, poolSize)
+	cfg := radix.PoolConfig{}
+	client, err := cfg.New(ctx, "tcp", address)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer pool.Close()
+	defer client.Close()
 
 	t.Run("get item", func(t *testing.T) {
 		// Add item to the cache
-		provider.Set("foo", []byte("bar"))
+		provider.Set(ctx, "foo", []byte("bar"))
 
 		// Get item from the cache
-		data, err := provider.Get("foo")
+		data, err := provider.Get(ctx, "foo")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -44,7 +57,7 @@ func TestRedis(t *testing.T) {
 	})
 
 	t.Run("get nonexistant item", func(t *testing.T) {
-		_, err := provider.Get("notfound")
+		_, err := provider.Get(ctx, "notfound")
 		if err == nil {
 			t.Fatal("no error")
 		}
@@ -56,18 +69,21 @@ func TestRedis(t *testing.T) {
 
 	t.Run("get error", func(t *testing.T) {
 		provider.Shutdown()
-		_, err := provider.Get("notfound")
+		_, err := provider.Get(ctx, "notfound")
 		if err == nil {
 			t.Fatal("no error")
 		}
 	})
 
 	// Clean up
-	pool.Do(radix.Cmd(nil, "FLUSHALL"))
+	client.Do(ctx, radix.Cmd(nil, "FLUSHALL"))
 }
 
 func TestNew(t *testing.T) {
-	_, err := redis.New("", 10)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	_, err := redis.New(ctx, nil, "", 10)
 	if err == nil {
 		t.Fatal("no error")
 	}

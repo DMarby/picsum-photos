@@ -6,6 +6,7 @@ import (
 
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/hmac"
+	"github.com/DMarby/picsum-photos/internal/tracing"
 	"github.com/rs/cors"
 
 	"github.com/DMarby/picsum-photos/internal/image"
@@ -17,6 +18,7 @@ import (
 type API struct {
 	ImageProcessor image.Processor
 	Log            *logger.Logger
+	Tracer         *tracing.Tracer
 	HandlerTimeout time.Duration
 	HMAC           *hmac.HMAC
 }
@@ -36,11 +38,10 @@ func (a *API) Router() http.Handler {
 	router.StrictSlash(true)
 
 	// Image by ID routes
-	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:\\..*}", handler.Handler(a.imageHandler)).Methods("GET")
+	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:\\..*}", handler.Handler(a.imageHandler)).Methods("GET").Name("Process image")
 
 	// Query parameters:
 	// ?grayscale - Grayscale the image
-	// ?blur - Blur the image
 	// ?blur={amount} - Blur the image by {amount}
 
 	// ?hmac - HMAC signature of the path and URL parameters
@@ -56,9 +57,10 @@ func (a *API) Router() http.Handler {
 	httpHandler = handler.Recovery(a.Log, httpHandler)
 	httpHandler = http.TimeoutHandler(httpHandler, a.HandlerTimeout, "Something went wrong. Timed out.")
 	httpHandler = handler.Logger(a.Log, httpHandler)
-	httpHandler = handler.AddRequestID(httpHandler)
 
-	httpHandler = handler.Metrics(httpHandler, &handler.MuxRouteMatcher{Router: router})
+	routeMatcher := &handler.MuxRouteMatcher{Router: router}
+	httpHandler = handler.Tracer(a.Tracer, httpHandler, routeMatcher)
+	httpHandler = handler.Metrics(httpHandler, routeMatcher)
 
 	return httpHandler
 }

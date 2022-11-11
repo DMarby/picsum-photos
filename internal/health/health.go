@@ -137,7 +137,7 @@ func (c *Checker) check(ctx context.Context, channel chan Status) {
 	}
 
 	if c.Cache != nil {
-		if _, err := c.Cache.Get("healthcheck"); err != cache.ErrNotFound {
+		if _, err := c.Cache.Get(ctx, "healthcheck"); err != cache.ErrNotFound {
 			status.Healthy = false
 			status.Cache = "unhealthy"
 		} else {

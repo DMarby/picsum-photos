@@ -39,6 +39,8 @@ spec:
           timeoutSeconds: 10
           periodSeconds: 10
         env:
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://grafana-agent.observability.svc:4317"
           - name: PICSUM_CACHE
             value: "redis"
           - name: PICSUM_CACHE_REDIS_ADDRESS

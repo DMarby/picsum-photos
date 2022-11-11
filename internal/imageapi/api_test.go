@@ -16,6 +16,8 @@ import (
 	api "github.com/DMarby/picsum-photos/internal/imageapi"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/DMarby/picsum-photos/internal/params"
+	"github.com/DMarby/picsum-photos/internal/tracing"
+	"github.com/DMarby/picsum-photos/internal/tracing/test"
 	"go.uber.org/zap"
 
 	mockProcessor "github.com/DMarby/picsum-photos/internal/image/mock"
@@ -33,14 +35,13 @@ func TestAPI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log, imageProcessor, hmac := setup(t, ctx)
-	defer log.Sync()
+	log, tracer, imageProcessor, hmac := setup(t, ctx)
 
-	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, 3, image.NewCache(memoryCache.New(), &mockStorage.Provider{}))
+	mockStorageImageProcessor, _ := vipsProcessor.New(ctx, log, tracer, 3, image.NewCache(tracer, memoryCache.New(), &mockStorage.Provider{}))
 
-	router := (&api.API{imageProcessor, log, time.Minute, hmac}).Router()
-	mockStorageRouter := (&api.API{mockStorageImageProcessor, log, time.Minute, hmac}).Router()
-	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, log, time.Minute, hmac}).Router()
+	router := (&api.API{imageProcessor, log, tracer, time.Minute, hmac}).Router()
+	mockStorageRouter := (&api.API{mockStorageImageProcessor, log, tracer, time.Minute, hmac}).Router()
+	mockProcessorRouter := (&api.API{&mockProcessor.Processor{}, log, tracer, time.Minute, hmac}).Router()
 
 	tests := []struct {
 		Name             string
@@ -198,10 +199,9 @@ func TestFixtures(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log, imageProcessor, hmac := setup(t, ctx)
-	defer log.Sync()
+	log, tracer, imageProcessor, hmac := setup(t, ctx)
 
-	router := (&api.API{imageProcessor, log, time.Minute, hmac}).Router()
+	router := (&api.API{imageProcessor, log, tracer, time.Minute, hmac}).Router()
 
 	// JPEG
 	createFixture(router, hmac, "/id/1/200/120.jpg", "width_height", "jpg")
@@ -218,21 +218,26 @@ func TestFixtures(t *testing.T) {
 	createFixture(router, hmac, "/id/1/300/400.webp", "max_allowed", "webp")
 }
 
-func setup(t *testing.T, ctx context.Context) (*logger.Logger, image.Processor, *hmac.HMAC) {
+func setup(t *testing.T, ctx context.Context) (*logger.Logger, *tracing.Tracer, image.Processor, *hmac.HMAC) {
 	t.Helper()
 
 	log := logger.New(zap.FatalLevel)
+	tracer := test.Tracer(log)
 
 	storage, _ := fileStorage.New("../../test/fixtures/file")
 	cache := memoryCache.New()
-	imageCache := image.NewCache(cache, storage)
-	imageProcessor, _ := vipsProcessor.New(ctx, log, 3, imageCache)
+	imageCache := image.NewCache(tracer, cache, storage)
+	imageProcessor, _ := vipsProcessor.New(ctx, log, tracer, 3, imageCache)
 
 	hmac := &hmac.HMAC{
 		Key: []byte("test"),
 	}
 
-	return log, imageProcessor, hmac
+	t.Cleanup(func() {
+		log.Sync()
+	})
+
+	return log, tracer, imageProcessor, hmac
 }
 
 func createFixture(router http.Handler, hmac *hmac.HMAC, URL string, fixtureName string, extension string) {

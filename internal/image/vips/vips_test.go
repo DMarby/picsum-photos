@@ -12,6 +12,7 @@ import (
 	"github.com/DMarby/picsum-photos/internal/image/vips"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/DMarby/picsum-photos/internal/storage/file"
+	"github.com/DMarby/picsum-photos/internal/tracing/test"
 	"go.uber.org/zap"
 
 	"testing"
@@ -105,6 +106,8 @@ func setup() (context.CancelFunc, *vips.Processor, []byte, error) {
 	log := logger.New(zap.ErrorLevel)
 	defer log.Sync()
 
+	tracer := test.Tracer(log)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	storage, err := file.New("../../../test/fixtures/file")
 	if err != nil {
@@ -112,9 +115,9 @@ func setup() (context.CancelFunc, *vips.Processor, []byte, error) {
 		return nil, nil, nil, err
 	}
 
-	cache := image.NewCache(memory.New(), storage)
+	cache := image.NewCache(tracer, memory.New(), storage)
 
-	processor, err := vips.New(ctx, log, 3, cache)
+	processor, err := vips.New(ctx, log, tracer, 3, cache)
 	if err != nil {
 		cancel()
 		return nil, nil, nil, err

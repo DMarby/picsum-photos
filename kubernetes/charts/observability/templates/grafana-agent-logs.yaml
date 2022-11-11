@@ -80,7 +80,7 @@ spec:
             secretKeyRef:
               name: grafana-cloud
               key: logs_username
-        image: grafana/agent:v0.27.1
+        image: grafana/agent:v0.29.0
         imagePullPolicy: IfNotPresent
         name: grafana-agent-logs
         ports:
