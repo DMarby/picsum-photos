@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path"
 	"reflect"
 	"strings"
 	"time"
@@ -36,8 +35,6 @@ func TestAPI(t *testing.T) {
 	db, _ := fileDatabase.New("../../test/fixtures/file/metadata.json")
 	dbMultiple, _ := fileDatabase.New("../../test/fixtures/file/metadata_multiple.json")
 
-	staticPath := "../../web"
-
 	hmac := &hmac.HMAC{
 		Key: []byte("test"),
 	}
@@ -52,9 +49,9 @@ func TestAPI(t *testing.T) {
 		},
 	}
 
-	router := (&api.API{db, log, tracer, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
-	paginationRouter := (&api.API{dbMultiple, log, tracer, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
-	mockDatabaseRouter := (&api.API{&mockDatabase.Provider{}, log, tracer, rootURL, imageServiceURL, staticPath, time.Minute, hmac}).Router()
+	router, _ := (&api.API{db, log, tracer, rootURL, imageServiceURL, time.Minute, hmac}).Router()
+	paginationRouter, _ := (&api.API{dbMultiple, log, tracer, rootURL, imageServiceURL, time.Minute, hmac}).Router()
+	mockDatabaseRouter, _ := (&api.API{&mockDatabase.Provider{}, log, tracer, rootURL, imageServiceURL, time.Minute, hmac}).Router()
 
 	tests := []struct {
 		Name             string
@@ -258,11 +255,6 @@ func TestAPI(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		},
-
-		// Static page handling
-		{"index", "/", router, http.StatusOK, readFile(path.Join(staticPath, "index.html")), map[string]string{"Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600"}},
-		{"images", "/images", router, http.StatusOK, readFile(path.Join(staticPath, "images.html")), map[string]string{"Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600"}},
-		{"favicon", "/assets/images/digitalocean.svg", router, http.StatusOK, readFile(path.Join(staticPath, "assets/images/digitalocean.svg")), map[string]string{"Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=3600"}},
 
 		// Errors
 		{"invalid image id", "/id/nonexistant/200/300", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},

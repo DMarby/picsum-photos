@@ -23,10 +23,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	staticPath = "./dist" // Path where the static files are located
-)
-
 // Comandline flags
 var (
 	// Global
@@ -97,15 +93,19 @@ func main() {
 		Tracer:          tracer,
 		RootURL:         *rootURL,
 		ImageServiceURL: *imageServiceURL,
-		StaticPath:      staticPath,
 		HandlerTimeout:  cmd.HandlerTimeout,
 		HMAC: &hmac.HMAC{
 			Key: []byte(*hmacKey),
 		},
 	}
+	router, err := api.Router()
+	if err != nil {
+		log.Fatalf("error initializing router: %s", err)
+	}
+
 	server := &http.Server{
 		Addr:         *listen,
-		Handler:      api.Router(),
+		Handler:      router,
 		ReadTimeout:  cmd.ReadTimeout,
 		WriteTimeout: cmd.WriteTimeout,
 		ErrorLog:     logger.NewHTTPErrorLog(log),

@@ -12,7 +12,6 @@
 !cmd
 !internal
 !test
-!web
 
 # Exclude debug files
 **/debug

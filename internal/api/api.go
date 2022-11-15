@@ -1,8 +1,9 @@
 package api
 
 import (
+	"embed"
+	"io/fs"
 	"net/http"
-	"path"
 	"time"
 
 	"github.com/DMarby/picsum-photos/internal/handler"
@@ -13,7 +14,12 @@ import (
 	"github.com/DMarby/picsum-photos/internal/database"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/gorilla/mux"
+
+	_ "embed"
 )
+
+//go:embed web/embed
+var static embed.FS
 
 // API is a http api
 type API struct {
@@ -22,7 +28,6 @@ type API struct {
 	Tracer          *tracing.Tracer
 	RootURL         string
 	ImageServiceURL string
-	StaticPath      string
 	HandlerTimeout  time.Duration
 	HMAC            *hmac.HMAC
 }
@@ -33,7 +38,7 @@ func (a *API) logError(r *http.Request, message string, err error) {
 }
 
 // Router returns a http router
-func (a *API) Router() http.Handler {
+func (a *API) Router() (http.Handler, error) {
 	router := mux.NewRouter()
 
 	router.NotFoundHandler = handler.Handler(a.notFoundHandler)
@@ -81,10 +86,16 @@ func (a *API) Router() http.Handler {
 	router.Handle("/g/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.deprecatedImageHandler)).Methods("GET").Name("Deprecated image")
 
 	// Static files
-	router.HandleFunc("/", serveFile(path.Join(a.StaticPath, "index.html"))).Name("Static assets")
-	router.HandleFunc("/images", serveFile(path.Join(a.StaticPath, "images.html"))).Name("Static assets")
-	router.HandleFunc("/favicon.ico", serveFile(path.Join(a.StaticPath, "assets/images/favicon/favicon.ico"))).Name("Static assets")
-	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(http.StripPrefix("/assets/", http.FileServer(http.Dir(path.Join(a.StaticPath, "assets/")))).ServeHTTP)).Name("Static assets")
+	staticFS, err := fs.Sub(static, "web/embed")
+	if err != nil {
+		return nil, err
+	}
+	fileServer := http.FileServer(http.FS(staticFS))
+
+	router.HandleFunc("/", serveFile(fileServer, "/")).Name("Static assets")
+	router.HandleFunc("/images", serveFile(fileServer, "/images.html")).Name("Static assets")
+	router.HandleFunc("/favicon.ico", serveFile(fileServer, "/favicon.ico")).Name("Static assets")
+	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(fileServer.ServeHTTP)).Name("Static assets")
 
 	// Set up handlers
 	cors := cors.New(cors.Options{
@@ -101,7 +112,7 @@ func (a *API) Router() http.Handler {
 	httpHandler = handler.Tracer(a.Tracer, httpHandler, routeMatcher)
 	httpHandler = handler.Metrics(httpHandler, routeMatcher)
 
-	return httpHandler
+	return httpHandler, nil
 }
 
 // Handle not found errors
@@ -123,8 +134,9 @@ func fileHeaders(handler func(w http.ResponseWriter, r *http.Request)) func(w ht
 }
 
 // Serve a static file
-func serveFile(name string) func(w http.ResponseWriter, r *http.Request) {
+func serveFile(h http.Handler, name string) func(w http.ResponseWriter, r *http.Request) {
 	return fileHeaders(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, name)
+		r.URL.Path = name
+		h.ServeHTTP(w, r)
 	})
 }

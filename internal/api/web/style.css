@@ -1,3 +1,13 @@
+@tailwind base;
+
+html {
+  line-height: 1.15;
+  font-family: sans-serif;
+}
+
+@tailwind components;
+@tailwind utilities;
+
 /* Typography */
 body {
   font-family: 'Open Sans', sans-serif;
@@ -71,6 +81,8 @@ header .brand-icon {
   width: 42px;
   margin-right: 10px;
   top: 7px;
+  display: inline;
+  vertical-align: unset;
 }
 
 header h1 {
@@ -167,6 +179,7 @@ footer a {
   margin-bottom: 10px;
   padding-left: 20px;
   padding-right: 20px;
+  display: inline;
 }
 
 .sponsor:hover {

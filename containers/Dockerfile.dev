@@ -1,12 +1,3 @@
-FROM docker.io/node:16.14-alpine as nodebuilder
-
-# Add the project
-ADD ./web /web
-WORKDIR /web
-
-# Install dependencies and run the build
-RUN npm ci && npm run-script build
-
 FROM docker.io/golang:1.19-alpine
 
 RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing vips-dev && \
@@ -17,6 +8,16 @@ RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/test
       musl-dev && \
     go install github.com/go-delve/delve/cmd/dlv@v1.9.1
 
+ADD https://github.com/tailwindlabs/tailwindcss/releases/download/v3.2.4/tailwindcss-linux-x64 /usr/bin/tailwindcss
+RUN chmod +x /usr/bin/tailwindcss
+
+RUN mkdir -p /app
+COPY go.mod /app
+COPY go.sum /app
+WORKDIR /app
+RUN go mod download -x
+
+# TODO: Pre-build the app for faster bootup idk?
 ADD . /app
 WORKDIR /app
-COPY --from=nodebuilder /web/dist dist
+RUN tailwindcss -c ./internal/api/web/tailwind.config.js -i ./internal/api/web/style.css -o ./internal/api/web/embed/assets/css/style.css

@@ -8,9 +8,6 @@
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 
-dist
-node_modules
-
 .terraform
 .terraform.lock.hcl
 terraform.tfvars

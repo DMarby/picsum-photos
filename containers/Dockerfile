@@ -7,18 +7,20 @@ RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/test
       gcc \
       musl-dev
 
-ADD . /picsum-photos
-WORKDIR /picsum-photos
+ADD https://github.com/tailwindlabs/tailwindcss/releases/download/v3.2.4/tailwindcss-linux-x64 /usr/bin/tailwindcss
+RUN chmod +x /usr/bin/tailwindcss
 
+RUN mkdir -p /app
+COPY go.mod /app
+COPY go.sum /app
+WORKDIR /app
+RUN go mod download -x
+
+ADD . /app
+WORKDIR /app
+
+RUN tailwindcss -c ./internal/api/web/tailwind.config.js -i ./internal/api/web/style.css -o ./internal/api/web/embed/assets/css/style.css --minify
 RUN go install ./...
-
-FROM docker.io/node:16.14-alpine as nodebuilder
-
-ADD ./web /web
-WORKDIR /web
-
-RUN npm ci && npm run-script build
-
 
 FROM docker.io/alpine:3.16
 
@@ -27,5 +29,4 @@ RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/te
 WORKDIR /app
 COPY --from=gobuilder /go/bin/picsum-photos .
 COPY --from=gobuilder /go/bin/image-service .
-COPY --from=nodebuilder /web/dist dist
 CMD ["./picsum-photos"]

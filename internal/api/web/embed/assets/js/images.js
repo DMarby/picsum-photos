@@ -76,12 +76,12 @@ function updateButton (id, page_url) {
     var url = new URL(page_url)
     var urlParams = new URLSearchParams(url.search)
     button.setAttribute('data-page', urlParams.get('page'))
-    button.classList.add('hover:text-white', 'hover:bg-grey')
+    button.classList.add('hover:text-white', 'hover:bg-gray-500')
     button.classList.remove('cursor-not-allowed', 'opacity-50')
   } else {
     button.removeAttribute('data-page')
     button.classList.add('cursor-not-allowed', 'opacity-50')
-    button.classList.remove('hover:text-white', 'hover:bg-grey')
+    button.classList.remove('hover:text-white', 'hover:bg-gray-500')
   }
 }
 
