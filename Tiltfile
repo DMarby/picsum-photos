@@ -64,6 +64,7 @@ k8s_resource(
         port_forward(ports['picsum-photos'][2], ports['picsum-photos'][2], name='debugger'),
     ],
     labels=['picsum-photos'],
+    pod_readiness='ignore',
 )
 
 
@@ -109,6 +110,7 @@ k8s_resource(
         port_forward(ports['image-service'][2], ports['image-service'][2], name='debugger'),
     ],
     labels=['image-service'],
+    pod_readiness='ignore',
 )
 
 k8s_resource(

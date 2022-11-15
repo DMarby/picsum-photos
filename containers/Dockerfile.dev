@@ -17,7 +17,6 @@ COPY go.sum /app
 WORKDIR /app
 RUN go mod download -x
 
-# TODO: Pre-build the app for faster bootup idk?
 ADD . /app
 WORKDIR /app
 RUN tailwindcss -c ./internal/api/web/tailwind.config.js -i ./internal/api/web/style.css -o ./internal/api/web/embed/assets/css/style.css
