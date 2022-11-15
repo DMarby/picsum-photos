@@ -49,12 +49,8 @@ spec:
         env:
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: "http://grafana-agent.observability.svc:4317"
-          - name: IMAGE_CACHE
-            value: "redis"
           - name: IMAGE_CACHE_REDIS_ADDRESS
             value: "redis://redis-svc.default.svc:6379"
-          - name: IMAGE_STORAGE
-            value: "spaces"
           - name: IMAGE_STORAGE_SPACES_ENDPOINT
             valueFrom:
               secretKeyRef:
