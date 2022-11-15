@@ -6,26 +6,21 @@ Lorem Picsum is a service providing easy to use, stylish placeholders.
 It's written in Go, and uses Redis and DigitalOcean Spaces.
 
 ## Running locally for development
-First, make sure you have Go installed, and this git repo cloned.  
-You will also need to [install libvips](https://libvips.github.io/libvips/install.html).
+Running locally requires [Tilt](https://tilt.dev), Docker and [k3d](https://k3d.io).
 
-To build the frontend, you need to have NodeJS installed.
-Run the following commands to install the dependencies and build it:
+First, create a local cluster using `k3d`: 
 ```
-cd ./web
-npm install
-npm run-script build
+k3d cluster create --registry-create picsum-registry:0.0.0.0:5001 picsum
 ```
-If you want to automatically rebuild when you make changes while developing, you can use `npm run-script watch`. 
 
-Then, to start the app, with an in-memory cache, and the test fixtures for images, run:
+Then, run tilt:
 ```
-go run . -log-level debug
+tilt up
 ```
-This will start a server accessible on `localhost:8080`, with debug logging enabled.  
-For other options/backends, see `go run . -h`.  
 
-Instructions on how to add pictures are available [below](#3-adding-pictures).
+This will start a local instance accessible on `http://localhost:8080`, with test images.
+
+
 ## Deployment on DigitalOcean
 <p>This project is kindly hosted by:</p>
 <p>
@@ -131,13 +126,34 @@ To disable this, set `cloudflareAuthEnabled` to `false` in `kubernetes/environme
 Now everything should be running, and you should be able to access your instance of Picsum by going to `https://your-domain-pointing-to-the-loadbalancer`.  
 Note that the loadbalancer/cluster *only* serves https.
 
+#### Observability
+For monitoring purposes, we ship metrics/traces/logs to Grafana Cloud.
+In order to be able to do so, a secret needs to be created pointing to your Grafana Cloud instances needs to exist:
+
+```
+kubectl create secret generic --namespace observability grafana-cloud --from-literal=username='USERNAME' --from-literal=password='PASSWORD' --from-literal=logs_username='LOGS_USERNAME' --from-literal=traces_username='TRACES_USERNAME'
+```
+
 
 ### 3. Adding pictures
-To add pictures for the service to use, they need to be added to both spaces, as well as to the `image-manifest.yaml` kubernetes manifest.
+To add pictures for the service to use, they need to be uploaded to the Spaces bucket, and added to the `image-manifest.yaml` kubernetes manifest.
 
-#### Spaces
-In the DigitalOcean control panel, go to Spaces -> picsum-photos and upload your pictures.  
-They should be named `{id}.jpg`, eg `foo.jpg`.
+All images need to exist in the bucket in their raw form (size should be within a 5000 by 5000 px bounding box) as `{id}.jpg`, as well as pre-processed to increments of 500 pixels as `{id}_{size}.jpg`. This helps cut down processing cost and time.
+
+In order to generate all the sizes required from a , the `vipsthumbnail` utility from `libvips` can be used as follows:
+```
+vipsthumbnail *.jpg --size '500x500>' -o $PWD'/processed/%s_500.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '1000x1000>' -o $PWD'/processed/%s_1000.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '1500x1500>' -o $PWD'/processed/%s_1500.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '2000x2000>' -o $PWD'/processed/%s_2000.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '2500x2500>' -o $PWD'/processed/%s_2500.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '3000x3000>' -o $PWD'/processed/%s_3000.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '3500x3500>' -o $PWD'/processed/%s_3500.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '4000x4000>' -o $PWD'/processed/%s_4000.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '4500x4500>' -o $PWD'/processed/%s_4500.jpg[Q=50,strip,optimize_coding]'
+vipsthumbnail *.jpg --size '5000x5000>' -o $PWD'/processed/%s.jpg[Q=50,strip,optimize_coding]'
+```
+ 
 
 ## License
 MIT. See [LICENSE](./LICENSE.md)
