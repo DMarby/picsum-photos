@@ -84,6 +84,7 @@ spec:
               secretKeyRef:
                 name: picsum-hmac
                 key: hmac_key
+      {{- if gt (int .Values.imageServiceReplicas) 1 }}
       affinity: # Only one pod per node
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -94,6 +95,7 @@ spec:
                     values:
                     - image-service
               topologyKey: "kubernetes.io/hostname"
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service
