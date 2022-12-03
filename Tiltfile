@@ -9,11 +9,11 @@ watch_file('kubernetes')
 def helmfile(file, environment):
     return local("helmfile -f %s --environment %s template" % (file, environment))
 
-def dlv_live_reload(service):
+def dlv_live_reload(service, live_update):
     docker_build_with_restart(
-        'picsum-registry/%s' % service,
+        'registry.digitalocean.com/picsum-registry/%s' % service,
         context='.',
-        dockerfile='./containers/Dockerfile.dev',
+        dockerfile='./containers/%s/Dockerfile.dev' % service,
         entrypoint="""
             dlv debug \\
             --accept-multiclient \\
@@ -25,9 +25,7 @@ def dlv_live_reload(service):
             --build-flags="-gcflags='all=-N -l'" \\
             ./cmd/%s
         """ % (ports[service][2], service),
-        live_update=[
-            sync('.', '/app/'),
-        ],
+        live_update=live_update,
     )
 
 ports = {
@@ -40,7 +38,13 @@ k8s_yaml(helmfile('kubernetes/helmfile.yaml', 'local'))
 
 # picsum-photos
 
-dlv_live_reload('picsum-photos')
+dlv_live_reload(
+    service='picsum-photos',
+    live_update=[
+        sync('.', '/app/'),
+        run('tailwindcss -c ./internal/api/web/tailwind.config.js -i ./internal/api/web/style.css -o ./internal/api/web/embed/assets/css/style.css', trigger='./internal/api/web'),
+    ],
+)
 
 k8s_yaml(secret_from_dict('picsum-hmac', inputs = {
     'hmac_key': 'foo',
@@ -101,7 +105,13 @@ k8s_resource(
     labels=['image-service'],
 )
 
-dlv_live_reload('image-service')
+dlv_live_reload(
+    service='image-service',
+    live_update=[
+        sync('.', '/app/'),
+    ],
+)
+
 k8s_resource(
     'image-service',
     port_forwards=[

@@ -20,7 +20,8 @@ spec:
       - name: picsum-registry
       containers:
       - name: image-service
-        image: '{{ .Values.imageServiceDockerImage }}'
+        image: 'registry.digitalocean.com/picsum-registry/image-service@sha256:3c0b34af4823cc51b95ed22094901c08ee6cff7b0353a0eb33ba0c4ab2e669d1'
+        imagePullPolicy: IfNotPresent
         command: ['./image-service']
         ports:
         - containerPort: 8081

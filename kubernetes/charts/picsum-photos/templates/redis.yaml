@@ -19,7 +19,7 @@ spec:
       initContainers:
         - name: disable-thp
           image: redis:7.0-alpine
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: host-sys
               mountPath: /host-sys
@@ -27,7 +27,7 @@ spec:
       containers:
       - name: redis
         image: redis:7.0-alpine
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         resources:
           requests:
             cpu: 0.1

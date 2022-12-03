@@ -4,6 +4,3 @@ picsumCreateImageManifest: true
 imageServiceReplicas: 4
 
 cloudflareAuthEnabled: true
-
-picsumPhotosDockerImage: 'registry.digitalocean.com/picsum-registry/picsum-photos@sha256:a65a47f6d97422242dc1acce0ab63c53f3baf61188320379220b9fbca8f37164'
-imageServiceDockerImage: 'registry.digitalocean.com/picsum-registry/picsum-photos@sha256:a65a47f6d97422242dc1acce0ab63c53f3baf61188320379220b9fbca8f37164'

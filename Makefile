@@ -10,10 +10,12 @@ integration_services:
 	docker run --rm -p 6380:6379 redis
 
 package:
-	docker build . -f containers/Dockerfile -t registry.digitalocean.com/picsum-registry/picsum-photos:latest
+	docker build . -f containers/picsum-photos/Dockerfile -t registry.digitalocean.com/picsum-registry/picsum-photos:latest
+	docker build . -f containers/image-service/Dockerfile -t registry.digitalocean.com/picsum-registry/image-service:latest
 
 publish: package
 	docker push registry.digitalocean.com/picsum-registry/picsum-photos:latest
+	docker push registry.digitalocean.com/picsum-registry/image-service:latest
 
 fixtures: generate_fixtures
 	docker run --rm -v $(PWD):/picsum-photos docker.io/golang:1.19-alpine sh -c 'apk add make && cd /picsum-photos && make docker_fixtures generate_fixtures'
