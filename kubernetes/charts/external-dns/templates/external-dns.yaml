@@ -1,4 +1,3 @@
-{{- if .Values.externalDNSEnabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -30,7 +29,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: external-dns
-  namespace: default
+  namespace: external-dns
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -60,4 +59,3 @@ spec:
             secretKeyRef:
               name: external-dns
               key: cf_api_token
-{{- end }}

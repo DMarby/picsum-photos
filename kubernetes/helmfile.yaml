@@ -24,6 +24,11 @@ releases:
     chart: ./charts/observability
     installed: {{ eq .Environment.Name "production" | toYaml }}
 
+  - name: external-dns
+    namespace: external-dns
+    chart: ./charts/external-dns
+    installed: {{ eq .Environment.Name "production" | toYaml }}
+
   - name: picsum-photos
     chart: ./charts/picsum-photos
     values:

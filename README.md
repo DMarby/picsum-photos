@@ -92,6 +92,19 @@ Edit `kubernetes/picsum.yaml` and add the following to the `env` section:
   value: "https://i.example.com"
 ```
 
+#### Deployment
+Then, go to the `kubernetes` directory and run the following command to create the kubernetes deployment:
+```
+helmfile apply --environment production
+```
+Note that this requires `helm`, `helmfile` and `helm-diff` to be installed.
+
+By default, the ingress requires being behind Cloudflare with Authenticated Origin Pulls enabled.
+To disable this, set `cloudflareAuthEnabled` to `false` in `kubernetes/environments/production.yaml`.
+
+Now everything should be running, and you should be able to access your instance of Picsum by going to `https://your-domain-pointing-to-the-loadbalancer`.  
+Note that the loadbalancer/cluster *only* serves https.
+
 #### DNS
 We use Cloudflare to manage our DNS, and as our CDN.  
 If you want to have the cluster automatically update your domain to point towards your loadbalancer, you need to configure `external-dns`.  
@@ -108,23 +121,10 @@ Zone Resources:
 
 Then, run the command below to add the API token to kubernetes:
 ```
-kubectl create secret generic external-dns --from-literal=cf_api_token='API_TOKEN_HERE'
+kubectl create secret generic external-dns --namespace external-dns --from-literal=cf_api_token='API_TOKEN_HERE'
 ```
 
 Note that you will need to manually set up a CNAME for the domain you specified for the image-service (`i.example.com`) that points towards your main domain (`example.com`).
-
-#### Deployment
-Then, go to the `kubernetes` directory and run the following command to create the kubernetes deployment:
-```
-helmfile apply --environment production
-```
-Note that this requires `helm`, `helmfile` and `helm-diff` to be installed.
-
-By default, the ingress requires being behind Cloudflare with Authenticated Origin Pulls enabled.
-To disable this, set `cloudflareAuthEnabled` to `false` in `kubernetes/environments/production.yaml`.
-
-Now everything should be running, and you should be able to access your instance of Picsum by going to `https://your-domain-pointing-to-the-loadbalancer`.  
-Note that the loadbalancer/cluster *only* serves https.
 
 #### Observability
 For monitoring purposes, we ship metrics/traces/logs to Grafana Cloud.
