@@ -458,7 +458,7 @@ controller:
       service.beta.kubernetes.io/do-loadbalancer-http2-ports: "443"
       service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
       service.beta.kubernetes.io/do-loadbalancer-algorithm: "round_robin"
-      service.beta.kubernetes.io/do-loadbalancer-size-slug: "lb-medium"
+      service.beta.kubernetes.io/do-loadbalancer-size-unit: "1"
 
       external-dns.alpha.kubernetes.io/hostname: "picsum.photos"
       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
