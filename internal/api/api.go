@@ -47,7 +47,7 @@ func (a *API) Router() (http.Handler, error) {
 	router.StrictSlash(true)
 
 	// Image list
-	router.Handle("/v2/list", handler.Handler(a.listHandler)).Methods("GET").Name("List")
+	router.Handle("/v2/list", handler.Handler(a.listHandler)).Methods("GET").Name("api.list")
 
 	// Query parameters:
 	// ?page={page} - What page to display
@@ -57,20 +57,20 @@ func (a *API) Router() (http.Handler, error) {
 	oldRouter := router.PathPrefix("").Subrouter()
 	oldRouter.Use(a.deprecatedParams)
 
-	oldRouter.Handle("/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET").Name("Random image")
-	oldRouter.Handle("/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET").Name("Random image")
+	oldRouter.Handle("/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET").Name("api.randomImageRedirect")
+	oldRouter.Handle("/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.randomImageRedirectHandler)).Methods("GET").Name("api.randomImageRedirect")
 
 	// Image by ID routes
-	router.Handle("/id/{id}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET").Name("Image by ID")
-	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET").Name("Image by ID")
+	router.Handle("/id/{id}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET").Name("api.imageRedirect")
+	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.imageRedirectHandler)).Methods("GET").Name("api.imageRedirect")
 
 	// Image info routes
-	router.Handle("/id/{id}/info", handler.Handler(a.infoHandler)).Methods("GET").Name("Image info by ID")
-	router.Handle("/seed/{id}/info", handler.Handler(a.infoSeedHandler)).Methods("GET").Name("Image info by seed")
+	router.Handle("/id/{id}/info", handler.Handler(a.infoHandler)).Methods("GET").Name("api.info")
+	router.Handle("/seed/{id}/info", handler.Handler(a.infoSeedHandler)).Methods("GET").Name("api.infoSeed")
 
 	// Image by seed routes
-	router.Handle("/seed/{seed}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.seedImageRedirectHandler)).Methods("GET").Name("Image by seed")
-	router.Handle("/seed/{seed}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.seedImageRedirectHandler)).Methods("GET").Name("Image by seed")
+	router.Handle("/seed/{seed}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.seedImageRedirectHandler)).Methods("GET").Name("api.seedImageRedirect")
+	router.Handle("/seed/{seed}/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.seedImageRedirectHandler)).Methods("GET").Name("api.seedImageRedirect")
 
 	// Query parameters:
 	// ?grayscale - Grayscale the image
@@ -81,9 +81,9 @@ func (a *API) Router() (http.Handler, error) {
 	// ?image={id} - Get image by id
 
 	// Deprecated routes
-	router.Handle("/list", handler.Handler(a.deprecatedListHandler)).Methods("GET").Name("Deprecated list")
-	router.Handle("/g/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.deprecatedImageHandler)).Methods("GET").Name("Deprecated image")
-	router.Handle("/g/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.deprecatedImageHandler)).Methods("GET").Name("Deprecated image")
+	router.Handle("/list", handler.Handler(a.deprecatedListHandler)).Methods("GET").Name("api.deprecatedList")
+	router.Handle("/g/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.deprecatedImageHandler)).Methods("GET").Name("api.deprecatedImage")
+	router.Handle("/g/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.deprecatedImageHandler)).Methods("GET").Name("api.deprecatedImage")
 
 	// Static files
 	staticFS, err := fs.Sub(static, "web/embed")
@@ -92,10 +92,10 @@ func (a *API) Router() (http.Handler, error) {
 	}
 	fileServer := http.FileServer(http.FS(staticFS))
 
-	router.HandleFunc("/", serveFile(fileServer, "/")).Name("Static assets")
-	router.HandleFunc("/images", serveFile(fileServer, "/images.html")).Name("Static assets")
-	router.HandleFunc("/favicon.ico", serveFile(fileServer, "/favicon.ico")).Name("Static assets")
-	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(fileServer.ServeHTTP)).Name("Static assets")
+	router.HandleFunc("/", serveFile(fileServer, "/")).Name("api.serveFile")
+	router.HandleFunc("/images", serveFile(fileServer, "/images.html")).Name("api.serveFile")
+	router.HandleFunc("/favicon.ico", serveFile(fileServer, "/favicon.ico")).Name("api.serveFile")
+	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(fileServer.ServeHTTP)).Name("api.serveFile")
 
 	// Set up handlers
 	cors := cors.New(cors.Options{

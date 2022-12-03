@@ -38,7 +38,7 @@ func (a *API) Router() http.Handler {
 	router.StrictSlash(true)
 
 	// Image by ID routes
-	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:\\..*}", handler.Handler(a.imageHandler)).Methods("GET").Name("Process image")
+	router.Handle("/id/{id}/{width:[0-9]+}/{height:[0-9]+}{extension:\\..*}", handler.Handler(a.imageHandler)).Methods("GET").Name("imageapi.image")
 
 	// Query parameters:
 	// ?grayscale - Grayscale the image
