@@ -20,7 +20,7 @@ ADD . /app
 WORKDIR /app
 
 RUN tailwindcss -c ./internal/api/web/tailwind.config.js -i ./internal/api/web/style.css -o ./internal/api/web/embed/assets/css/style.css --minify
-RUN go install ./...
+RUN go install -race ./...
 
 FROM docker.io/alpine:3.16
 
