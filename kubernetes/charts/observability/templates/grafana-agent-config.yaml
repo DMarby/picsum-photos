@@ -9,28 +9,15 @@ data:
       global:
         scrape_interval: 60s
         external_labels:
-          cluster: cloud
+          cluster: picsum
       configs:
-      - name: integrations
+      - name: default
         remote_write:
         - url: https://prometheus-prod-01-eu-west-0.grafana.net/api/prom/push
           basic_auth:
             username: ${GRAFANA_USERNAME}
             password: ${GRAFANA_PASSWORD}
         scrape_configs:
-        - job_name: spanmetrics
-          static_configs:
-            - targets: ['127.0.0.1:81']
-          metric_relabel_configs:
-            - source_labels: [operation]
-              target_label: span_name
-            - source_labels: [service_name]
-              target_label: service
-            - regex: operation
-              action: labeldrop
-            - regex: service_name
-              action: labeldrop
-
         - job_name: "kubernetes-pods"
           kubernetes_sd_configs:
             - role: pod
@@ -61,7 +48,7 @@ data:
       - name: default
 
         spanmetrics:
-          handler_endpoint: '0.0.0.0:81'
+          metrics_instance: default
           latency_histogram_buckets: [10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2500ms, 3s, 4s, 5s, 10s, 30s, 45s]
 
         tail_sampling:

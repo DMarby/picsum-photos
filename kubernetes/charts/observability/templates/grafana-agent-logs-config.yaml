@@ -4,36 +4,16 @@ metadata:
 apiVersion: v1
 data:
   agent.yaml: |
-    metrics:
-      wal_directory: /tmp/grafana-agent-wal
-      global:
-        scrape_interval: 60s
-        external_labels:
-          cluster: cloud
-      configs:
-      - name: integrations
-        remote_write:
-        - url: https://prometheus-prod-01-eu-west-0.grafana.net/api/prom/push
-          basic_auth:
-            username: ${GRAFANA_USERNAME}
-            password: ${GRAFANA_PASSWORD}
-    integrations:
-      prometheus_remote_write:
-      - url: https://prometheus-prod-01-eu-west-0.grafana.net/api/prom/push
-        basic_auth:
-          username: ${GRAFANA_USERNAME}
-          password: ${GRAFANA_PASSWORD}
-
     logs:
       configs:
-      - name: integrations
+      - name: default
         clients:
         - url: https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push
           basic_auth:
             username: ${GRAFANA_LOGS_USERNAME}
             password: ${GRAFANA_PASSWORD}
           external_labels:
-            cluster: cloud
+            cluster: picsum
         positions:
           filename: /tmp/positions.yaml
         target_config:

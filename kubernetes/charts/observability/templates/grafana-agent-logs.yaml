@@ -70,11 +70,6 @@ spec:
             secretKeyRef:
               name: grafana-cloud
               key: username
-        - name: GRAFANA_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: grafana-cloud
-              key: password
         - name: GRAFANA_LOGS_USERNAME
           valueFrom:
             secretKeyRef:
