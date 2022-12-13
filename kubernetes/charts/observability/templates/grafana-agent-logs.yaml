@@ -65,11 +65,11 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        - name: GRAFANA_USERNAME
+        - name: GRAFANA_PASSWORD
           valueFrom:
             secretKeyRef:
               name: grafana-cloud
-              key: username
+              key: password
         - name: GRAFANA_LOGS_USERNAME
           valueFrom:
             secretKeyRef:
