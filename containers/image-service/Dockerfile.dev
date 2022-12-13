@@ -7,9 +7,7 @@ RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/test
       musl-dev && \
     go install github.com/go-delve/delve/cmd/dlv@v1.9.1
 
-RUN mkdir -p /app
-COPY go.mod /app
-COPY go.sum /app
+COPY go.mod go.sum /app/
 WORKDIR /app
 RUN go mod download -x
 

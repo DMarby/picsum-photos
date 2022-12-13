@@ -6,16 +6,15 @@ RUN apk add --update --repository http://dl-cdn.alpinelinux.org/alpine/edge/test
       gcc \
       musl-dev
 
-RUN mkdir -p /app
-COPY go.mod /app
-COPY go.sum /app
+COPY go.mod go.sum /app/
 WORKDIR /app
-RUN go mod download -x
+RUN --mount=type=cache,target=/go/pkg/mod go mod download -x
 
 ADD . /app
-WORKDIR /app
 
-RUN go install -race ./cmd/image-service
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go install ./cmd/image-service
 
 FROM docker.io/alpine:3.16
 

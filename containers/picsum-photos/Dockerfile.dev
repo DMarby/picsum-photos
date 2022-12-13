@@ -8,9 +8,7 @@ RUN apk add --update \
 ADD https://github.com/tailwindlabs/tailwindcss/releases/download/v3.2.4/tailwindcss-linux-x64 /usr/bin/tailwindcss
 RUN chmod +x /usr/bin/tailwindcss
 
-RUN mkdir -p /app
-COPY go.mod /app
-COPY go.sum /app
+COPY go.mod go.sum /app/
 WORKDIR /app
 RUN go mod download -x
 
