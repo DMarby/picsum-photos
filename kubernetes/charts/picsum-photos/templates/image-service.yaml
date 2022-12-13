@@ -20,7 +20,7 @@ spec:
       - name: picsum-registry
       containers:
       - name: image-service
-        image: 'registry.digitalocean.com/picsum-registry/image-service@sha256:2badb08d96c49c76b789963290aa431bf93dca0e7767e2cfdc0914f8a3207672'
+        image: 'registry.digitalocean.com/picsum-registry/image-service@sha256:17cfba356929b1f1cea8e8b99468255e758c44df7c02d1ed763c3b51c0c32a74'
         imagePullPolicy: IfNotPresent
         command: ['./image-service']
         ports:

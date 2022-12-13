@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <vips/vips.h>
 #include <vips/foreign.h>
+#include <vips/vector.h>
 
 // Require libvips 8 at compile time
 #if (VIPS_MAJOR_VERSION != 8 || VIPS_MINOR_VERSION < 6)
