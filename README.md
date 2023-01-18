@@ -20,14 +20,7 @@ tilt up
 
 This will start a local instance accessible on `http://localhost:8080`, with test images.
 
-
 ## Deployment on DigitalOcean
-<p>This project is kindly hosted by:</p>
-<p>
-  <a href="https://www.digitalocean.com/?utm_medium=opensource&utm_source=picsum">
-    <img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/SVG/DO_Logo_horizontal_blue.svg" width="201px">
-  </a>
-</p>
 
 To deploy your own instance of Picsum on DigitalOcean, start by cloning this repo using git. Then follow the steps below.
 
@@ -154,6 +147,17 @@ vipsthumbnail *.jpg --size '4500x4500>' -o $PWD'/processed/%s_4500.jpg[Q=50,stri
 vipsthumbnail *.jpg --size '5000x5000>' -o $PWD'/processed/%s.jpg[Q=50,strip,optimize_coding]'
 ```
  
+## Sponsors
+
+<a href="https://www.digitalocean.com/?utm_medium=opensource&utm_source=picsum">
+  <img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/SVG/DO_Logo_horizontal_blue.svg" width="201px">
+</a>
+<br/><br/>
+
+Proudly powered by [Fastly](https://fastly.com)  
+<a href="https://fastly.com">
+  <img src="internal/api/web/embed/assets/images/fastly.svg" width="201px">
+</a>
 
 ## License
 MIT. See [LICENSE](./LICENSE.md)

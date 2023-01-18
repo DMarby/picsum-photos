@@ -174,16 +174,21 @@ footer a {
 }
 
 .sponsor {
-  height: auto;
-  width: 230px;
-  margin-bottom: 10px;
-  padding-left: 20px;
-  padding-right: 20px;
   display: inline;
+  width: 230px;
+  height: auto;
 }
 
 .sponsor:hover {
   opacity: 0.6;
+}
+
+.digitalocean {
+  margin-bottom: 20px;
+}
+
+.fastly {
+  margin-top: -20px;
 }
 
 /* Carbon ads */
