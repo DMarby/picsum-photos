@@ -20,7 +20,7 @@ func newHandler(healthChecker *health.Checker) func(w http.ResponseWriter, r *ht
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Cache-Control", "private, no-cache, no-store, must-revalidate")
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(status); err != nil {
 			return InternalServerError()

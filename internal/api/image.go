@@ -113,7 +113,7 @@ func (a *API) validateAndRedirect(w http.ResponseWriter, r *http.Request, p *par
 
 	width, height := getImageDimensions(p, image)
 
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Cache-Control", "private, no-cache, no-store, must-revalidate")
 	w.Header()["Content-Type"] = nil
 
 	path := fmt.Sprintf("/id/%s/%d/%d%s", image.ID, width, height, p.Extension)

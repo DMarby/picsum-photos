@@ -36,7 +36,7 @@ func (a *API) infoHandler(w http.ResponseWriter, r *http.Request) *handler.Error
 	listImage := a.getListImage(*image)
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Cache-Control", "private, no-cache, no-store, must-revalidate")
 
 	if err := json.NewEncoder(w).Encode(listImage); err != nil {
 		a.logError(r, "error encoding image info", err)
@@ -59,7 +59,7 @@ func (a *API) infoSeedHandler(w http.ResponseWriter, r *http.Request) *handler.E
 	listImage := a.getListImage(*image)
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Cache-Control", "private, no-cache, no-store, must-revalidate")
 
 	if err := json.NewEncoder(w).Encode(listImage); err != nil {
 		a.logError(r, "error encoding image info", err)
@@ -89,7 +89,7 @@ func (a *API) listHandler(w http.ResponseWriter, r *http.Request) *handler.Error
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Cache-Control", "private, no-cache, no-store, must-revalidate")
 
 	// If we've ran out of items, don't include the next page in the Link header
 	end := len(list) < limit

@@ -53,7 +53,7 @@ func (a *API) imageHandler(w http.ResponseWriter, r *http.Request) *handler.Erro
 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", buildFilename(imageID, p)))
 	w.Header().Set("Content-Type", getContentType(p.Extension))
 	w.Header().Set("Content-Length", strconv.Itoa(len(processedImage)))
-	w.Header().Set("Cache-Control", "public, max-age=2592000") // Cache for a month
+	w.Header().Set("Cache-Control", "public, max-age=2592000, stale-while-revalidate=60, stale-if-error=43200, immutable") // Cache for a month
 	w.Header().Set("Picsum-ID", imageID)
 	w.Header().Set("Timing-Allow-Origin", "*") // Allow all origins to see timing resources
 

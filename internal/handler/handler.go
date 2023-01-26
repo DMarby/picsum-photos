@@ -35,7 +35,7 @@ type Handler func(w http.ResponseWriter, r *http.Request) *Error
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := h(w, r)
 	if err != nil {
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Cache-Control", "private, no-cache, no-store, must-revalidate")
 
 		if r.Header.Get("accept") == jsonMediaType {
 			var data = struct {

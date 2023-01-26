@@ -53,13 +53,13 @@ func TestAPI(t *testing.T) {
 		HMAC             bool
 	}{
 		// Errors
-		{"invalid parameters", "/id/nonexistant/200/300.jpg", router, http.StatusBadRequest, []byte("Invalid parameters\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, false},
+		{"invalid parameters", "/id/nonexistant/200/300.jpg", router, http.StatusBadRequest, []byte("Invalid parameters\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}, false},
 		// Storage errors
-		{"Get() storage", "/id/1/100/100.jpg", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, true},
+		{"Get() storage", "/id/1/100/100.jpg", mockStorageRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}, true},
 		// 404
-		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, true},
+		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}, true},
 		// Processor errors
-		{"processor error", "/id/1/100/100.jpg", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}, true},
+		{"processor error", "/id/1/100/100.jpg", mockProcessorRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}, true},
 	}
 
 	for _, test := range tests {
@@ -144,7 +144,7 @@ func TestAPI(t *testing.T) {
 			t.Errorf("%s: wrong content type, %#v", test.Name, contentType)
 		}
 
-		if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "public, max-age=2592000" {
+		if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "public, max-age=2592000, stale-while-revalidate=60, stale-if-error=43200, immutable" {
 			t.Errorf("%s: wrong cache header, %#v", test.Name, cacheControl)
 		}
 

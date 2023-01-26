@@ -128,7 +128,7 @@ func (a *API) notFoundHandler(w http.ResponseWriter, r *http.Request) *handler.E
 // Set headers for static file handlers
 func fileHeaders(handler func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "public, max-age=3600")
+		w.Header().Set("Cache-Control", "public, max-age=7200, stale-while-revalidate=60, stale-if-error=43200")
 		handler(w, r)
 	}
 }

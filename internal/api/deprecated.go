@@ -51,7 +51,7 @@ func (a *API) deprecatedListHandler(w http.ResponseWriter, r *http.Request) *han
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Cache-Control", "private, no-cache, no-store, must-revalidate")
 	if err := json.NewEncoder(w).Encode(images); err != nil {
 		a.logError(r, "error encoding deprecate image list", err)
 		return handler.InternalServerError()
@@ -96,7 +96,7 @@ func (a *API) deprecatedParams(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Look for the deprecated ?image query parameter
 		if id := r.URL.Query().Get("image"); id != "" {
-			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			w.Header().Set("Cache-Control", "private, no-cache, no-store, must-revalidate")
 
 			p, err := params.GetParams(r)
 			if err != nil {

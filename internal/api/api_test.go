@@ -91,7 +91,7 @@ func TestAPI(t *testing.T) {
 			ExpectedHeaders: map[string]string{
 				"Content-Type":                  "application/json",
 				"Link":                          fmt.Sprintf("<%s/v2/list?page=2&limit=30>; rel=\"next\"", rootURL),
-				"Cache-Control":                 "no-cache, no-store, must-revalidate",
+				"Cache-Control":                 "private, no-cache, no-store, must-revalidate",
 				"Access-Control-Expose-Headers": "Link",
 			},
 		},
@@ -125,7 +125,7 @@ func TestAPI(t *testing.T) {
 			ExpectedHeaders: map[string]string{
 				"Content-Type":  "application/json",
 				"Link":          fmt.Sprintf("<%s/v2/list?page=2&limit=100>; rel=\"next\"", rootURL),
-				"Cache-Control": "no-cache, no-store, must-revalidate",
+				"Cache-Control": "private, no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -148,7 +148,7 @@ func TestAPI(t *testing.T) {
 			ExpectedHeaders: map[string]string{
 				"Content-Type":                  "application/json",
 				"Link":                          fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"next\"", rootURL),
-				"Cache-Control":                 "no-cache, no-store, must-revalidate",
+				"Cache-Control":                 "private, no-cache, no-store, must-revalidate",
 				"Access-Control-Expose-Headers": "Link",
 			},
 		},
@@ -172,7 +172,7 @@ func TestAPI(t *testing.T) {
 			ExpectedHeaders: map[string]string{
 				"Content-Type":                  "application/json",
 				"Link":                          fmt.Sprintf("<%s/v2/list?page=1&limit=1>; rel=\"prev\", <%s/v2/list?page=3&limit=1>; rel=\"next\"", rootURL, rootURL),
-				"Cache-Control":                 "no-cache, no-store, must-revalidate",
+				"Cache-Control":                 "private, no-cache, no-store, must-revalidate",
 				"Access-Control-Expose-Headers": "Link",
 			},
 		},
@@ -185,7 +185,7 @@ func TestAPI(t *testing.T) {
 			ExpectedHeaders: map[string]string{
 				"Content-Type":                  "application/json",
 				"Link":                          fmt.Sprintf("<%s/v2/list?page=2&limit=1>; rel=\"prev\"", rootURL),
-				"Cache-Control":                 "no-cache, no-store, must-revalidate",
+				"Cache-Control":                 "private, no-cache, no-store, must-revalidate",
 				"Access-Control-Expose-Headers": "Link",
 			},
 		},
@@ -208,7 +208,7 @@ func TestAPI(t *testing.T) {
 			}),
 			ExpectedHeaders: map[string]string{
 				"Content-Type":  "application/json",
-				"Cache-Control": "no-cache, no-store, must-revalidate",
+				"Cache-Control": "private, no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -230,7 +230,7 @@ func TestAPI(t *testing.T) {
 			),
 			ExpectedHeaders: map[string]string{
 				"Content-Type":  "application/json",
-				"Cache-Control": "no-cache, no-store, must-revalidate",
+				"Cache-Control": "private, no-cache, no-store, must-revalidate",
 			},
 		},
 		{
@@ -252,34 +252,34 @@ func TestAPI(t *testing.T) {
 			),
 			ExpectedHeaders: map[string]string{
 				"Content-Type":  "application/json",
-				"Cache-Control": "no-cache, no-store, must-revalidate",
+				"Cache-Control": "private, no-cache, no-store, must-revalidate",
 			},
 		},
 
 		// Errors
-		{"invalid image id", "/id/nonexistant/200/300", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"invalid image id", "/id/nonexistant/info", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"invalid size", "/id/1/1/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},   // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/9223372036854775808/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},   // Number larger then max int size to fail int parsing
-		{"invalid size", "/id/1/5500/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},                  // Number larger then maxImageSize to fail int parsing
-		{"invalid size", "/seed/1/9223372036854775808/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then maxImageSize to fail int parsing
-		{"invalid size", "/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},          // Number larger then maxImageSize to fail int parsing
-		{"invalid blur amount", "/id/1/100/100?blur=11", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"invalid blur amount", "/id/1/100/100?blur=0", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"invalid file extension", "/id/1/100/100.png", router, http.StatusBadRequest, []byte("Invalid file extension\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"invalid image id", "/id/nonexistant/200/300", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"invalid image id", "/id/nonexistant/info", router, http.StatusNotFound, []byte("Image does not exist\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"invalid size", "/id/1/1/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},   // Number larger then max int size to fail int parsing
+		{"invalid size", "/id/1/9223372036854775808/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},   // Number larger then max int size to fail int parsing
+		{"invalid size", "/id/1/5500/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},                  // Number larger then maxImageSize to fail int parsing
+		{"invalid size", "/seed/1/9223372036854775808/1", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}}, // Number larger then maxImageSize to fail int parsing
+		{"invalid size", "/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},          // Number larger then maxImageSize to fail int parsing
+		{"invalid blur amount", "/id/1/100/100?blur=11", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"invalid blur amount", "/id/1/100/100?blur=0", router, http.StatusBadRequest, []byte("Invalid blur amount\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"invalid file extension", "/id/1/100/100.png", router, http.StatusBadRequest, []byte("Invalid file extension\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
 		// Deprecated handler errors
-		{"invalid size", "/g/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
+		{"invalid size", "/g/9223372036854775808", router, http.StatusBadRequest, []byte("Invalid size\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}}, // Number larger then max int size to fail int parsing
 		// Database errors
-		{"List()", "/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"List()", "/v2/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"GetRandom()", "/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"GetRandom()", "/g/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"GetRandomWithSeed()", "/seed/1/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"Get() database", "/id/1/100/100", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"Get() database", "/g/100?image=1", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
-		{"Get() database info", "/id/1/info", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"List()", "/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"List()", "/v2/list", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"GetRandom()", "/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"GetRandom()", "/g/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"GetRandomWithSeed()", "/seed/1/200", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"Get() database", "/id/1/100/100", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"Get() database", "/g/100?image=1", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
+		{"Get() database info", "/id/1/info", mockDatabaseRouter, http.StatusInternalServerError, []byte("Something went wrong\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
 		// 404
-		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"}},
+		{"404", "/asdf", router, http.StatusNotFound, []byte("page not found\n"), map[string]string{"Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-cache, no-store, must-revalidate"}},
 	}
 
 	for _, test := range tests {
@@ -447,7 +447,7 @@ func TestAPI(t *testing.T) {
 		}
 
 		if test.TestCacheHeader {
-			if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "no-cache, no-store, must-revalidate" {
+			if cacheControl := w.Header().Get("Cache-Control"); cacheControl != "private, no-cache, no-store, must-revalidate" {
 				t.Errorf("%s: wrong cache header, %#v", test.Name, cacheControl)
 			}
 		}
