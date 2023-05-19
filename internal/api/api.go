@@ -66,7 +66,7 @@ func (a *API) Router() (http.Handler, error) {
 
 	// Image info routes
 	router.Handle("/id/{id}/info", handler.Handler(a.infoHandler)).Methods("GET").Name("api.info")
-	router.Handle("/seed/{id}/info", handler.Handler(a.infoSeedHandler)).Methods("GET").Name("api.infoSeed")
+	router.Handle("/seed/{seed}/info", handler.Handler(a.infoSeedHandler)).Methods("GET").Name("api.infoSeed")
 
 	// Image by seed routes
 	router.Handle("/seed/{seed}/{size:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.seedImageRedirectHandler)).Methods("GET").Name("api.seedImageRedirect")

@@ -241,13 +241,13 @@ func TestAPI(t *testing.T) {
 			ExpectedResponse: marshalJson(
 				api.ListImage{
 					Image: database.Image{
-						ID:     "1",
+						ID:     "2",
 						Author: "John Doe",
 						URL:    "https://picsum.photos",
 						Width:  300,
 						Height: 400,
 					},
-					DownloadURL: fmt.Sprintf("%s/id/1/300/400", rootURL),
+					DownloadURL: fmt.Sprintf("%s/id/2/300/400", rootURL),
 				},
 			),
 			ExpectedHeaders: map[string]string{
