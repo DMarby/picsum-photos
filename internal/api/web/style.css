@@ -191,78 +191,8 @@ footer a {
   margin-top: -20px;
 }
 
-/* Carbon ads */
-#carbonads {
-  display: block;
-  overflow: hidden;
-  border-radius: 4px;
-  font-size: 14px;
-  padding: 20px;
-  max-width: 350px;
-  background: HSL(217.5, 57.1%, 97.3%);
-  max-height: 140px;
-}
-
-#carbonads a {
-  color: #333;
-  text-decoration: none;
-}
-
-#carbonads span {
-  position: relative;
-  overflow: hidden;
-}
-
-#carbonads img {
-  border-radius: 4px;
-  float: left;
-  margin-right: 10px;
-}
-
-.carbon-poweredby {
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: 11px;
-}
-
-@media (min-width: 1200px) {
-  #carbonads {
-    margin-top: -200px;
-    margin-left: 25px;
-  }
-
-  .carbon-poweredby {
-    display: block;
-    padding: 10px 12px;
-  }
-}
-
-@media (max-width: 1200px) {
-  #carbonads {
-    margin-top: -150px;
-    margin-left: 25px;
-  }
-
-  .carbon-poweredby {
-    display: block;
-    padding: 10px 12px;
-  }
-}
-
 @media (max-width: 1000px) {
   header {
     text-align: center;
-  }
-
-  #carbonads {
-    margin-top: 100px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-  }
-
-  .carbon-poweredby {
-    display: block;
-    padding: 10px 12px;
   }
 }
