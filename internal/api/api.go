@@ -95,6 +95,7 @@ func (a *API) Router() (http.Handler, error) {
 	router.HandleFunc("/", serveFile(fileServer, "/")).Name("api.serveFile")
 	router.HandleFunc("/images", serveFile(fileServer, "/images.html")).Name("api.serveFile")
 	router.HandleFunc("/favicon.ico", serveFile(fileServer, "/favicon.ico")).Name("api.serveFile")
+	router.HandleFunc("/robots.txt", serveFile(fileServer, "/robots.txt")).Name("api.serveFile")
 	router.PathPrefix("/assets/").HandlerFunc(fileHeaders(fileServer.ServeHTTP)).Name("api.serveFile")
 
 	// Set up handlers

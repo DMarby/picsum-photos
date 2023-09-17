@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /$
+Allow: /images
+Allow: /id/237/250
+Disallow: /
