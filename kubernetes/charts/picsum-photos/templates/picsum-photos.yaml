@@ -20,7 +20,7 @@ spec:
       - name: picsum-registry
       containers:
       - name: picsum
-        image: 'registry.digitalocean.com/picsum-registry/picsum-photos@sha256:6abbdbc86aafddc6cf060b1dc72e49d74c8c617a9361ad78e1ab33d4eac074d7'
+        image: 'registry.digitalocean.com/picsum-registry/picsum-photos@sha256:bae7f729e9c6c6df6b589b07a83fab4c0da0345c491c3c4b4be06e341d07ffcb'
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
