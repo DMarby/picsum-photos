@@ -10,17 +10,23 @@ resource "digitalocean_kubernetes_cluster" "picsum_k8s" {
     size       = "s-4vcpu-8gb"
     node_count = 4
   }
+
+  lifecycle {
+    ignore_changes = [
+      version
+    ]
+  }
 }
 
 resource "digitalocean_container_registry" "picsum_registry" {
-  name = "picsum-registry"
+  name                   = "picsum-registry"
   subscription_tier_slug = "basic"
-  region = var.picsum_digitalocean_region
+  region                 = var.picsum_digitalocean_region
 }
 
 provider "kubernetes" {
-  host             = digitalocean_kubernetes_cluster.picsum_k8s.endpoint
-  token            = digitalocean_kubernetes_cluster.picsum_k8s.kube_config[0].token
+  host  = digitalocean_kubernetes_cluster.picsum_k8s.endpoint
+  token = digitalocean_kubernetes_cluster.picsum_k8s.kube_config[0].token
   cluster_ca_certificate = base64decode(
     digitalocean_kubernetes_cluster.picsum_k8s.kube_config[0].cluster_ca_certificate
   )
