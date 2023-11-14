@@ -47,9 +47,9 @@ data:
       configs:
       - name: default
 
-        spanmetrics:
-          metrics_instance: default
-          latency_histogram_buckets: [10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2500ms, 3s, 4s, 5s, 10s, 30s, 45s]
+        # spanmetrics:
+        #   metrics_instance: default
+        #   latency_histogram_buckets: [10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2500ms, 3s, 4s, 5s, 10s, 30s, 45s]
 
         tail_sampling:
           policies:
@@ -65,7 +65,7 @@ data:
             - name: probabilistic
               type: probabilistic
               probabilistic:
-                sampling_percentage: 10
+                sampling_percentage: 1
 
         remote_write:
         - endpoint: tempo-eu-west-0.grafana.net:443
