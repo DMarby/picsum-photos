@@ -71,12 +71,10 @@ spec:
     spec:
       containers:
       - args:
+        - -config.expand-env=true
         - -config.file=/etc/agent/agent.yaml
         - -enable-features=integrations-next
         - -server.http.address=0.0.0.0:80
-        - -config.expand-env
-        command:
-        - /bin/agent
         env:
         - name: HOSTNAME
           valueFrom:
@@ -102,7 +100,7 @@ spec:
             secretKeyRef:
               name: grafana-cloud
               key: traces_username
-        image: grafana/agent:v0.29.0
+        image: grafana/agent:v0.37.4
         imagePullPolicy: IfNotPresent
         name: grafana-agent
         ports:
