@@ -17,8 +17,7 @@
       "aarch64-linux"
       "aarch64-darwin"
     ] (system:
-      let pkgs = nixpkgs.legacyPackages.${system}; in
-      {
+      let pkgs = nixpkgs.legacyPackages.${system}; in {
         packages = rec {
           default = everything;
 
@@ -70,5 +69,71 @@
           ];
         };
       }
-    );
+    ) // {
+      nixosModules.default = { config, lib, pkgs, ... }:
+        with lib;
+        let cfg = config.picsum-photos.services.image-service;
+        in {
+          options.picsum-photos.services.image-service = {
+          enable = mkEnableOption "Enable the image-service service";
+
+          logLevel = mkOption {
+            type = with types; enum [ "debug" "info" "warn" "error" "dpanic" "panic" "fatal" ];
+            example = "debug";
+            default = "info";
+            description = "log level";
+          };
+
+          domain = mkOption {
+            type = types.str;
+            description = "Domain to listen to";
+          };
+
+          listen = mkOption rec {
+            type = types.path;
+            default = "/tmp/image-service.sock";
+            example = default;
+            description = "Unix domain socket to listen on";
+          };
+
+          environmentFile = mkOption {
+            type = types.path;
+            description = "Environment file";
+          };
+        };
+
+        config = mkIf cfg.enable {
+          users.users.image-service = {
+            createHome = true;
+            isSystemUser = true;
+            group = "image-service";
+            home = "/var/lib/image-service";
+          };
+
+          systemd.services.image-service = {
+            description = "image-service";
+            wantedBy = [ "multi-user.target" ];
+
+            script = ''
+              exec ${self.packages.${pkgs.system}.image-service}/bin/image-service -log-level=${cfg.logLevel} -listen=${cfg.listen}
+            '';
+
+            serviceConfig = {
+              EnvironmentFile = cfg.environmentFile;
+              User = "image-service";
+              Group = "image-service";
+              Restart = "always";
+              RestartSec = "30s";
+              WorkingDirectory = "/var/lib/image-service";
+            };
+          };
+
+          services.nginx.virtualHosts."${cfg.domain}" = {
+            locations."/" = {
+              proxyPass = "http://unix:${cfg.sockPath}";
+            };
+          };
+        };
+      };
+    };
 }
