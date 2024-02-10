@@ -100,6 +100,11 @@
             type = types.path;
             description = "Environment file";
           };
+
+          storagePath = mkOption {
+            type = types.path;
+            description = "Storage path";
+          };
         };
 
         config = mkIf cfg.enable {
@@ -115,7 +120,7 @@
             wantedBy = [ "multi-user.target" ];
 
             script = ''
-              exec ${self.packages.${pkgs.system}.image-service}/bin/image-service -log-level=${cfg.logLevel} -listen=${cfg.listen}
+              exec ${self.packages.${pkgs.system}.image-service}/bin/image-service -log-level=${cfg.logLevel} -listen=${cfg.listen} -storage-path=${cfg.storagePath}
             '';
 
             serviceConfig = {
