@@ -7,7 +7,6 @@ require (
 	github.com/go-logr/stdr v1.2.2
 	github.com/gorilla/mux v1.8.1
 	github.com/jamiealquiza/envy v1.1.0
-	github.com/mediocregopher/radix/v4 v4.1.4
 	github.com/prometheus/client_golang v1.18.0
 	github.com/prometheus/common v0.46.0
 	github.com/rs/cors v1.10.1
@@ -39,7 +38,6 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/tilinna/clock v1.0.2 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.23.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.23.1
 	go.opentelemetry.io/otel/metric v1.23.1 // indirect
