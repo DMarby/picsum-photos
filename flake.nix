@@ -125,6 +125,8 @@
               Restart = "always";
               RestartSec = "30s";
               WorkingDirectory = "/var/lib/image-service";
+              RuntimeDirectory = "image-service";
+              RuntimeDirectoryMode = "0750";
             };
           };
 
