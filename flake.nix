@@ -136,6 +136,7 @@
               WorkingDirectory = "/var/lib/image-service";
               RuntimeDirectory = "image-service";
               RuntimeDirectoryMode = "0770";
+              UMask = "077";
             };
           };
 
