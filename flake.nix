@@ -20,6 +20,16 @@
       let pkgs = nixpkgs.legacyPackages.${system}; in
       {
         packages = rec {
+          default = everything;
+
+          everything = pkgs.symlinkJoin {
+            name = "picsum-photos-composite";
+            paths = [
+              picsum-photos
+              image-service
+            ];
+          };
+
           picsum-photos = pkgs.buildGo122Module {
             name = "picsum-photos";
             src = ./.;
