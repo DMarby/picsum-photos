@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/DMarby/picsum-photos/internal/cache/redis"
+	"github.com/DMarby/picsum-photos/internal/cache/memory"
 	"github.com/DMarby/picsum-photos/internal/cmd"
 	"github.com/DMarby/picsum-photos/internal/health"
 	"github.com/DMarby/picsum-photos/internal/hmac"
@@ -16,7 +16,7 @@ import (
 	"github.com/DMarby/picsum-photos/internal/image/vips"
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/DMarby/picsum-photos/internal/metrics"
-	"github.com/DMarby/picsum-photos/internal/storage/spaces"
+	"github.com/DMarby/picsum-photos/internal/storage/file"
 	"github.com/DMarby/picsum-photos/internal/tracing"
 
 	api "github.com/DMarby/picsum-photos/internal/imageapi"
@@ -33,16 +33,8 @@ var (
 	metricsListen = flag.String("metrics-listen", ":8083", "metrics listen address")
 	loglevel      = zap.LevelFlag("log-level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
 
-	// Storage - Spaces
-	storageSpacesSpace          = flag.String("storage-spaces-space", "", "digitalocean space to use")
-	storageSpacesEndpoint       = flag.String("storage-spaces-endpoint", "", "spaces endpoint")
-	storageSpacesForcePathStyle = flag.Bool("storage-spaces-force-path-style", false, "spaces force path style")
-	storageSpacesAccessKey      = flag.String("storage-spaces-access-key", "", "spaces access key")
-	storageSpacesSecretKey      = flag.String("storage-spaces-secret-key", "", "spaces secret key")
-
-	// Cache - Redis
-	cacheRedisAddress  = flag.String("cache-redis-address", "redis://127.0.0.1:6379", "redis address, may contain authentication details")
-	cacheRedisPoolSize = flag.Int("cache-redis-pool-size", 10, "redis connection pool size")
+	// Storage - File
+	storagePath = flag.String("storage-path", "", "path to the storage directory")
 
 	// HMAC
 	hmacKey = flag.String("hmac-key", "", "hmac key to use for authentication between services")
@@ -81,17 +73,14 @@ func main() {
 	}
 	defer tracer.Shutdown(tracerCtx)
 
-	// Initialize the storage, cache
-	storage, err := spaces.New(*storageSpacesSpace, *storageSpacesEndpoint, *storageSpacesAccessKey, *storageSpacesSecretKey, *storageSpacesForcePathStyle)
+	// Initialize the storage
+	storage, err := file.New(*storagePath)
 	if err != nil {
 		log.Fatalf("error initializing storage: %s", err)
 	}
 
 	// Initialize the cache
-	cache, err := redis.New(ctx, tracer, *cacheRedisAddress, *cacheRedisPoolSize)
-	if err != nil {
-		log.Fatalf("error initializing cache: %s", err)
-	}
+	cache := memory.New()
 	defer cache.Shutdown()
 
 	// Initialize the image processor

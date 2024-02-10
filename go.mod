@@ -3,7 +3,6 @@ module github.com/DMarby/picsum-photos
 go 1.22.0
 
 require (
-	github.com/aws/aws-sdk-go v1.50.15
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/go-logr/stdr v1.2.2
 	github.com/gorilla/mux v1.8.1
@@ -36,7 +35,6 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/spf13/cobra v1.7.0 // indirect
