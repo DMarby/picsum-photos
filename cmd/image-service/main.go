@@ -18,7 +18,7 @@ import (
 	"github.com/DMarby/picsum-photos/internal/logger"
 	"github.com/DMarby/picsum-photos/internal/metrics"
 	"github.com/DMarby/picsum-photos/internal/storage/file"
-	"github.com/DMarby/picsum-photos/internal/tracing"
+	"github.com/DMarby/picsum-photos/internal/tracing/test"
 
 	api "github.com/DMarby/picsum-photos/internal/imageapi"
 
@@ -65,14 +65,15 @@ func main() {
 	defer shutdown()
 
 	// Initialize tracing
-	tracerCtx, tracerCancel := context.WithCancel(ctx)
-	defer tracerCancel()
+	// tracerCtx, tracerCancel := context.WithCancel(ctx)
+	// defer tracerCancel()
 
-	tracer, err := tracing.New(tracerCtx, log, "image-service")
-	if err != nil {
-		log.Fatalf("error initializing tracing: %s", err)
-	}
-	defer tracer.Shutdown(tracerCtx)
+	// tracer, err := tracing.New(tracerCtx, log, "image-service")
+	// if err != nil {
+	// 	log.Fatalf("error initializing tracing: %s", err)
+	// }
+	// defer tracer.Shutdown(tracerCtx)
+	tracer := test.Tracer(log)
 
 	// Initialize the storage
 	storage, err := file.New(*storagePath)
