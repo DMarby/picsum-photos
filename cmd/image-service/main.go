@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,7 +30,7 @@ import (
 // Comandline flags
 var (
 	// Global
-	listen        = flag.String("listen", ":8081", "listen address")
+	listen        = flag.String("listen", "", "unix socket path")
 	metricsListen = flag.String("metrics-listen", ":8083", "metrics listen address")
 	loglevel      = zap.LevelFlag("log-level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
 
@@ -109,15 +110,19 @@ func main() {
 		},
 	}
 	server := &http.Server{
-		Addr:         *listen,
 		Handler:      api.Router(),
 		ReadTimeout:  cmd.ReadTimeout,
 		WriteTimeout: cmd.WriteTimeout,
 		ErrorLog:     logger.NewHTTPErrorLog(log),
 	}
 
+	os.Remove(*listen)
+	unixListener, err := net.Listen("unix", *listen)
+	if err != nil {
+		log.Fatalf("error creating unix socket listener: %s", err.Error())
+	}
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.Serve(unixListener); err != nil && err != http.ErrServerClosed {
 			log.Errorf("error shutting down the http server: %s", err)
 		}
 	}()
