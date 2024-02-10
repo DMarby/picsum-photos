@@ -27,6 +27,12 @@
             subPackages = ["cmd/picsum-photos"];
             doCheck = false; # Prevent make test from being ran
             vendorHash = (pkgs.lib.fileContents ./go.mod.sri);
+            nativeBuildInputs = with pkgs; [
+              tailwindcss
+            ];
+            preBuild = ''
+              go generate ./...
+            '';
           };
 
           image-service = pkgs.buildGo122Module {

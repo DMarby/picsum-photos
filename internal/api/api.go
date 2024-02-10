@@ -18,6 +18,7 @@ import (
 	_ "embed"
 )
 
+//go:generate tailwindcss -c web/tailwind.config.js -i web/style.css -o web/embed/assets/css/style.css --minify
 //go:embed web/embed
 var static embed.FS
 
