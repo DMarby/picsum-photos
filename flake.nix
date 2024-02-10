@@ -136,8 +136,6 @@
               WorkingDirectory = "/var/lib/image-service";
               RuntimeDirectory = "image-service";
               RuntimeDirectoryMode = "0750";
-              StateDirectory = "image-service";
-              StateDirectoryMode = "0440";
             };
           };
 
