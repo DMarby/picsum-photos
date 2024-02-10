@@ -1,6 +1,6 @@
 module github.com/DMarby/picsum-photos
 
-go 1.22.0
+go 1.22rc2
 
 require (
 	github.com/felixge/httpsnoop v1.0.4
