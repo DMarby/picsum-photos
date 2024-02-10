@@ -89,13 +89,6 @@
             description = "Domain to listen to";
           };
 
-          listen = mkOption rec {
-            type = types.path;
-            default = "/tmp/image-service.sock";
-            example = default;
-            description = "Unix domain socket to listen on";
-          };
-
           environmentFile = mkOption {
             type = types.path;
             description = "Environment file";
@@ -120,7 +113,7 @@
             wantedBy = [ "multi-user.target" ];
 
             script = ''
-              exec ${self.packages.${pkgs.system}.image-service}/bin/image-service -log-level=${cfg.logLevel} -listen=${cfg.listen} -storage-path=${cfg.storagePath}
+              exec ${self.packages.${pkgs.system}.image-service}/bin/image-service -log-level=${cfg.logLevel} -listen=/run/image-service/image-service.sock -storage-path=${cfg.storagePath}
             '';
 
             serviceConfig = {
