@@ -8,7 +8,7 @@ import (
 	"github.com/felixge/httpsnoop"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/expfmt"
-	"tailscale.com/tsweb"
+	"tailscale.com/tsweb/varz"
 )
 
 var (
@@ -46,7 +46,7 @@ func init() {
 func VarzHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
 	expvar.Do(func(kv expvar.KeyValue) {
-		tsweb.WritePrometheusExpvar(w, kv)
+		varz.WritePrometheusExpvar(w, kv)
 	})
 
 	mfs, _ := registry.Gather()

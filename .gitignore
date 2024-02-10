@@ -14,3 +14,7 @@ terraform.tfvars
 terraform.tf
 
 .DS_Store
+
+.direnv
+result
+
