@@ -28,6 +28,20 @@
             doCheck = false; # Prevent make test from being ran
             vendorHash = (pkgs.lib.fileContents ./go.mod.sri);
           };
+
+          image-service = pkgs.buildGo122Module {
+            name = "image-service";
+            src = ./.;
+            subPackages = ["cmd/image-service"];
+            doCheck = false; # Prevent make test from being ran
+            vendorHash = (pkgs.lib.fileContents ./go.mod.sri);
+            nativeBuildInputs = with pkgs; [
+              pkg-config
+            ];
+            buildInputs = with pkgs; [
+              vips
+            ];
+          };
         };
 
         devShells.default = pkgs.mkShell {
