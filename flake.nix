@@ -101,6 +101,8 @@
         };
 
         config = mkIf cfg.enable {
+          users.groups.image-service = {};
+
           users.users.image-service = {
             createHome = true;
             isSystemUser = true;
