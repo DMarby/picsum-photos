@@ -101,8 +101,10 @@
             description = "Environment file";
           };
 
-          storagePath = mkOption {
+          storagePath = mkOption rec {
             type = types.path;
+            default = "/var/lib/image-service";
+            example = default;
             description = "Storage path";
           };
         };
@@ -134,6 +136,8 @@
               WorkingDirectory = "/var/lib/image-service";
               RuntimeDirectory = "image-service";
               RuntimeDirectoryMode = "0750";
+              StateDirectory = "image-service";
+              StateDirectoryMode = "0440";
             };
           };
 
