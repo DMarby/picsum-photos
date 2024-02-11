@@ -84,6 +84,13 @@
             description = "log level";
           };
 
+          workers = mkOption rec {
+            type = types.number;
+            default = 16;
+            example = default;
+            description = "worker queue concurrency";
+          };
+
           domain = mkOption {
             type = types.str;
             description = "Domain to listen to";
@@ -124,7 +131,11 @@
             wantedBy = [ "multi-user.target" ];
 
             script = ''
-              exec ${self.packages.${pkgs.system}.image-service}/bin/image-service -log-level=${cfg.logLevel} -listen=${cfg.sockPath} -storage-path=${cfg.storagePath}
+              exec ${self.packages.${pkgs.system}.image-service}/bin/image-service \
+                -log-level=${cfg.logLevel} \
+                -listen=${cfg.sockPath} \
+                -storage-path=${cfg.storagePath} \
+                -workers=${cfg.workers}
             '';
 
             serviceConfig = {
