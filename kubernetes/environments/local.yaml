@@ -1,8 +1,0 @@
-picsumReplicas: 1
-picsumRootURL: "http://localhost:8080"
-picsumImageServiceURL: "http://localhost:8081"
-picsumLogLevel: "debug"
-
-imageServiceReplicas: 1
-imageServiceStorageSpacesForcePathStyle: true
-imageServiceLogLevel: "debug"

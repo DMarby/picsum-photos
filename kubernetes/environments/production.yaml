@@ -1,6 +1,0 @@
-picsumReplicas: 3
-picsumCreateImageManifest: true
-
-imageServiceReplicas: 4
-
-cloudflareAuthEnabled: true

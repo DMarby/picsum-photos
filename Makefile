@@ -5,24 +5,6 @@ GOTOOLRUN = $(GO) run -modfile=./tools/go.mod
 test:
 	$(GO) test ./...
 
-.PHONY: integration
-integration:
-	$(GO) test -tags integration ./...
-
-.PHONY: integration_services
-integration_services:
-	docker run --rm -p 6380:6379 redis
-
-.PHONY: package
-package:
-	docker build . -f containers/picsum-photos/Dockerfile -t registry.digitalocean.com/picsum-registry/picsum-photos:latest
-	docker build . -f containers/image-service/Dockerfile -t registry.digitalocean.com/picsum-registry/image-service:latest
-
-.PHONY: publish
-publish: package
-	docker push registry.digitalocean.com/picsum-registry/picsum-photos:latest
-	docker push registry.digitalocean.com/picsum-registry/image-service:latest
-
 .PHONY: fixtures
 fixtures: generate_fixtures
 	docker run --rm -v $(PWD):/picsum-photos docker.io/golang:1.19-alpine sh -c 'apk add make && cd /picsum-photos && make docker_fixtures generate_fixtures'
@@ -38,9 +20,6 @@ docker_fixtures:
 		git \
 		gcc \
 		musl-dev
-
-.PHONY: build
-build:
 
 .PHONY: generate
 generate: go.mod.sri

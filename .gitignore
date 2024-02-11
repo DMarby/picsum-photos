@@ -8,13 +8,7 @@
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 
-.terraform
-.terraform.lock.hcl
-terraform.tfvars
-terraform.tf
-
 .DS_Store
 
 .direnv
 result
-
