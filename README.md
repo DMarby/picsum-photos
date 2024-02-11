@@ -8,7 +8,7 @@ Lorem Picsum is a service providing easy to use, stylish placeholders.
 
 Proudly powered by [Fastly](https://fastly.com)  
 <a href="https://fastly.com">
-  <img src="internal/api/web/embed/assets/images/fastly.svg" width="201px">
+  <img src="internal/web/embed/assets/images/fastly.svg" width="201px">
 </a>
 
 ## License

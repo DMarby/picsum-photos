@@ -1,7 +1,6 @@
 package api
 
 import (
-	"embed"
 	"io/fs"
 	"net/http"
 	"time"
@@ -9,6 +8,7 @@ import (
 	"github.com/DMarby/picsum-photos/internal/handler"
 	"github.com/DMarby/picsum-photos/internal/hmac"
 	"github.com/DMarby/picsum-photos/internal/tracing"
+	"github.com/DMarby/picsum-photos/internal/web"
 	"github.com/rs/cors"
 
 	"github.com/DMarby/picsum-photos/internal/database"
@@ -17,10 +17,6 @@ import (
 
 	_ "embed"
 )
-
-//go:generate tailwindcss -c web/tailwind.config.js -i web/style.css -o web/embed/assets/css/style.css --minify
-//go:embed web/embed
-var static embed.FS
 
 // API is a http api
 type API struct {
@@ -87,7 +83,7 @@ func (a *API) Router() (http.Handler, error) {
 	router.Handle("/g/{width:[0-9]+}/{height:[0-9]+}{extension:(?:\\..*)?}", handler.Handler(a.deprecatedImageHandler)).Methods("GET").Name("api.deprecatedImage")
 
 	// Static files
-	staticFS, err := fs.Sub(static, "web/embed")
+	staticFS, err := fs.Sub(web.Static, "embed")
 	if err != nil {
 		return nil, err
 	}
