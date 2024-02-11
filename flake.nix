@@ -172,7 +172,7 @@
                   exec ${self.packages.${pkgs.system}.picsum-photos}/bin/picsum-photos \
                     -log-level=${cfg.picsum-photos.logLevel} \
                     -listen=${cfg.picsum-photos.sockPath} \
-                    -database-file-path=${cfg.picsum-photos.storagePath}
+                    -database-file-path=${cfg.picsum-photos.databaseFilePath}
                 '';
 
                 serviceConfig = {
