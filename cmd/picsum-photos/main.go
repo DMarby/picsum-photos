@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -26,7 +27,7 @@ import (
 // Comandline flags
 var (
 	// Global
-	listen          = flag.String("listen", ":8080", "listen address")
+	listen          = flag.String("listen", "", "unix socket path")
 	metricsListen   = flag.String("metrics-listen", ":8082", "metrics listen address")
 	rootURL         = flag.String("root-url", "https://picsum.photos", "root url")
 	imageServiceURL = flag.String("image-service-url", "https://fastly.picsum.photos", "image service url")
@@ -97,16 +98,20 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr:         *listen,
 		Handler:      router,
 		ReadTimeout:  cmd.ReadTimeout,
 		WriteTimeout: cmd.WriteTimeout,
 		ErrorLog:     logger.NewHTTPErrorLog(log),
 	}
 
+	os.Remove(*listen)
+	unixListener, err := net.Listen("unix", *listen)
+	if err != nil {
+		log.Fatalf("error creating unix socket listener: %s", err.Error())
+	}
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Infof("error shutting down the http server: %s", err)
+		if err := server.Serve(unixListener); err != nil && err != http.ErrServerClosed {
+			log.Errorf("error shutting down the http server: %s", err)
 		}
 	}()
 
