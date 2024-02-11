@@ -28,7 +28,7 @@ import (
 var (
 	// Global
 	listen          = flag.String("listen", "", "unix socket path")
-	metricsListen   = flag.String("metrics-listen", ":8082", "metrics listen address")
+	metricsListen   = flag.String("metrics-listen", "127.0.0.1:8082", "metrics listen address")
 	rootURL         = flag.String("root-url", "https://picsum.photos", "root url")
 	imageServiceURL = flag.String("image-service-url", "https://fastly.picsum.photos", "image service url")
 	loglevel        = zap.LevelFlag("log-level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")

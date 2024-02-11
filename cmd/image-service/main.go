@@ -31,7 +31,7 @@ import (
 var (
 	// Global
 	listen        = flag.String("listen", "", "unix socket path")
-	metricsListen = flag.String("metrics-listen", ":8083", "metrics listen address")
+	metricsListen = flag.String("metrics-listen", "127.0.0.1:8083", "metrics listen address")
 	loglevel      = zap.LevelFlag("log-level", zap.InfoLevel, "log level (default \"info\") (debug, info, warn, error, dpanic, panic, fatal)")
 
 	// Storage - File
