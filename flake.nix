@@ -214,7 +214,7 @@
                     -log-level=${cfg.image-service.logLevel} \
                     -listen=${cfg.image-service.sockPath} \
                     -storage-path=${cfg.image-service.storagePath} \
-                    -workers=${cfg.image-service.workers}
+                    -workers=${toString cfg.image-service.workers}
                 '';
 
                 serviceConfig = {
