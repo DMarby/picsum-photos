@@ -61,6 +61,28 @@
         'analytics_storage': granted
       });
     }
+
+    function copyPicsumLink(button, value) {
+      function done() {
+        button.textContent = 'Copied';
+        setTimeout(function () {
+          button.textContent = 'Copy';
+        }, 1500);
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value).then(done);
+        return;
+      }
+
+      var textarea = document.createElement('textarea');
+      textarea.value = value;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      done();
+    }
   </script>
 </head>
 <body>
@@ -83,9 +105,9 @@
       <div class="md:w-full lg:w-1/2 text-center">
         <h2 class="text-4xl">Easy to use, stylish placeholders</h2>
         <p>Just add your desired image size (width &amp; height) after our URL, and you'll get a random image.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300">https://picsum.photos/200/300</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300">https://picsum.photos/200/300</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/200/300')">Copy</button></pre>
         <p>To get a square image, just add the size.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/200">https://picsum.photos/200</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/200">https://picsum.photos/200</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/200')">Copy</button></pre>
       </div>
       <div class="lg:w-1/4"></div>
     </div>
@@ -96,7 +118,7 @@
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
         <h2 class="text-2xl">Specific Image</h2>
         <p>Get a specific image by adding <code>/id/{image}</code> to the start of the url.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/id/237/200/300">https://picsum.photos/id/237/200/300</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/id/237/200/300">https://picsum.photos/id/237/200/300</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/id/237/200/300')">Copy</button></pre>
         <p>You can find a list of all the images <a class="no-underline" href="/images">here.</a></p>
       </div>
       <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
@@ -110,7 +132,7 @@
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
         <h2 class="text-2xl">Static Random Image</h2>
         <p>Get the same random image every time based on a seed, by adding <code>/seed/{seed}</code> to the start of the url.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/seed/picsum/200/300">https://picsum.photos/seed/picsum/200/300</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/seed/picsum/200/300">https://picsum.photos/seed/picsum/200/300</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/seed/picsum/200/300')">Copy</button></pre>
       </div>
       <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
         <img class="resize" src="https://picsum.photos/seed/picsum/536/354">
@@ -123,7 +145,7 @@
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
         <h2 class="text-2xl">Grayscale</h2>
         <p>Get a grayscale image by appending <code>?grayscale</code> to the end of the url.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300?grayscale">https://picsum.photos/200/300?grayscale</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300?grayscale">https://picsum.photos/200/300?grayscale</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/200/300?grayscale')">Copy</button></pre>
       </div>
       <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
         <img class="resize" src="https://picsum.photos/id/1084/536/354?grayscale">
@@ -136,9 +158,9 @@
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
         <h2 class="text-2xl">Blur</h2>
         <p>Get a blurred image by appending <code>?blur</code> to the end of the url.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300/?blur">https://picsum.photos/200/300/?blur</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300/?blur">https://picsum.photos/200/300/?blur</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/200/300/?blur')">Copy</button></pre>
         <p>You can adjust the amount of blur by providing a number between <code>1</code> and <code>10</code>. </p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300/?blur=2">https://picsum.photos/200/300/?blur=2</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300/?blur=2">https://picsum.photos/200/300/?blur=2</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/200/300/?blur=2')">Copy</button></pre>
       </div>
       <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
         <img class="resize" src="https://picsum.photos/id/1060/536/354?blur=2">
@@ -152,14 +174,14 @@
         <h2 class="text-2xl">Advanced Usage</h2>
         <p>You may combine any of the options above.</p>
         <p>For example, to get a specific image that is grayscale and blurred.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/id/870/200/300?grayscale&blur=2">https://picsum.photos/id/870/200/300?grayscale&blur=2</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/id/870/200/300?grayscale&blur=2">https://picsum.photos/id/870/200/300?grayscale&blur=2</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/id/870/200/300?grayscale&blur=2')">Copy</button></pre>
         <p>To request multiple images of the same size in your browser, add the <code>random</code> query param to prevent the images from being cached:</p>
 <pre><code class="break-words">&lt;img src="https://picsum.photos/200/300?random=1"&gt;
-&lt;img src="https://picsum.photos/200/300?random=2"&gt;</code></pre>
+&lt;img src="https://picsum.photos/200/300?random=2"&gt;</code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/200/300?random=1\nhttps://picsum.photos/200/300?random=2')">Copy</button></pre>
         <p>If you need a file ending, you can add <code>.jpg</code> to the end of the url.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300.jpg">https://picsum.photos/200/300.jpg</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300.jpg">https://picsum.photos/200/300.jpg</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/200/300.jpg')">Copy</button></pre>
         <p>To get an image in the WebP format, you can add <code>.webp</code> to the end of the url.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/200/300.webp">https://picsum.photos/200/300.webp</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/200/300.webp">https://picsum.photos/200/300.webp</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/200/300.webp')">Copy</button></pre>
       </div>
       <div class="md:w-full px-4 pt-4 lg:w-1/2 lg:px-8 lg:pt-0">
         <img class="resize" src="https://picsum.photos/id/870/536/354?grayscale&blur=2">
@@ -172,11 +194,11 @@
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
         <h2 class="text-2xl">List Images</h2>
         <p>Get a list of images by using the <code>/v2/list</code> endpoint.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/v2/list">https://picsum.photos/v2/list</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/v2/list">https://picsum.photos/v2/list</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/v2/list')">Copy</button></pre>
         <p>The API will return 30 items per page by default.</p>
         <p>To request another page, use the <code>?page</code> parameter.</p>
         <p>To change the amount of items per page, use the <code>?limit</code> parameter.</p>
-        <pre><code class="break-words"><a class="no-underline" href="/v2/list?page=2&limit=100">https://picsum.photos/v2/list?page=2&limit=100</a></code></pre>
+        <pre><code class="break-words"><a class="no-underline" href="/v2/list?page=2&limit=100">https://picsum.photos/v2/list?page=2&limit=100</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/v2/list?page=2&limit=100')">Copy</button></pre>
         <p>The <code>Link</code> header includes pagination information about the next/previous pages</p>
       </div>
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
@@ -200,7 +222,7 @@
         <h2 class="text-2xl">Image Details</h2>
         <p>Get information about a specific image by using the <code>/id/{id}/info</code> and <code>/seed/{seed}/info</code> endpoints.</p>
         <pre><code class="break-words"><a class="no-underline" href="/id/0/info">https://picsum.photos/id/0/info</a>
-<a class="no-underline" href="/seed/picsum/info">https://picsum.photos/seed/picsum/info</a></code></pre>
+<a class="no-underline" href="/seed/picsum/info">https://picsum.photos/seed/picsum/info</a></code><button type="button" class="copy-btn" onclick="copyPicsumLink(this, 'https://picsum.photos/id/0/info\nhttps://picsum.photos/seed/picsum/info')">Copy</button></pre>
         <p>You can find out the ID of an image by looking at the <code>Picsum-ID</code> header, or the <code>User Comment</code> field in the EXIF metadata.</p>
       </div>
       <div class="md:w-full lg:w-1/2 lg:px-8 px-4">
